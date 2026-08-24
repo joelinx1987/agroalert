@@ -9,7 +9,7 @@ import json
 
 st.set_page_config(page_title="AgroAlert MultiCultivo Pro", page_icon="🌱", layout="wide")
 
-st.title("🌱 AgroAlert Pro - Monitor Integral & Soporte de Tratamiento")
+st.title("🌱 AgroAlert Pro - Monitor Integral Agrícola")
 st.caption("Sistema de soporte a la decisión (DSS) multicultivo y dosificación agronómica")
 
 # --- 1. BASE DE DATOS Y GESTIÓN DE PARCELAS ---
@@ -34,7 +34,7 @@ if "db_parcelas" not in st.session_state:
         }
     }
 
-st.sidebar.header("📍 1. Cultivo y Parcela")
+st.sidebar.header("📍 1. Cultivo y Parcela Activa")
 
 tipo_cultivo = st.sidebar.selectbox(
     "Selecciona Tipo de Cultivo:",
@@ -45,40 +45,15 @@ if tipo_cultivo not in st.session_state.db_parcelas:
     st.session_state.db_parcelas[tipo_cultivo] = {}
 
 fincas_actuales = st.session_state.db_parcelas[tipo_cultivo]
-lista_parcelas = list(fincas_actuales.keys()) + ["➕ Añadir Nueva Parcela"]
-seleccion_parcela = st.sidebar.selectbox("Selecciona Parcela:", lista_parcelas)
+lista_nombres = list(fincas_actuales.keys())
 
-if seleccion_parcela == "➕ Añadir Nueva Parcela":
-    st.sidebar.markdown("### 📝 Datos de la Finca")
-    with st.sidebar.form(key="form_nueva_parcela"):
-        nuevo_nombre = st.text_input("Nombre de la parcela", value="Mi Parcela")
-        nuevo_lat = st.number_input("Latitud (ej: 42.3659)", value=42.3659, format="%.4f")
-        nuevo_lon = st.number_input("Longitud (ej: -2.4235)", value=-2.4235, format="%.4f")
-        nuevo_var = st.text_input("Variedad", value="Tempranillo")
-        nuevo_suelo = st.selectbox("Tipo de suelo", ["Arcillo-calcáreo", "Aluvial", "Arenoso", "Franco", "Ferroso-arcilloso"])
-        nuevo_ha = st.number_input("Superficie (Hectáreas)", value=2.0, min_value=0.1, step=0.5)
-        
-        btn_guardar = st.form_submit_button("💾 Guardar y Activar Parcela", use_container_width=True)
-        
-        if btn_guardar:
-            if nuevo_nombre.strip():
-                st.session_state.db_parcelas[tipo_cultivo][nuevo_nombre.strip()] = {
-                    "lat": nuevo_lat,
-                    "lon": nuevo_lon,
-                    "variedad": nuevo_var,
-                    "suelo": nuevo_suelo,
-                    "ha": nuevo_ha
-                }
-                st.sidebar.success(f"¡{nuevo_nombre} guardada!")
-                st.rerun()
-
-    nombre_parcela = nuevo_nombre
-    lat = nuevo_lat
-    lon = nuevo_lon
-    variedad = nuevo_var
-    suelo = nuevo_suelo
-    superficie_ha = nuevo_ha
+if not lista_nombres:
+    st.sidebar.warning("No hay parcelas para este cultivo. Añade una en la pestaña 'Añadir / Gestionar Fincas'.")
+    seleccion_parcela = None
+    lat, lon, variedad, suelo, superficie_ha = 42.3659, -2.4235, "Estándar", "Franco", 2.0
+    nombre_parcela = "Sin Parcela"
 else:
+    seleccion_parcela = st.sidebar.selectbox("Selecciona Parcela Activa:", lista_nombres)
     nombre_parcela = seleccion_parcela
     datos_p = fincas_actuales[seleccion_parcela]
     lat = datos_p.get("lat", 42.3659)
@@ -159,7 +134,11 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # --- PESTAÑAS PRINCIPALES ---
-tab_alertas, tab_calculadora = st.tabs(["🛡️ Diagnóstico y Alertas", "🧪 Calculadora de Caldo y Dosis"])
+tab_alertas, tab_calculadora, tab_gestionar = st.tabs([
+    "🛡️ Diagnóstico y Alertas",
+    "🧪 Calculadora de Caldo y Dosis",
+    "➕ Añadir / Gestionar Fincas"
+])
 
 # ==========================================
 # PESTAÑA 1: DIAGNÓSTICO Y ALERTAS
@@ -390,3 +369,50 @@ with tab_calculadora:
     3. Completar con agua hasta los **{volumen_cuba} litros**.
     4. Cada cuba completa cubre **{ha_por_cuba:.2f} hectáreas** a un gasto de **{gasto_ha} L/ha**.
     """)
+
+# ==========================================
+# PESTAÑA 3: AÑADIR / GESTIONAR FINCAS
+# ==========================================
+with tab_gestionar:
+    st.subheader(f"➕ Añadir Nueva Finca a {tipo_cultivo}")
+    st.caption("Rellena los datos para registrar una nueva finca. Aparecerá de inmediato en el menú de selección.")
+
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        n_nombre = st.text_input("Nombre de la Finca", value="Finca Las Viñas")
+        n_lat = st.number_input("Latitud Decimal (ej: 42.3659)", value=42.3659, format="%.4f")
+        n_lon = st.number_input("Longitud Decimal (ej: -2.4235)", value=-2.4235, format="%.4f")
+    
+    with col_f2:
+        n_var = st.text_input("Variedad Principal", value="Tempranillo")
+        n_suelo = st.selectbox("Tipo de Suelo", ["Arcillo-calcáreo", "Aluvial", "Arenoso", "Franco", "Ferroso-arcilloso"])
+        n_ha = st.number_input("Superficie Total (ha)", value=2.5, min_value=0.1, step=0.5)
+
+    if st.button("💾 GUARDAR Y ACTIVAR FINCA", use_container_width=True, type="primary"):
+        if n_nombre.strip():
+            st.session_state.db_parcelas[tipo_cultivo][n_nombre.strip()] = {
+                "lat": n_lat,
+                "lon": n_lon,
+                "variedad": n_var,
+                "suelo": n_suelo,
+                "ha": n_ha
+            }
+            st.success(f"¡Finca '{n_nombre}' guardada con éxito!")
+            st.rerun()
+
+    st.write("---")
+    st.subheader(f"📋 Fincas Registradas en {tipo_cultivo}")
+    
+    df_lista_fincas = []
+    for k, v in st.session_state.db_parcelas[tipo_cultivo].items():
+        df_lista_fincas.append({
+            "Nombre": k,
+            "Latitud": v.get("lat"),
+            "Longitud": v.get("lon"),
+            "Variedad": v.get("variedad"),
+            "Suelo": v.get("suelo"),
+            "Hectáreas": v.get("ha")
+        })
+    
+    if df_lista_fincas:
+        st.dataframe(pd.DataFrame(df_lista_fincas), use_container_width=True)
