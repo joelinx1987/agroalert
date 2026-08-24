@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES DE ALTO CONTRASTE ---
+# --- ESTILOS VISUALES ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -132,7 +132,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN PARA DISPARAR WHATSAPP DESDE LA APP (CALLMEBOT API) ---
+# --- FUNCIÓN DE DISPARO DE WHATSAPP ---
 def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     try:
         num_limpio = telefono.replace(" ", "").replace("-", "")
@@ -146,13 +146,13 @@ def disparar_whatsapp_servidor(telefono, apikey, mensaje):
         with urllib.request.urlopen(req, timeout=10) as resp:
             res_body = resp.read().decode('utf-8', errors='ignore')
             if "Message queued" in res_body or "Message sent" in res_body or resp.status == 200:
-                return True, "¡WhatsApp enviado con éxito desde la app!"
+                return True, "¡WhatsApp enviado correctamente!"
             else:
-                return False, f"Respuesta del servidor: {res_body}"
+                return False, f"Respuesta: {res_body}"
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
-# --- AUTENTICACIÓN ---
+# --- AUTENTICACIÓN Y BASE DE DATOS EN MEMORIA ---
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
@@ -161,8 +161,18 @@ def check_hash(password, hashed_text):
 
 if "usuarios_db" not in st.session_state:
     st.session_state.usuarios_db = {
-        "admin": {"pwd": make_hash("admin123"), "nombre": "Joel (Mi Explotación)"},
-        "demo": {"pwd": make_hash("demo123"), "nombre": "Agricultor Invitado"}
+        "admin": {
+            "pwd": make_hash("admin123"),
+            "nombre": "Joel (Mi Explotación)",
+            "telefono": "+34626665232",
+            "apikey": "3443251"
+        },
+        "demo": {
+            "pwd": make_hash("demo123"),
+            "nombre": "Agricultor Invitado",
+            "telefono": "+34600000000",
+            "apikey": ""
+        }
     }
 
 if "db_privada" not in st.session_state:
@@ -185,22 +195,25 @@ if "db_privada" not in st.session_state:
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
+# ==============================================================================
+# PANTALLA DE ACCESO Y REGISTRO
+# ==============================================================================
 if not st.session_state.usuario_autenticado:
-    c1, col_login, c2 = st.columns([1, 1.6, 1])
+    c1, col_login, c2 = st.columns([1, 1.8, 1])
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.3rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Campo</h1>
-            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">El aviso diario del campo, cálculo de cubas y bot WhatsApp</p>
+            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">Monitor de campo y bot de alertas diarias por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
-        tab_in, tab_up = st.tabs(["🔑 ENTRAR", "📝 REGISTRARME"])
+        tab_in, tab_up = st.tabs(["🔑 ENTRAR", "📝 REGISTRARME Y ACTIVAR BOT"])
         with tab_in:
             with st.form("form_auth"):
-                u = st.text_input("Usuario o Teléfono", value="admin")
+                u = st.text_input("Usuario", value="admin")
                 p = st.text_input("Contraseña", type="password", value="admin123")
                 b_in = st.form_submit_button("🚜 ENTRAR A MIS PARCELAS", use_container_width=True, type="primary")
                 if b_in:
@@ -210,25 +223,54 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         with tab_up:
+            st.info("💡 **Para recibir alertas:** Envía `I allow callmebot to send me messages` por WhatsApp al `+34 623 91 22 04` para obtener tu APIKey gratuita.")
             with st.form("form_reg"):
-                nu = st.text_input("Nuevo Usuario")
-                nn = st.text_input("Tu Nombre o Explotación (ej: Hnos. García)")
+                nu = st.text_input("Usuario (ej: jgarcia)")
+                nn = st.text_input("Tu Nombre o Explotación (ej: Bodega San Juan)")
+                ntel = st.text_input("📱 Teléfono Móvil (ej: +34612345678)")
+                napi = st.text_input("🔑 APIKey de WhatsApp (de CallMeBot)")
                 np = st.text_input("Contraseña", type="password")
-                b_up = st.form_submit_button("CREAR CUENTA GRATIS", use_container_width=True)
-                if b_up and nu.strip() and np.strip():
-                    if nu in st.session_state.usuarios_db:
+                
+                b_up = st.form_submit_button("🚀 CREAR CUENTA Y ACTIVAR BOT WHATSAPP", use_container_width=True, type="primary")
+                if b_up:
+                    if not nu.strip() or not np.strip() or not ntel.strip():
+                        st.error("Por favor, rellena los campos obligatorios.")
+                    elif nu in st.session_state.usuarios_db:
                         st.error("Ese usuario ya existe.")
                     else:
-                        st.session_state.usuarios_db[nu] = {"pwd": make_hash(np), "nombre": nn}
+                        st.session_state.usuarios_db[nu] = {
+                            "pwd": make_hash(np),
+                            "nombre": nn,
+                            "telefono": ntel.strip(),
+                            "apikey": napi.strip()
+                        }
                         st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
-                        st.success("Cuenta creada. Ya puedes pulsar en ENTRAR.")
+                        
+                        # Disparo automático del WhatsApp de bienvenida
+                        if napi.strip():
+                            msg_bienvenida = f"""🚜 *¡BIENVENIDO A AGROALERT!*
+Hola *{nn}*, tu cuenta ha quedado vinculada con éxito.
+
+A partir de ahora recibirás aquí:
+✅ Parte matutino antes de sulfatar
+🚨 Alertas rojas por riesgo de helada
+📋 Recetas de mezcla para la cuba del tractor."""
+                            disparar_whatsapp_servidor(ntel.strip(), napi.strip(), msg_bienvenida)
+                        
+                        st.session_state.usuario_autenticado = nu
+                        st.success("¡Cuenta creada con éxito! Accediendo...")
+                        st.rerun()
     st.stop()
 
 # ==============================================================================
 # PANEL PRINCIPAL
 # ==============================================================================
 user_activo = st.session_state.usuario_autenticado
-nombre_cliente = st.session_state.usuarios_db[user_activo]["nombre"]
+datos_usuario = st.session_state.usuarios_db[user_activo]
+nombre_cliente = datos_usuario["nombre"]
+user_telefono = datos_usuario.get("telefono", "+34626665232")
+user_apikey = datos_usuario.get("apikey", "3443251")
+
 fincas_usuario = st.session_state.db_privada[user_activo]
 
 c_top1, c_top2, c_top3 = st.columns([1.5, 1.5, 0.8])
@@ -241,7 +283,7 @@ nombres_disponibles = list(fincas_del_cultivo.keys())
 with c_top2:
     if not nombres_disponibles:
         st.selectbox("2️⃣ Parcela:", ["(Sin parcelas en este cultivo)"])
-        nombre_parcela = "Sin Parcela"
+        nombre_parcela = "Parcela Principal"
         lat, lon, variedad, suelo, superficie_ha = 42.3659, -2.4235, "Tempranillo", "Franco", 2.0
     else:
         seleccion_parcela = st.selectbox("2️⃣ Parcela activa:", nombres_disponibles)
@@ -291,7 +333,7 @@ temp_media_hoy = (min_hoy + max_hoy) / 2
 tab1, tab2, tab3, tab4 = st.tabs([
     "🚜 ¿PUEDO SULFATAR HOY?",
     "🧪 CUÁNTO ECHAR A LA CUBA",
-    "📲 DISPARAR WHATSAPP DESDE LA APP",
+    "📲 BOT AUTOMÁTICO WHATSAPP",
     "➕ MIS FINCAS"
 ])
 
@@ -435,34 +477,13 @@ with tab2:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: BOT DIRECTO DE WHATSAPP DESDE EL SERVIDOR (PRECONFIGURADO)
+# PESTAÑA 3: BOT WHATSAPP VINCULADO AL USUARIO
 # ==============================================================================
 with tab3:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Disparo Directo de WhatsApp desde la App</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 1.15rem; color: #475569;'>La aplicación envía el WhatsApp directamente a tu móvil desde el servidor.</p>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 1.15rem; color: #475569;'>Alertas enviadas automáticamente a <b>{user_telefono}</b> ({nombre_cliente}).</p>", unsafe_allow_html=True)
 
-    col_wa_cfg1, col_wa_cfg2 = st.columns(2)
-    with col_wa_cfg1:
-        st.markdown("#### ⚙️ Configuración del Destinatario")
-        wa_tel_input = st.text_input("📱 Teléfono Móvil:", value="+34626665232")
-        wa_key_input = st.text_input("🔑 APIKey de CallMeBot:", value="3443251", type="password")
-        st.success("✅ WhatsApp configurado y vinculado.")
-
-    with col_wa_cfg2:
-        st.markdown("#### 📋 Mensaje que se disparará:")
-        st.info(f"""
-        🚜 <b>PARTE MATUTINO AGROALERT</b>
-        📍 Parcela: <b>{nombre_parcela}</b> ({superficie_ha} ha)
-        
-        {'🟢 DÍA PERFECTO PARA SULFATAR' if semaforo_estado == 'VERDE' else '🔴 PRECAUCIÓN / NO SULFATAR'}
-        🌡️ Tª: {min_hoy:.0f}°C a {max_hoy:.0f}°C
-        💨 Viento: {viento_hoy:.0f} km/h
-        🌧️ Lluvia: {lluvia_hoy:.1f} mm
-        """)
-
-    st.write("---")
-    
-    # TEXTOS A ENVIAR
+    # Mensajes
     msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
 📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
 
@@ -491,27 +512,36 @@ with tab3:
     
     with c_b1:
         if st.button("📲 DISPARAR PARTE MATUTINO", use_container_width=True, type="primary"):
-            ok, res = disparar_whatsapp_servidor(wa_tel_input, wa_key_input, msg_parte)
-            if ok:
-                st.success(res)
+            if not user_apikey:
+                st.error("No tienes configurada tu APIKey de WhatsApp. Edítala en tu perfil.")
             else:
-                st.error(res)
+                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_parte)
+                if ok:
+                    st.success(res)
+                else:
+                    st.error(res)
 
     with c_b2:
         if st.button("🚨 DISPARAR ALERTA HELADA", use_container_width=True):
-            ok, res = disparar_whatsapp_servidor(wa_tel_input, wa_key_input, msg_helada)
-            if ok:
-                st.warning("¡Alerta de helada enviada a WhatsApp!")
+            if not user_apikey:
+                st.error("No tienes configurada tu APIKey de WhatsApp.")
             else:
-                st.error(res)
+                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_helada)
+                if ok:
+                    st.warning("¡Alerta de helada enviada a WhatsApp!")
+                else:
+                    st.error(res)
 
     with c_b3:
         if st.button("🚜 DISPARAR RECETA AL TRACTORISTA", use_container_width=True):
-            ok, res = disparar_whatsapp_servidor(wa_tel_input, wa_key_input, msg_cuba)
-            if ok:
-                st.success("¡Receta de cuba enviada a WhatsApp!")
+            if not user_apikey:
+                st.error("No tienes configurada tu APIKey de WhatsApp.")
             else:
-                st.error(res)
+                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_cuba)
+                if ok:
+                    st.success("¡Receta de cuba enviada a WhatsApp!")
+                else:
+                    st.error(res)
 
 # ==============================================================================
 # PESTAÑA 4: GESTIÓN DE FINCAS
