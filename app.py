@@ -145,7 +145,6 @@ def cargar_usuarios_alertas():
 
 def guardar_usuario_alerta(nuevo_usuario):
     usuarios = cargar_usuarios_alertas()
-    # Si ya existe por teléfono, lo actualizamos; si no, lo añadimos
     actualizado = False
     for i, u in enumerate(usuarios):
         if u.get("telefono") == nuevo_usuario.get("telefono"):
@@ -202,7 +201,7 @@ if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
 # ==============================================================================
-# PANTALLA DE ACCESO Y REGISTRO
+# ACCESO Y REGISTRO
 # ==============================================================================
 if not st.session_state.usuario_autenticado:
     c1, col_login, c2 = st.columns([1, 1.8, 1])
@@ -262,18 +261,18 @@ if not st.session_state.usuario_autenticado:
                         }
                         st.session_state.usuarios_db[nu] = datos_nuevo
                         
-                        # Guardado automático en el archivo de alertas para las 5:00 AM
+                        guardar_usuario_alerta({
+                            "nombre": nn.strip(),
+                            "telefono": ntel.strip(),
+                            "apikey": napi.strip(),
+                            "parcela": nparc.strip(),
+                            "lat": float(nlat),
+                            "lon": float(nlon),
+                            "ha": float(nha),
+                            "fecha_alta": datetime.now().strftime("%d/%m/%Y %H:%M")
+                        })
+                        
                         if napi.strip():
-                            guardar_usuario_alerta({
-                                "nombre": nn.strip(),
-                                "telefono": ntel.strip(),
-                                "apikey": napi.strip(),
-                                "parcela": nparc.strip(),
-                                "lat": float(nlat),
-                                "lon": float(nlon),
-                                "ha": float(nha)
-                            })
-                            # WhatsApp de bienvenida
                             msg_bienvenida = f"""🚜 *¡BIENVENIDO A AGROALERT!*
 Hola *{nn}*, tu parcela *{nparc}* ha quedado monitorizada.
 
@@ -311,7 +310,7 @@ with c_top3:
         st.session_state.usuario_autenticado = None
         st.rerun()
 
-# --- CONSULTA METEOROLÓGICA ---
+# --- METEOROLOGÍA ---
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
 
 try:
@@ -342,17 +341,17 @@ lluvia_hoy = lluvia[0]
 viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
-# PESTAÑAS PRINCIPALES
-tab1, tab2, tab3 = st.tabs([
-    "🚜 ¿PUEDO SULFATAR HOY?",
-    "🧪 CUÁNTO ECHAR A LA CUBA",
-    "📲 BOT AUTOMÁTICO WHATSAPP"
-])
+# Pestañas (si es admin añade la pestaña de gestión)
+pestanas = ["🚜 ¿PUEDO SULFATAR HOY?", "🧪 CUÁNTO ECHAR A LA CUBA", "📲 BOT WHATSAPP"]
+if user_activo == "admin":
+    pestanas.append("👑 PANEL ADMIN")
+
+tabs = st.tabs(pestanas)
 
 # ==============================================================================
 # PESTAÑA 1: SEMÁFORO DIARIO
 # ==============================================================================
-with tab1:
+with tabs[0]:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📍 {nombre_parcela} <span style='font-size:1.1rem; color:#64748b;'>({superficie_ha} ha)</span></h2>", unsafe_allow_html=True)
 
     if viento_hoy > 15:
@@ -435,7 +434,7 @@ with tab1:
 # ==============================================================================
 # PESTAÑA 2: CALCULADORA DE CUBA
 # ==============================================================================
-with tab2:
+with tabs[1]:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>🧪 Calculadora para la Cuba del Tractor</h2>", unsafe_allow_html=True)
     c_c1, c_c2 = st.columns(2)
     with c_c1:
@@ -488,9 +487,9 @@ with tab2:
 # ==============================================================================
 # PESTAÑA 3: BOT WHATSAPP
 # ==============================================================================
-with tab3:
+with tabs[2]:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size: 1.15rem; color: #475569;'>Alertas enviadas automáticamente a <b>{user_telefono}</b> ({nombre_cliente}).</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 1.15rem; color: #475569;'>Alertas vinculadas a <b>{user_telefono}</b> ({nombre_cliente}).</p>", unsafe_allow_html=True)
 
     msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT (05:00 AM)*
 📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
@@ -512,4 +511,19 @@ with tab3:
                 st.error(res)
     
     with c_b2:
-        st.info("🕒 **Programación Automática:** Tu alerta se enviará sola cada día a las **05:00 AM** con los datos de esta parcela.")
+        st.info("🕒 **Alerta Diaria:** Se envía de forma automática a las **05:00 AM** con los datos de esta parcela.")
+
+# ==============================================================================
+# PESTAÑA 4: PANEL DE CONTROL DE REGISTRADOS (SOLO ADMIN)
+# ==============================================================================
+if user_activo == "admin":
+    with tabs[3]:
+        st.markdown("<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b;'>👑 Panel de Control de Usuarios</h2>", unsafe_allow_html=True)
+        st.markdown("Aquí puedes ver todas las personas y explotaciones registradas en el sistema:")
+        
+        lista_u = cargar_usuarios_alertas()
+        if lista_u:
+            st.dataframe(pd.DataFrame(lista_u), use_container_width=True, hide_index=True)
+            st.caption(f"Total registrados con alerta activa: {len(lista_u)} agricultores.")
+        else:
+            st.warning("Todavía no hay usuarios registrados en este servidor.")
