@@ -429,22 +429,22 @@ with tab2:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: BOT DE AVISOS DIARIOS Y EMERGENCIAS (TELEGRAM)
+# PESTAÑA 3: BOT DE AVISOS DIARIOS Y EMERGENCIAS (TELEGRAM SEGURO)
 # ==============================================================================
 with tab3:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>🔔 Bot de Avisos al Móvil (Telegram)</h2>", unsafe_allow_html=True)
     st.markdown("<p style='font-size: 1.1rem; color: #475569;'>Recibe el <b>Parte Matutino a las 7:00 AM</b> y <b>Alertas Rojas de Helada</b> directo a tu teléfono.</p>", unsafe_allow_html=True)
 
-    # CREDENCIALES CONFIGURADAS POR DEFECTO
-    DEFAULT_BOT_TOKEN = "7954295146:AAE19x37fqQeiIgje7nY3q4hzI8Wh9TRKno"
-    DEFAULT_CHAT_ID = "5473461038"
+    # Comprobamos si existen secretos en Streamlit Cloud o usamos campos de texto
+    token_defecto = st.secrets.get("TELEGRAM_TOKEN", "") if hasattr(st, "secrets") else ""
+    chat_defecto = st.secrets.get("TELEGRAM_CHAT_ID", "5473461038") if hasattr(st, "secrets") else "5473461038"
 
     col_b1, col_b2 = st.columns(2)
     with col_b1:
         st.markdown("#### ⚙️ Configuración del Bot")
-        bot_token_input = st.text_input("Token de Telegram:", value=DEFAULT_BOT_TOKEN)
-        chat_id_input = st.text_input("Tu Chat ID de Telegram:", value=DEFAULT_CHAT_ID)
-        st.success("✅ Bot vinculado correctamente a tu cuenta de Telegram.")
+        bot_token_input = st.text_input("Token de Telegram (de @BotFather):", value=token_defecto, type="password", placeholder="Pega tu token aquí")
+        chat_id_input = st.text_input("Tu Chat ID de Telegram:", value=chat_defecto)
+        st.caption("🔒 El token no se almacena en el código público.")
 
     with col_b2:
         st.markdown("#### 📲 Ejemplo del Mensaje que recibirás:")
@@ -462,8 +462,11 @@ with tab3:
     st.write("---")
     c_btn1, c_btn2 = st.columns(2)
     with c_btn1:
-        if st.button("📲 ENVIAR PARTE MATUTINO A MI TELEGRAM AHORA", use_container_width=True, type="primary"):
-            txt_parte = f"""🚜 <b>PARTE MATUTINO AGROALERT (07:00 AM)</b>
+        if st.button("📲 ENVIAR PARTE MATUTINO AHORA", use_container_width=True, type="primary"):
+            if not bot_token_input:
+                st.error("Por favor, introduce tu Token de Telegram en la casilla de la izquierda.")
+            else:
+                txt_parte = f"""🚜 <b>PARTE MATUTINO AGROALERT (07:00 AM)</b>
 📍 Parcela: <b>{nombre_parcela}</b> ({superficie_ha} ha)
 
 {'✅ DÍA PERFECTO PARA SULFATAR Y TRABAJAR' if semaforo_estado == 'VERDE' else ('⚠️ ATENCIÓN: TRATAR SOLO TEMPRANO' if semaforo_estado == 'AMBAR' else '⛔ NO SULFATAR HOY')}
@@ -474,24 +477,27 @@ with tab3:
 🛡️ <b>Alerta Fitosanitaria:</b> {'Condición segura' if lluvia_hoy < 5 else 'Riesgo fúngico activo por humedad'}
 
 <i>AgroAlert Pro - Monitor Agrícola de Precisión</i>"""
-            ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_parte)
-            if ok:
-                st.success("¡Parte diario enviado a tu Telegram con éxito! Revisa tu móvil.")
-            else:
-                st.error(res_msg)
+                ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_parte)
+                if ok:
+                    st.success("¡Parte diario enviado a tu Telegram con éxito! Revisa tu móvil.")
+                else:
+                    st.error(res_msg)
 
     with c_btn2:
         if st.button("🚨 PROBAR ALERTA DE EMERGENCIA (HELADA)", use_container_width=True):
-            txt_emergencia = f"""🚨 <b>¡ALERTA ROJA DE EMERGENCIA POR HELADA!</b>
+            if not bot_token_input:
+                st.error("Por favor, introduce tu Token de Telegram en la casilla de la izquierda.")
+            else:
+                txt_emergencia = f"""🚨 <b>¡ALERTA ROJA DE EMERGENCIA POR HELADA!</b>
 📍 Parcela: <b>{nombre_parcela}</b>
 
 ⚠️ <b>Riesgo Inminente:</b> Se prevén temperaturas de <b>{min_hoy:.1f}°C</b> en las próximas horas.
 🛡️ <b>Acción recomendada:</b> Activar quemadores/molinos antihelada y suspender labores de deshierbe."""
-            ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_emergencia)
-            if ok:
-                st.warning("¡Alerta de emergencia de helada enviada a tu móvil!")
-            else:
-                st.error(res_msg)
+                ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_emergencia)
+                if ok:
+                    st.warning("¡Alerta de emergencia enviada a tu móvil!")
+                else:
+                    st.error(res_msg)
 
 # ==============================================================================
 # PESTAÑA 4: GESTIÓN DE FINCAS
