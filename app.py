@@ -321,6 +321,7 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
+# Selectores de finca
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -341,7 +342,7 @@ with c_top2:
         seleccion_parcela = st.selectbox("Parcela activa:", nombres_disponibles)
         nombre_parcela = seleccion_parcela
         dp = fincas_del_cultivo[seleccion_parcela]
-        lat, lon, variedad, suelo, superficie_ha = dp["lat"], dp["lon"], dp["variedad"], dp["suelo"], dp["ha"]
+        lat, lon, variedad, suelo, superficie_ha = dp["lat"], dp["lon"], dp.get("variedad", "Tempranillo"), dp["suelo"], dp["ha"]
         poligono = dp.get("poligono", "-")
         parcela_cat = dp.get("parcela", "-")
         riego_tipo = dp.get("riego", "Secano")
@@ -390,12 +391,11 @@ st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; mar
 
 opciones_menu = [
     "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
-    "🗺️ Mapa Google Satélite y Localización",
     "🧪 Calculadora de dosis y depósito / cuba",
     "📋 Cuaderno de tratamientos fitosanitarios",
     "🌾 Labores, riegos y cosecha",
     "📲 Bot de avisos por WhatsApp",
-    "🌾 Gestión de mis fincas y parcelas"
+    "🌾 Gestión de mis fincas y mapa satélite"
 ]
 
 if user_activo == "admin":
@@ -490,31 +490,7 @@ if "Puedo sulfatar hoy" in seccion_activa:
     st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 2. GOOGLE MAPS SATÉLITE
-# ==============================================================================
-elif "Mapa Google Satélite" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 10px 0;'>🗺️ Localización Satelital: {nombre_parcela}</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Coordenadas: <b>{lat:.4f}, {lon:.4f}</b> | Polígono <b>{poligono}</b> Parcela <b>{parcela_cat}</b></p>", unsafe_allow_html=True)
-
-    c_zoom, c_link = st.columns([1.2, 1])
-    with c_zoom:
-        zoom_nivel = st.slider("🔍 Nivel de Zoom:", min_value=12, max_value=19, value=16)
-    with c_link:
-        st.write("")
-        url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
-        st.markdown(f"""
-        <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
-            <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1.05rem; margin-top: 10px;">
-                🚗 ABRIR NAVEGACIÓN GPS EN GOOGLE MAPS
-            </div>
-        </a>
-        """, unsafe_allow_html=True)
-
-    st.write("")
-    render_google_map(lat, lon, zoom=zoom_nivel, height=420)
-
-# ==============================================================================
-# 3. CALCULADORA
+# 2. CALCULADORA
 # ==============================================================================
 elif "Calculadora de dosis" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🧪 Calculadora de Dosis y Tanque / Cuba</h2>", unsafe_allow_html=True)
@@ -567,7 +543,7 @@ elif "Calculadora de dosis" in seccion_activa:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 4. CUADERNO DE FITOSANITARIOS
+# 3. CUADERNO DE FITOSANITARIOS
 # ==============================================================================
 elif "Cuaderno de tratamientos" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
@@ -618,7 +594,7 @@ elif "Cuaderno de tratamientos" in seccion_activa:
         st.info("Aún no has registrado ningún tratamiento en tu cuaderno.")
 
 # ==============================================================================
-# 5. LABORES, RIEGOS Y COSECHA
+# 4. LABORES, RIEGOS Y COSECHA
 # ==============================================================================
 elif "Labores, riegos y cosecha" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Labores de Campo, Riegos y Cosecha</h2>", unsafe_allow_html=True)
@@ -713,7 +689,7 @@ elif "Labores, riegos y cosecha" in seccion_activa:
             st.caption("Sin cosechas aún.")
 
 # ==============================================================================
-# 6. BOT WHATSAPP
+# 5. BOT WHATSAPP
 # ==============================================================================
 elif "Bot de avisos" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📲 Bot de Avisos por WhatsApp</h2>", unsafe_allow_html=True)
@@ -763,7 +739,7 @@ elif "Bot de avisos" in seccion_activa:
                 st.error(res)
 
 # ==============================================================================
-# 7. GESTIÓN DE FINCAS
+# 6. GESTIÓN DE FINCAS CON MAPA INTEGRADO
 # ==============================================================================
 elif "Gestión de mis fincas" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Parcelas y Catastro ({tipo_cultivo})</h2>", unsafe_allow_html=True)
@@ -819,7 +795,7 @@ elif "Gestión de mis fincas" in seccion_activa:
         modo_finca = st.radio("Acción en Fincas:", ["✏️ Modificar o Eliminar Finca Existente", "➕ Añadir Nueva Finca"], label_visibility="collapsed")
         
         if "Modificar o Eliminar" in modo_finca:
-            finca_a_editar = st.selectbox("Selecciona la finca a editar:", list(fincas_actuales.keys()))
+            finca_a_editar = st.selectbox("Selecciona la finca a editar / ver satélite:", list(fincas_actuales.keys()))
             datos_f = fincas_actuales[finca_a_editar]
             
             suelos_lista = ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"]
@@ -838,7 +814,7 @@ elif "Gestión de mis fincas" in seccion_activa:
                 
                 c_evar, c_eha = st.columns(2)
                 with c_evar:
-                    nueva_var = st.text_input("Variedad:", value=datos_f["variedad"])
+                    nueva_var = st.text_input("Variedad:", value=datos_f.get("variedad", "Tempranillo"))
                 with c_eha:
                     nueva_ha = st.number_input("Superficie (ha):", value=float(datos_f["ha"]), min_value=0.1, step=0.5)
                 
@@ -864,7 +840,7 @@ elif "Gestión de mis fincas" in seccion_activa:
                     if nuevo_nombre.strip() != finca_a_editar:
                         del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
                     st.session_state.db_privada[user_activo][tipo_cultivo][nuevo_nombre.strip()] = {
-                        "lat": nueva_lat, "lon": nueva_lon, "variedad": normalizar_telefono(user_telefono), "suelo": nuevo_suelo, "ha": nueva_ha,
+                        "lat": nueva_lat, "lon": nueva_lon, "variedad": nueva_var, "suelo": nuevo_suelo, "ha": nueva_ha,
                         "poligono": nuevo_pol, "parcela": nuevo_parc, "riego": nuevo_riego
                     }
                     guardar_json(FINCAS_FILE, st.session_state.db_privada)
@@ -876,6 +852,18 @@ elif "Gestión de mis fincas" in seccion_activa:
                     guardar_json(FINCAS_FILE, st.session_state.db_privada)
                     st.warning("¡Finca eliminada!")
                     st.rerun()
+
+            # --- MAPA SATÉLITE INTEGRADO DENTRO DE LA FINCA SELECCIONADA ---
+            st.markdown(f"#### 🛰️ Vista Satelital de: **{finca_a_editar}**")
+            url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
+            st.markdown(f"""
+            <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
+                <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 10px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
+                    🚗 ABRIR EN APP DE GOOGLE MAPS (GPS)
+                </div>
+            </a>
+            """, unsafe_allow_html=True)
+            render_google_map(datos_f["lat"], datos_f["lon"], zoom=16, height=360)
 
         else:
             with st.form("form_alta_finca_extra"):
@@ -921,7 +909,7 @@ elif "Gestión de mis fincas" in seccion_activa:
             {
                 "Parcela": k,
                 "Hectáreas": v["ha"],
-                "Variedad": v["variedad"],
+                "Variedad": v.get("variedad", "-"),
                 "Polígono": v.get("poligono", "-"),
                 "Parcela SIGPAC": v.get("parcela", "-"),
                 "Riego": v.get("riego", "Secano"),
@@ -933,7 +921,7 @@ elif "Gestión de mis fincas" in seccion_activa:
             st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 8. PANEL ADMINISTRADOR
+# 7. PANEL ADMINISTRADOR
 # ==============================================================================
 elif "PANEL ADMINISTRADOR" in seccion_activa and user_activo == "admin":
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
