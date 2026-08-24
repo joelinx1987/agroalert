@@ -128,8 +128,8 @@ st.markdown("""
         background: #ffffff;
         border: 2px solid #22c55e;
         border-radius: 18px;
-        padding: 18px 20px;
-        margin-bottom: 20px;
+        padding: 20px 22px;
+        margin-bottom: 22px;
         box-shadow: 0 8px 20px -4px rgba(34, 197, 94, 0.15);
     }
 
@@ -188,6 +188,28 @@ def render_google_map(latitud, longitud, zoom=16, height=380):
     </div>
     """
     components.html(iframe_html, height=height + 10)
+
+def render_copy_box(texto_a_copiar):
+    html_code = f"""
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0;">
+        <span id="target-text" style="font-style: italic; font-size: 1rem; color: #0f172a; font-weight: 600;">{texto_a_copiar}</span>
+        <button onclick="copiarAlPortapapeles()" style="background: #10b981; color: #ffffff; border: none; border-radius: 8px; padding: 6px 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">
+            <span id="btn-label">📋 Copiar texto</span>
+        </button>
+    </div>
+    <script>
+    function copiarAlPortapapeles() {{
+        const text = "{texto_a_copiar}";
+        navigator.clipboard.writeText(text).then(function() {{
+            document.getElementById('btn-label').innerText = '✅ ¡Copiado!';
+            setTimeout(function() {{
+                document.getElementById('btn-label').innerText = '📋 Copiar texto';
+            }}, 2500);
+        }});
+    }}
+    </script>
+    """
+    components.html(html_code, height=62)
 
 DEFAULT_USERS = {
     "admin": {
@@ -268,24 +290,32 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
-            # GUÍA PASO A PASO PARA OBTENER LA APIKEY
+            # TARJETA CON INSTRUCCIONES CLARAS, NÚMERO Y BOTÓN DE COPIADO
             st.markdown("""
             <div class="guide-card">
                 <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 8px;">
-                    🔑 CÓMO OBTENER TU APIKEY EN 10 SEGUNDOS (GRATIS):
+                    🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
                 </div>
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.5;">
-                    <b>1.</b> Toca el botón verde de abajo para abrir WhatsApp.<br>
-                    <b>2.</b> Envía el mensaje predefinido: <code>I allow callmebot to send me messages</code><br>
-                    <b>3.</b> El bot te responderá al instante con tu número de <b>apikey</b>. Cópialo y pégalo en la casilla de registro.
+                <div style="font-size: 0.95rem; color: #334155; line-height: 1.55;">
+                    <b>1.</b> Abre un chat en WhatsApp con el número oficial del bot: 
+                    <span style="background: #e2e8f0; color: #0f172a; font-weight: 800; padding: 2px 8px; border-radius: 6px;">+34 623 91 22 04</span><br>
+                    <b>2.</b> Envía este mensaje exacto:
                 </div>
-                <div style="margin-top: 14px;">
-                    <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                        <div style="background-color: #22c55e; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);">
-                            📲 ABRIR WHATSAPP Y SOLICITAR MI CLAVE AHORA
-                        </div>
-                    </a>
-                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            render_copy_box("I allow callmebot to send me messages")
+
+            st.markdown("""
+            <div style="margin-top: -10px; margin-bottom: 16px;">
+                <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
+                    <div style="background-color: #22c55e; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);">
+                        📲 TOCAR AQUÍ PARA ABRIR WHATSAPP AUTOMÁTICAMENTE
+                    </div>
+                </a>
+                <p style="font-size: 0.88rem; color: #64748b; margin-top: 8px; text-align: center;">
+                    <b>3.</b> El bot te contestará con tu número de <b>apikey</b>. Pégalo a continuación:
+                </p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -293,7 +323,7 @@ if not st.session_state.usuario_autenticado:
                 nu = st.text_input("Usuario (ej: jgarcia)").strip()
                 nn = st.text_input("Nombre de Explotación (ej: Bodega San Juan)").strip()
                 ntel = st.text_input("📱 Teléfono Móvil (ej: +34 612 34 56 78)").strip()
-                napi = st.text_input("🔑 APIKey WhatsApp (el código numérico recibido)").strip()
+                napi = st.text_input("🔑 APIKey WhatsApp (el código numérico que te respondió el bot)").strip()
                 np = st.text_input("Contraseña", type="password")
                 
                 b_up = st.form_submit_button("🚀 CREAR CUENTA Y ENTRAR", use_container_width=True)
