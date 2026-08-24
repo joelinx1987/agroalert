@@ -36,7 +36,7 @@ st.markdown("""
         border-radius: 18px;
         padding: 22px 24px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
     }
     .traffic-danger {
         background-color: #fee2e2;
@@ -132,6 +132,57 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- GESTIÓN PERSISTENTE DE ARCHIVOS JSON ---
+USERS_FILE = "usuarios_db.json"
+FINCAS_FILE = "fincas_db.json"
+
+def make_hash(password):
+    return hashlib.sha256(str.encode(password)).hexdigest()
+
+def check_hash(password, hashed_text):
+    return make_hash(password) == hashed_text
+
+def cargar_json(archivo, por_defecto):
+    if os.path.exists(archivo):
+        try:
+            with open(archivo, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return por_defecto
+    return por_defecto
+
+def guardar_json(archivo, datos):
+    try:
+        with open(archivo, "w", encoding="utf-8") as f:
+            json.dump(datos, f, ensure_ascii=False, indent=4)
+    except Exception as e:
+        st.error(f"Error al guardar datos: {e}")
+
+# Base de datos iniciales
+DEFAULT_USERS = {
+    "admin": {
+        "pwd": make_hash("admin123"),
+        "nombre": "Joel (Mi Explotación)",
+        "telefono": "+34626665232",
+        "apikey": "3443251"
+    }
+}
+
+DEFAULT_FINCAS = {
+    "admin": {
+        "🍇 Viña": {
+            "Frontón Jaime": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Cascajo / Calcáreo", "ha": 2.0}
+        },
+        "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
+    }
+}
+
+if "usuarios_db" not in st.session_state:
+    st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
+
+if "db_privada" not in st.session_state:
+    st.session_state.db_privada = cargar_json(FINCAS_FILE, DEFAULT_FINCAS)
+
 # --- FUNCIÓN DE DISPARO DE WHATSAPP ---
 def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     try:
@@ -152,52 +203,10 @@ def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
-# --- AUTENTICACIÓN Y BASE DE DATOS EN MEMORIA ---
-def make_hash(password):
-    return hashlib.sha256(str.encode(password)).hexdigest()
-
-def check_hash(password, hashed_text):
-    return make_hash(password) == hashed_text
-
-if "usuarios_db" not in st.session_state:
-    st.session_state.usuarios_db = {
-        "admin": {
-            "pwd": make_hash("admin123"),
-            "nombre": "Joel (Mi Explotación)",
-            "telefono": "+34626665232",
-            "apikey": "3443251"
-        },
-        "demo": {
-            "pwd": make_hash("demo123"),
-            "nombre": "Agricultor Invitado",
-            "telefono": "+34600000000",
-            "apikey": ""
-        }
-    }
-
-if "db_privada" not in st.session_state:
-    st.session_state.db_privada = {
-        "admin": {
-            "🍇 Viña": {
-                "Frontón Jaime": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Cascajo / Calcáreo", "ha": 2.0},
-                "Finca Valdegón": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5}
-            },
-            "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
-        },
-        "demo": {
-            "🍇 Viña": {
-                "Parcela La Llana": {"lat": 42.4658, "lon": -2.4499, "variedad": "Garnacha", "suelo": "Arcilloso", "ha": 3.0}
-            },
-            "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
-        }
-    }
-
+# --- AUTENTICACIÓN ---
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
-# ==============================================================================
-# PANTALLA DE ACCESO Y REGISTRO
-# ==============================================================================
 if not st.session_state.usuario_autenticado:
     c1, col_login, c2 = st.columns([1, 1.8, 1])
     with col_login:
@@ -246,6 +255,9 @@ if not st.session_state.usuario_autenticado:
                         }
                         st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
                         
+                        guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                        guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                        
                         if napi.strip():
                             msg_bienvenida = f"""🚜 *¡BIENVENIDO A AGROALERT!*
 Hola *{nn}*, tu cuenta ha quedado vinculada con éxito.
@@ -265,12 +277,12 @@ A partir de ahora recibirás aquí:
 # PANEL PRINCIPAL
 # ==============================================================================
 user_activo = st.session_state.usuario_autenticado
-datos_usuario = st.session_state.usuarios_db[user_activo]
-nombre_cliente = datos_usuario["nombre"]
+datos_usuario = st.session_state.usuarios_db.get(user_activo, {})
+nombre_cliente = datos_usuario.get("nombre", "Agricultor")
 user_telefono = datos_usuario.get("telefono", "+34626665232")
 user_apikey = datos_usuario.get("apikey", "3443251")
 
-fincas_usuario = st.session_state.db_privada[user_activo]
+fincas_usuario = st.session_state.db_privada.get(user_activo, {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}})
 
 c_top1, c_top2, c_top3 = st.columns([1.5, 1.5, 0.8])
 with c_top1:
@@ -282,7 +294,7 @@ nombres_disponibles = list(fincas_del_cultivo.keys())
 with c_top2:
     if not nombres_disponibles:
         st.selectbox("2️⃣ Parcela:", ["(Sin parcelas en este cultivo)"])
-        nombre_parcela = "Sin Parcela"
+        nombre_parcela = "Sin Parcela Registrada"
         lat, lon, variedad, suelo, superficie_ha = 42.3659, -2.4235, "Tempranillo", "Franco", 2.0
     else:
         seleccion_parcela = st.selectbox("2️⃣ Parcela activa:", nombres_disponibles)
@@ -476,11 +488,11 @@ with tab2:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: BOT WHATSAPP VINCULADO AL USUARIO
+# PESTAÑA 3: BOT WHATSAPP
 # ==============================================================================
 with tab3:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size: 1.15rem; color: #475569;'>Alertas enviadas automáticamente a <b>{user_telefono}</b> ({nombre_cliente}).</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 1.15rem; color: #475569;'>Alertas enviadas a <b>{user_telefono}</b> ({nombre_cliente}).</p>", unsafe_allow_html=True)
 
     msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
 📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
@@ -511,7 +523,7 @@ with tab3:
     with c_b1:
         if st.button("📲 DISPARAR PARTE MATUTINO", use_container_width=True, type="primary"):
             if not user_apikey:
-                st.error("No tienes configurada tu APIKey de WhatsApp. Edítala en tu perfil.")
+                st.error("No tienes configurada tu APIKey de WhatsApp.")
             else:
                 ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_parte)
                 if ok:
@@ -542,20 +554,19 @@ with tab3:
                     st.error(res)
 
 # ==============================================================================
-# PESTAÑA 4: GESTIÓN Y EDICIÓN DE FINCAS
+# PESTAÑA 4: GESTIÓN PERSISTENTE DE FINCAS
 # ==============================================================================
 with tab4:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>🌾 Gestión de Fincas y Parcelas</h2>", unsafe_allow_html=True)
     
     sub_tab1, sub_tab2 = st.tabs(["✏️ EDITAR O ELIMINAR FINCA", "➕ AÑADIR NUEVA FINCA"])
     
-    # --- SUBPESTAÑA 1: EDITAR / ELIMINAR ---
     with sub_tab1:
         fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
         if not fincas_actuales:
-            st.info(f"No tienes ninguna finca registrada en el cultivo **{tipo_cultivo}**. Añade una en la pestaña contigua.")
+            st.info(f"No tienes ninguna finca registrada en el cultivo **{tipo_cultivo}**.")
         else:
-            finca_a_editar = st.selectbox("Selecciona la finca que quieres modificar:", list(fincas_actuales.keys()))
+            finca_a_editar = st.selectbox("Selecciona la finca a modificar:", list(fincas_actuales.keys()))
             datos_f = fincas_actuales[finca_a_editar]
             
             suelos_lista = ["Cascajo / Calcáreo", "Cascajo / Pedregoso", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"]
@@ -585,20 +596,21 @@ with tab4:
                     st.session_state.db_privada[user_activo][tipo_cultivo][nuevo_nombre.strip()] = {
                         "lat": nueva_lat, "lon": nueva_lon, "variedad": nueva_var, "suelo": nuevo_suelo, "ha": nueva_ha
                     }
-                    st.success(f"¡Finca '{nuevo_nombre}' actualizada con éxito!")
+                    guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    st.success(f"¡Finca '{nuevo_nombre}' guardada permanentemente!")
                     st.rerun()
                     
                 if borrar_finca:
                     del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
-                    st.warning(f"Finca '{finca_a_editar}' eliminada.")
+                    guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    st.warning(f"Finca '{finca_a_editar}' eliminada permanentemente.")
                     st.rerun()
 
-    # --- SUBPESTAÑA 2: AÑADIR NUEVA ---
     with sub_tab2:
         with st.form("form_alta_finca"):
             c_f1, c_f2 = st.columns(2)
             with c_f1:
-                nom_finca = st.text_input("Nombre finca:", value="Viña Nueva")
+                nom_finca = st.text_input("Nombre finca:", value="Parcela Alta")
                 lat_finca = st.number_input("Latitud decimal:", value=42.3659, format="%.4f")
                 lon_finca = st.number_input("Longitud decimal:", value=-2.4235, format="%.4f")
             with c_f2:
@@ -612,6 +624,7 @@ with tab4:
                 st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
                     "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca
                 }
+                guardar_json(FINCAS_FILE, st.session_state.db_privada)
                 st.success(f"¡Parcela '{nom_finca}' guardada!")
                 st.rerun()
 
