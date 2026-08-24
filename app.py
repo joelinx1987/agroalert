@@ -10,7 +10,7 @@ import json
 import hashlib
 
 st.set_page_config(
-    page_title="AgroAlert Campo | Monitor & WhatsApp Bot",
+    page_title="AgroAlert Campo | Monitor & WhatsApp Directo",
     page_icon="🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -92,6 +92,61 @@ st.markdown("""
         color: #64748b;
     }
 
+    /* BOTONES WHATSAPP GIGANTES */
+    .btn-wa-green {
+        display: block;
+        background: linear-gradient(135deg, #25D366, #128C7E);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 18px 20px;
+        font-size: 1.25rem;
+        font-weight: 900;
+        border-radius: 16px;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(37, 211, 102, 0.35);
+        margin-bottom: 14px;
+        transition: transform 0.15s ease;
+    }
+    .btn-wa-green:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-wa-red {
+        display: block;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 18px 20px;
+        font-size: 1.25rem;
+        font-weight: 900;
+        border-radius: 16px;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+        margin-bottom: 14px;
+        transition: transform 0.15s ease;
+    }
+    .btn-wa-red:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-wa-blue {
+        display: block;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 18px 20px;
+        font-size: 1.25rem;
+        font-weight: 900;
+        border-radius: 16px;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+        margin-bottom: 14px;
+        transition: transform 0.15s ease;
+    }
+    .btn-wa-blue:hover {
+        transform: translateY(-2px);
+    }
+
     .recipe-box {
         background-color: #ecfdf5;
         border: 3px solid #059669;
@@ -122,61 +177,10 @@ st.markdown("""
         background-color: #15803d !important;
         color: #ffffff !important;
     }
-    
-    .stButton>button {
-        font-size: 1.15rem !important;
-        font-weight: 800 !important;
-        padding: 14px !important;
-        border-radius: 14px !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
-DB_FILE = "usuarios_alertas.json"
-
-def cargar_usuarios_alertas():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return []
-    return []
-
-def guardar_usuario_alerta(nuevo_usuario):
-    usuarios = cargar_usuarios_alertas()
-    actualizado = False
-    for i, u in enumerate(usuarios):
-        if u.get("telefono") == nuevo_usuario.get("telefono"):
-            usuarios[i] = nuevo_usuario
-            actualizado = True
-            break
-    if not actualizado:
-        usuarios.append(nuevo_usuario)
-    
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(usuarios, f, indent=2, ensure_ascii=False)
-
-def disparar_whatsapp_servidor(telefono, apikey, mensaje):
-    try:
-        num_limpio = telefono.replace(" ", "").replace("-", "")
-        if not num_limpio.startswith("+"):
-            num_limpio = "+34" + num_limpio if not num_limpio.startswith("34") else "+" + num_limpio
-            
-        texto_encoded = urllib.parse.quote(mensaje)
-        url = f"https://api.callmebot.com/whatsapp.php?phone={num_limpio}&text={texto_encoded}&apikey={apikey.strip()}"
-        
-        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            res_body = resp.read().decode('utf-8', errors='ignore')
-            if "Message queued" in res_body or "Message sent" in res_body or resp.status == 200:
-                return True, "¡WhatsApp enviado correctamente!"
-            else:
-                return False, f"Respuesta: {res_body}"
-    except Exception as e:
-        return False, f"Error al enviar: {str(e)}"
-
-# --- AUTENTICACIÓN ---
+# --- BASE DE DATOS Y AUTENTICACIÓN SIMPLE ---
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
@@ -188,12 +192,17 @@ if "usuarios_db" not in st.session_state:
         "admin": {
             "pwd": make_hash("admin123"),
             "nombre": "Joel (Mi Explotación)",
-            "telefono": "+34626665232",
-            "apikey": "3443251",
-            "parcela": "Frontón Jaime",
-            "lat": 42.3659,
-            "lon": -2.4235,
-            "ha": 2.0
+            "parcelas": {
+                "Frontón Jaime": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "ha": 2.0},
+                "Finca Valdegón": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "ha": 2.5}
+            }
+        },
+        "demo": {
+            "pwd": make_hash("demo123"),
+            "nombre": "Agricultor Invitado",
+            "parcelas": {
+                "Parcela Principal": {"lat": 42.4658, "lon": -2.4499, "variedad": "Garnacha", "ha": 3.0}
+            }
         }
     }
 
@@ -201,7 +210,7 @@ if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
 # ==============================================================================
-# ACCESO Y REGISTRO
+# PANTALLA DE ACCESO Y REGISTRO (SIN APIS NI CLAVES)
 # ==============================================================================
 if not st.session_state.usuario_autenticado:
     c1, col_login, c2 = st.columns([1, 1.8, 1])
@@ -211,11 +220,11 @@ if not st.session_state.usuario_autenticado:
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.3rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Campo</h1>
-            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">Monitor de campo y bot de alertas diarias por WhatsApp</p>
+            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">Monitor de campo, recetas de cubas y avisos directos por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
-        tab_in, tab_up = st.tabs(["🔑 ENTRAR", "📝 REGISTRARME Y ACTIVAR BOT"])
+        tab_in, tab_up = st.tabs(["🔑 ENTRAR", "📝 REGISTRARME GRATIS"])
         with tab_in:
             with st.form("form_auth"):
                 u = st.text_input("Usuario", value="admin")
@@ -228,59 +237,33 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         with tab_up:
-            st.info("💡 **Para recibir alertas:** Envía `I allow callmebot to send me messages` por WhatsApp al `+34 623 91 22 04` para obtener tu APIKey.")
             with st.form("form_reg"):
                 nu = st.text_input("Usuario (ej: jgarcia)")
                 nn = st.text_input("Tu Nombre o Explotación (ej: Bodega San Juan)")
-                ntel = st.text_input("📱 Teléfono Móvil (ej: +34612345678)")
-                napi = st.text_input("🔑 APIKey de WhatsApp")
                 np = st.text_input("Contraseña", type="password")
                 
-                st.markdown("##### 📍 Datos de tu Parcela Principal:")
+                st.markdown("##### 📍 Tu Primera Parcela:")
                 nparc = st.text_input("Nombre de la Parcela:", value="Finca Principal")
                 nlat = st.number_input("Latitud:", value=42.3659, format="%.4f")
                 nlon = st.number_input("Longitud:", value=-2.4235, format="%.4f")
                 nha = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
 
-                b_up = st.form_submit_button("🚀 CREAR CUENTA Y ACTIVAR BOT 05:00 AM", use_container_width=True, type="primary")
+                b_up = st.form_submit_button("🚀 CREAR CUENTA GRATIS", use_container_width=True, type="primary")
                 if b_up:
-                    if not nu.strip() or not np.strip() or not ntel.strip():
-                        st.error("Por favor, completa los campos requeridos.")
+                    if not nu.strip() or not np.strip():
+                        st.error("Por favor, introduce usuario y contraseña.")
                     elif nu in st.session_state.usuarios_db:
                         st.error("Ese usuario ya existe.")
                     else:
-                        datos_nuevo = {
+                        st.session_state.usuarios_db[nu] = {
                             "pwd": make_hash(np),
                             "nombre": nn.strip(),
-                            "telefono": ntel.strip(),
-                            "apikey": napi.strip(),
-                            "parcela": nparc.strip(),
-                            "lat": float(nlat),
-                            "lon": float(nlon),
-                            "ha": float(nha)
+                            "parcelas": {
+                                nparc.strip(): {"lat": float(nlat), "lon": float(nlon), "variedad": "Viña", "ha": float(nha)}
+                            }
                         }
-                        st.session_state.usuarios_db[nu] = datos_nuevo
-                        
-                        guardar_usuario_alerta({
-                            "nombre": nn.strip(),
-                            "telefono": ntel.strip(),
-                            "apikey": napi.strip(),
-                            "parcela": nparc.strip(),
-                            "lat": float(nlat),
-                            "lon": float(nlon),
-                            "ha": float(nha),
-                            "fecha_alta": datetime.now().strftime("%d/%m/%Y %H:%M")
-                        })
-                        
-                        if napi.strip():
-                            msg_bienvenida = f"""🚜 *¡BIENVENIDO A AGROALERT!*
-Hola *{nn}*, tu parcela *{nparc}* ha quedado monitorizada.
-
-A partir de mañana a las *05:00 AM* recibirás tu parte diario."""
-                            disparar_whatsapp_servidor(ntel.strip(), napi.strip(), msg_bienvenida)
-
                         st.session_state.usuario_autenticado = nu
-                        st.success("¡Cuenta activada con éxito! Accediendo...")
+                        st.success("¡Cuenta creada con éxito!")
                         st.rerun()
     st.stop()
 
@@ -290,21 +273,15 @@ A partir de mañana a las *05:00 AM* recibirás tu parte diario."""
 user_activo = st.session_state.usuario_autenticado
 datos_usuario = st.session_state.usuarios_db[user_activo]
 nombre_cliente = datos_usuario.get("nombre", user_activo)
-user_telefono = datos_usuario.get("telefono", "+34626665232")
-user_apikey = datos_usuario.get("apikey", "3443251")
-nombre_parcela = datos_usuario.get("parcela", "Frontón Jaime")
-lat = datos_usuario.get("lat", 42.3659)
-lon = datos_usuario.get("lon", -2.4235)
-superficie_ha = datos_usuario.get("ha", 2.0)
+parcelas_usuario = datos_usuario.get("parcelas", {})
 
-c_top1, c_top2, c_top3 = st.columns([1.5, 1.5, 0.8])
+c_top1, c_top2 = st.columns([3, 1])
 with c_top1:
-    tipo_cultivo = st.selectbox("1️⃣ Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
+    seleccion_parcela = st.selectbox("📍 Selecciona Parcela Activa:", list(parcelas_usuario.keys()))
+    dp = parcelas_usuario[seleccion_parcela]
+    lat, lon, variedad, superficie_ha = dp["lat"], dp["lon"], dp.get("variedad", "Cultivo"), dp["ha"]
 
 with c_top2:
-    st.selectbox("2️⃣ Parcela activa:", [nombre_parcela])
-
-with c_top3:
     st.write("")
     if st.button("🚪 Salir", use_container_width=True):
         st.session_state.usuario_autenticado = None
@@ -341,49 +318,54 @@ lluvia_hoy = lluvia[0]
 viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
-# Pestañas (si es admin añade la pestaña de gestión)
-pestanas = ["🚜 ¿PUEDO SULFATAR HOY?", "🧪 CUÁNTO ECHAR A LA CUBA", "📲 BOT WHATSAPP"]
-if user_activo == "admin":
-    pestanas.append("👑 PANEL ADMIN")
+# Semáforo de sulfatado
+if viento_hoy > 15:
+    semaforo_estado = "ROJO"
+    msg_alerta = "⛔ HOY NO SE RECOMIENDA SULFATAR (Exceso de viento)"
+elif lluvia_hoy > 2.0:
+    semaforo_estado = "ROJO"
+    msg_alerta = "⛔ HOY NO SULFATES (Riesgo de lavado por lluvia)"
+elif max_hoy >= 32:
+    semaforo_estado = "AMBAR"
+    msg_alerta = "⚠️ TRATAR SOLO TEMPRANO (Riesgo por calor)"
+else:
+    semaforo_estado = "VERDE"
+    msg_alerta = "✅ DÍA PERFECTO PARA SULFATAR"
 
-tabs = st.tabs(pestanas)
+riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
+
+# PESTAÑAS PRINCIPALES
+tab1, tab2, tab3 = st.tabs([
+    "🚜 ¿PUEDO SULFATAR HOY?",
+    "🧪 CUÁNTO ECHAR A LA CUBA",
+    "📲 ENVIAR POR WHATSAPP"
+])
 
 # ==============================================================================
 # PESTAÑA 1: SEMÁFORO DIARIO
 # ==============================================================================
-with tabs[0]:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📍 {nombre_parcela} <span style='font-size:1.1rem; color:#64748b;'>({superficie_ha} ha)</span></h2>", unsafe_allow_html=True)
+with tab1:
+    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📍 {seleccion_parcela} <span style='font-size:1.1rem; color:#64748b;'>({superficie_ha} ha)</span></h2>", unsafe_allow_html=True)
 
-    if viento_hoy > 15:
-        semaforo_estado = "ROJO"
+    if semaforo_estado == "ROJO":
         st.markdown(f"""
         <div class="traffic-danger">
-            <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SE RECOMIENDA SULFATAR</div>
-            <div class="traffic-sub" style="color: #b91c1c;">Hay demasiado viento ({viento_hoy:.0f} km/h). El producto se va a volar y vas a perder dinero.</div>
+            <div class="traffic-title" style="color: #991b1b;">{msg_alerta}</div>
+            <div class="traffic-sub" style="color: #b91c1c;">Viento: {viento_hoy:.0f} km/h | Lluvia: {lluvia_hoy:.1f} mm.</div>
         </div>
         """, unsafe_allow_html=True)
-    elif lluvia_hoy > 2.0:
-        semaforo_estado = "ROJO"
-        st.markdown(f"""
-        <div class="traffic-danger">
-            <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SULFATES</div>
-            <div class="traffic-sub" style="color: #b91c1c;">Viene lluvia prevista ({lluvia_hoy:.1f} litros/m²). El agua va a lavar el producto.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    elif max_hoy >= 32:
-        semaforo_estado = "AMBAR"
+    elif semaforo_estado == "AMBAR":
         st.markdown(f"""
         <div class="traffic-warning">
-            <div class="traffic-title" style="color: #92400e;">⚠️ TRATAR SOLO A PRIMERA HORA DE LA MAÑANA</div>
-            <div class="traffic-sub" style="color: #b45309;">Hará mucho calor ({max_hoy:.0f} °C). Sulfata entre las 7:00 y las 11:00 para no quemar la hoja.</div>
+            <div class="traffic-title" style="color: #92400e;">{msg_alerta}</div>
+            <div class="traffic-sub" style="color: #b45309;">Hará hasta {max_hoy:.0f}°C. Tratar entre las 7:00 y las 11:00.</div>
         </div>
         """, unsafe_allow_html=True)
     else:
-        semaforo_estado = "VERDE"
         st.markdown(f"""
         <div class="traffic-ok">
-            <div class="traffic-title" style="color: #166534;">✅ DÍA PERFECTO PARA SULFATAR Y TRABAJAR</div>
-            <div class="traffic-sub" style="color: #15803d;">Viento en calma ({viento_hoy:.0f} km/h), sin riesgo de lluvia y temperatura ideal ({max_hoy:.0f} °C).</div>
+            <div class="traffic-title" style="color: #166534;">{msg_alerta}</div>
+            <div class="traffic-sub" style="color: #15803d;">Viento en calma ({viento_hoy:.0f} km/h), sin lluvia y temperatura óptima ({max_hoy:.0f}°C).</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -410,7 +392,6 @@ with tabs[0]:
         </div>
         """, unsafe_allow_html=True)
     with c_m4:
-        riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
         st.markdown(f"""
         <div class="field-card">
             <div class="field-card-title">🛡️ Estado Hongos</div>
@@ -434,7 +415,7 @@ with tabs[0]:
 # ==============================================================================
 # PESTAÑA 2: CALCULADORA DE CUBA
 # ==============================================================================
-with tabs[1]:
+with tab2:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>🧪 Calculadora para la Cuba del Tractor</h2>", unsafe_allow_html=True)
     c_c1, c_c2 = st.columns(2)
     with c_c1:
@@ -485,45 +466,65 @@ with tabs[1]:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: BOT WHATSAPP
+# PESTAÑA 3: ENVÍO DIRECTO CLICK-TO-CHAT
 # ==============================================================================
-with tabs[2]:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size: 1.15rem; color: #475569;'>Alertas vinculadas a <b>{user_telefono}</b> ({nombre_cliente}).</p>", unsafe_allow_html=True)
+with tab3:
+    st.markdown("<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Enviar por WhatsApp (1 Clic)</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 1.15rem; color: #475569;'>Toca un botón para abrir WhatsApp en tu móvil con el mensaje preparado al instante.</p>", unsafe_allow_html=True)
 
-    msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT (05:00 AM)*
-📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
+    col_tel1, col_tel2 = st.columns([1, 1.5])
+    with col_tel1:
+        tel_dest = st.text_input("📱 Teléfono de destino (Opcional):", placeholder="Ej: 34612345678")
+        st.caption("Si lo dejas en blanco, podrás elegir cualquier contacto o grupo en WhatsApp.")
 
-{'🟢 *DÍA PERFECTO PARA SULFATAR*' if semaforo_estado == 'VERDE' else ('🟠 *ATENCIÓN: TRATAR TEMPRANO*' if semaforo_estado == 'AMBAR' else '🔴 *NO SULFATAR HOY*')}
+    prefix_url = f"https://wa.me/{tel_dest.strip()}?text=" if tel_dest.strip() else "https://wa.me/?text="
+
+    # 1. PARTE MATUTINO
+    txt_wa_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
+📍 *Parcela:* {seleccion_parcela} ({superficie_ha} ha)
+
+{ '🟢 *DÍA PERFECTO PARA SULFATAR*' if semaforo_estado == 'VERDE' else ('🟠 *ATENCIÓN: TRATAR SOLO TEMPRANO*' if semaforo_estado == 'AMBAR' else '🔴 *NO SULFATAR HOY*') }
 
 🌡️ *Temperaturas:* {min_hoy:.0f}°C a {max_hoy:.0f}°C
-💨 *Viento:* {viento_hoy:.0f} km/h
+💨 *Viento máx:* {viento_hoy:.0f} km/h
 🌧️ *Lluvia:* {lluvia_hoy:.1f} mm
-🛡️ *Estado:* {riesgo_txt}"""
+🛡️ *Estado:* {riesgo_txt}
 
-    c_b1, c_b2 = st.columns(2)
-    with c_b1:
-        if st.button("📲 PROBAR DISPARO DE PARTE AHORA", use_container_width=True, type="primary"):
-            ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_parte)
-            if ok:
-                st.success(res)
-            else:
-                st.error(res)
+_AgroAlert - Monitor de Campo_"""
+
+    # 2. ALERTA HELADA
+    txt_wa_helada = f"""🚨 *¡ALERTA ROJA DE EMERGENCIA POR HELADA!*
+📍 *Parcela:* {seleccion_parcela}
+
+⚠️ *Riesgo Inminente:* Previsión de temperatura mínima de *{min_hoy:.1f}°C*.
+🛡️ *Acción:* Activar medidas antihelada inmediatamente."""
+
+    # 3. ORDEN DE CUBA
+    txt_wa_cuba = f"""📋 *ORDEN DE TRABAJO - CUBA DEL TRACTOR*
+📍 *Parcela:* {seleccion_parcela} ({ha_a_sulfatar} ha a tratar)
+
+🚜 *Cuba de:* {litros_cuba} Litros
+🧪 *Dosis exacta:* *{kilos_por_cuba:.2f} kg o Litros* por cada CUBA LLENA
+📦 *Cubas necesarias:* {num_cubas_necesarias:.1f} cubas
+⚖️ *Gasto total:* {kilos_totales_finca:.2f} kg/L
+
+_Instrucciones automáticas de AgroAlert_"""
+
+    link_1 = prefix_url + urllib.parse.quote(txt_wa_parte)
+    link_2 = prefix_url + urllib.parse.quote(txt_wa_helada)
+    link_3 = prefix_url + urllib.parse.quote(txt_wa_cuba)
+
+    st.write("---")
+    c_w1, c_w2, c_w3 = st.columns(3)
     
-    with c_b2:
-        st.info("🕒 **Alerta Diaria:** Se envía de forma automática a las **05:00 AM** con los datos de esta parcela.")
+    with c_w1:
+        st.markdown(f'<a href="{link_1}" target="_blank" class="btn-wa-green">💬 ENVIAR PARTE MATUTINO</a>', unsafe_allow_html=True)
+        st.caption("Envía el semáforo y condiciones meteorológicas.")
 
-# ==============================================================================
-# PESTAÑA 4: PANEL DE CONTROL DE REGISTRADOS (SOLO ADMIN)
-# ==============================================================================
-if user_activo == "admin":
-    with tabs[3]:
-        st.markdown("<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b;'>👑 Panel de Control de Usuarios</h2>", unsafe_allow_html=True)
-        st.markdown("Aquí puedes ver todas las personas y explotaciones registradas en el sistema:")
-        
-        lista_u = cargar_usuarios_alertas()
-        if lista_u:
-            st.dataframe(pd.DataFrame(lista_u), use_container_width=True, hide_index=True)
-            st.caption(f"Total registrados con alerta activa: {len(lista_u)} agricultores.")
-        else:
-            st.warning("Todavía no hay usuarios registrados en este servidor.")
+    with c_w2:
+        st.markdown(f'<a href="{link_2}" target="_blank" class="btn-wa-red">🚨 ENVIAR ALERTA HELADA</a>', unsafe_allow_html=True)
+        st.caption("Aviso de emergencia por bajas temperaturas.")
+
+    with c_w3:
+        st.markdown(f'<a href="{link_3}" target="_blank" class="btn-wa-blue">🚜 ENVIAR RECETA AL TRACTORISTA</a>', unsafe_allow_html=True)
+        st.caption("Dosis exacta por cuba y número de pasadas.")
