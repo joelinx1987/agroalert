@@ -17,323 +17,373 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: SISTEMA DE DISEÑO "CUADERNO DE CAMPO" ---
+# --- CSS: SISTEMA DE DISEÑO AGRO-MODERN ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
     :root {
-        --bg: #F6F1E4;
-        --bg-card: #FFFDF8;
-        --ink: #241F17;
-        --ink-soft: #6E6350;
-        --border: #E2D6BC;
-        --green-deep: #2C4A2A;
-        --green: #4B7A3E;
-        --green-soft: #E7EEDE;
-        --gold: #C1932C;
-        --gold-soft: #F5E9C4;
-        --amber: #B5720A;
-        --amber-deep: #8F5A06;
-        --red: #A83228;
-        --red-deep: #82241C;
+        --brand-green: #15803D;
+        --brand-green-light: #16A34A;
+        --brand-green-subtle: #ECFDF5;
+        --slate-900: #0F172A;
+        --slate-700: #334155;
+        --slate-500: #64748B;
+        --slate-200: #E2E8F0;
+        --slate-100: #F1F5F9;
+        --card-bg: #FFFFFF;
+        
+        /* Semáforo Normalizado */
+        --ok-bg: #ECFDF5;
+        --ok-border: #059669;
+        --ok-text: #064E3B;
+        
+        --warn-bg: #FFFBEB;
+        --warn-border: #D97706;
+        --warn-text: #78350F;
+        
+        --danger-bg: #FEF2F2;
+        --danger-border: #DC2626;
+        --danger-text: #7F1D1D;
     }
 
     html, body, [class*="css"], [class*="st-"] {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-
-    h1, h2, h3 { font-family: 'Fraunces', serif !important; }
 
     .stApp {
-        background-color: var(--bg);
-        color: var(--ink);
-        background-image: radial-gradient(circle at 1px 1px, rgba(36,31,23,0.05) 1px, transparent 0);
-        background-size: 22px 22px;
+        background-color: #F8FAFC;
+        color: var(--slate-900);
     }
 
-    /* Cabecera de la explotación */
+    /* Cabecera Principal */
     .top-badge-container {
-        background: linear-gradient(135deg, var(--green-deep) 0%, #1F3A1D 100%);
-        border-radius: 20px;
-        padding: 22px 26px;
-        margin-bottom: 22px;
-        box-shadow: 0 12px 28px -8px rgba(44, 74, 42, 0.35);
-        color: #FBF7EA;
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        border-radius: 18px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
+        color: #FFFFFF;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 12px;
         border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* Navegación en mosaico */
+    .brand-title {
+        font-family: 'Fraunces', serif !important;
+        font-size: 1.55rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+
+    /* Navegación Segmented Control (Pills Táctiles) */
     div[data-testid="stRadio"] > div {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: wrap !important;
-        gap: 10px !important;
+        gap: 8px !important;
     }
 
     div[data-testid="stRadio"] label {
-        background: var(--bg-card) !important;
-        border: 1.5px solid var(--border) !important;
-        border-radius: 14px !important;
-        padding: 15px 12px !important;
-        flex: 1 1 155px !important;
-        min-width: 145px !important;
+        background: var(--card-bg) !important;
+        border: 1.5px solid var(--slate-200) !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        flex: 1 1 140px !important;
+        min-width: 135px !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 6px rgba(36, 31, 23, 0.05) !important;
-        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03) !important;
+        transition: all 0.18s ease-in-out !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     div[data-testid="stRadio"] label:hover {
-        border-color: var(--green) !important;
-        background: var(--green-soft) !important;
+        border-color: var(--brand-green-light) !important;
+        background: var(--brand-green-subtle) !important;
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px -4px rgba(75, 122, 62, 0.18) !important;
     }
 
     div[data-testid="stRadio"] label:has(input:checked) {
-        border-color: var(--green) !important;
-        background: var(--green-soft) !important;
-        box-shadow: 0 4px 12px rgba(75, 122, 62, 0.2) !important;
+        border-color: var(--brand-green) !important;
+        background: var(--brand-green) !important;
+        box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25) !important;
+    }
+
+    div[data-testid="stRadio"] label:has(input:checked) div p {
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
     }
 
     div[data-testid="stRadio"] label div p {
-        font-size: 0.98rem !important;
+        font-size: 0.95rem !important;
         font-weight: 700 !important;
-        color: var(--ink) !important;
-        letter-spacing: -0.01em !important;
+        color: var(--slate-700) !important;
         text-align: center !important;
+        margin: 0 !important;
     }
 
-    /* Aviso de semáforo */
+    /* Banners de Semáforo de Tratamiento */
     .traffic-banner {
-        border-radius: 18px;
-        padding: 24px 26px;
-        margin-bottom: 22px;
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
         display: flex;
         flex-direction: column;
         gap: 6px;
-        color: #FFFDF8;
-        box-shadow: 0 14px 28px -10px rgba(36, 31, 23, 0.3);
+        border-left: 6px solid;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
     }
 
-    .traffic-green { background: linear-gradient(135deg, #3E6B37 0%, var(--green-deep) 100%); }
-    .traffic-amber { background: linear-gradient(135deg, var(--amber) 0%, var(--amber-deep) 100%); }
-    .traffic-red   { background: linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%); }
+    .traffic-green { background: var(--ok-bg); border-left-color: var(--ok-border); color: var(--ok-text); }
+    .traffic-amber { background: var(--warn-bg); border-left-color: var(--warn-border); color: var(--warn-text); }
+    .traffic-red   { background: var(--danger-bg); border-left-color: var(--danger-border); color: var(--danger-text); }
 
     .traffic-title {
-        font-family: 'Fraunces', serif;
-        font-size: 1.5rem;
-        font-weight: 800;
-        letter-spacing: -0.01em;
+        font-size: 1.35rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
     }
 
     .traffic-sub {
-        font-size: 1.02rem;
-        font-weight: 500;
+        font-size: 1rem;
+        font-weight: 600;
         opacity: 0.95;
     }
 
-    /* Instrumentos tipo aforador de campo */
-    .instrument-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+    /* Aforadores / Medidores de Campo */
+    .instrument-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
 
     .instrument {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
+        background: var(--card-bg);
+        border: 1px solid var(--slate-200);
         border-radius: 16px;
-        padding: 16px 18px;
+        padding: 16px 20px;
         flex: 1 1 240px;
-        box-shadow: 0 4px 10px rgba(36, 31, 23, 0.04);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     }
 
     .instrument-head {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .instrument-label {
-        font-size: 0.78rem;
+        font-size: 0.8rem;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--ink-soft);
+        letter-spacing: 0.05em;
+        color: var(--slate-500);
     }
 
     .instrument-value {
-        font-family: 'Fraunces', serif;
         font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--ink);
+        font-weight: 900;
+        color: var(--slate-900);
+        letter-spacing: -0.02em;
     }
 
     .instrument-value small {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         font-weight: 700;
-        color: var(--ink-soft);
+        color: var(--slate-500);
     }
 
     .instrument-track {
         position: relative;
-        height: 12px;
-        background: #EDE6D3;
+        height: 10px;
+        background: var(--slate-100);
         border-radius: 99px;
-        border: 1px solid var(--border);
+        overflow: visible;
     }
 
     .instrument-fill {
         position: absolute;
         top: 0; left: 0; height: 100%;
         border-radius: 99px;
+        transition: width 0.4s ease;
     }
 
-    .instrument-fill.ok   { background: linear-gradient(90deg, #5B8C4C, var(--green-deep)); }
-    .instrument-fill.warn { background: linear-gradient(90deg, #D89A2E, var(--amber-deep)); }
-    .instrument-fill.bad  { background: linear-gradient(90deg, #C1483C, var(--red-deep)); }
+    .instrument-fill.ok   { background: linear-gradient(90deg, #22C55E, #16A34A); }
+    .instrument-fill.bad  { background: linear-gradient(90deg, #F87171, #DC2626); }
 
     .instrument-threshold {
         position: absolute;
         top: -4px;
-        width: 2px;
-        height: 20px;
-        background: var(--ink);
-        opacity: 0.5;
+        width: 3px;
+        height: 18px;
+        background: #0F172A;
+        border-radius: 2px;
+        box-shadow: 0 0 4px rgba(0,0,0,0.3);
     }
 
     .instrument-scale {
         display: flex;
         justify-content: space-between;
-        font-size: 0.7rem;
-        color: var(--ink-soft);
-        font-weight: 600;
+        font-size: 0.72rem;
+        color: var(--slate-500);
+        font-weight: 700;
         margin-top: 6px;
     }
 
-    /* Tarjetas métricas */
+    /* Tarjetas Métricas Homogéneas */
     .metric-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
+        background: var(--card-bg);
+        border: 1px solid var(--slate-200);
         border-radius: 16px;
-        padding: 18px 16px;
+        padding: 18px;
         text-align: center;
-        box-shadow: 0 4px 10px rgba(36, 31, 23, 0.04);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        min-height: 115px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         margin-bottom: 12px;
-        transition: transform 0.2s ease;
     }
-
-    .metric-card:hover { transform: translateY(-3px); }
 
     .metric-title {
         font-size: 0.78rem;
         font-weight: 800;
-        color: var(--ink-soft);
+        color: var(--slate-500);
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.05em;
     }
 
     .metric-val {
-        font-family: 'Fraunces', serif;
-        font-size: 1.9rem;
-        font-weight: 800;
-        color: var(--ink);
-        margin-top: 6px;
-        letter-spacing: -0.01em;
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: var(--slate-900);
+        margin-top: 4px;
+        letter-spacing: -0.02em;
     }
 
     .metric-unit {
-        font-family: 'Inter', sans-serif;
         font-size: 0.9rem;
         font-weight: 700;
-        color: var(--ink-soft);
+        color: var(--slate-500);
     }
 
-    /* Receta de tratamiento */
+    /* Receta de Tratamiento */
     .recipe-card {
-        background: linear-gradient(135deg, var(--green-deep) 0%, #1F3A1D 100%);
-        border-radius: 22px;
-        padding: 26px;
-        color: #FBF7EA;
-        box-shadow: 0 16px 30px -8px rgba(44, 74, 42, 0.35);
+        background: linear-gradient(135deg, #064E3B 0%, #047857 100%);
+        border-radius: 20px;
+        padding: 24px;
+        color: #FFFFFF;
+        box-shadow: 0 12px 28px -6px rgba(4, 120, 87, 0.35);
         margin-top: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .recipe-tag {
-        background: rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.18);
         padding: 6px 14px;
         border-radius: 9999px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 800;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         display: inline-block;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
 
     .recipe-amount {
-        font-family: 'Fraunces', serif;
-        font-size: 2.4rem;
-        font-weight: 800;
-        letter-spacing: -0.01em;
+        font-size: 2.3rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
         line-height: 1.15;
     }
 
-    /* Tarjetas de leyenda */
+    /* Leyendas Técnicas */
     .legend-box {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
+        background: var(--card-bg);
+        border: 1px solid var(--slate-200);
         border-radius: 16px;
         padding: 20px;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 10px rgba(36, 31, 23, 0.04);
+        margin-bottom: 14px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
     }
 
     .legend-title {
-        font-family: 'Fraunces', serif;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--green-deep);
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--brand-green);
         margin-bottom: 8px;
     }
 
     .legend-desc {
         font-size: 0.95rem;
-        color: var(--ink);
-        line-height: 1.55;
+        color: var(--slate-700);
+        line-height: 1.6;
     }
 
-    /* Guía de Registro */
-    .guide-card {
-        background: var(--bg-card);
-        border: 2px solid var(--green);
-        border-radius: 18px;
-        padding: 20px 22px;
-        margin-bottom: 22px;
-        box-shadow: 0 8px 20px -4px rgba(75, 122, 62, 0.15);
-    }
-
-    /* Botones */
+    /* Botones de Acción Primarios */
     .stButton > button {
-        background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%) !important;
-        color: #FBF7EA !important;
+        background: linear-gradient(135deg, #16A34A 0%, #15803D 100%) !important;
+        color: #FFFFFF !important;
         font-weight: 800 !important;
-        font-size: 1.03rem !important;
+        font-size: 1rem !important;
         border: none !important;
-        border-radius: 13px !important;
-        padding: 15px 20px !important;
-        box-shadow: 0 6px 16px rgba(44, 74, 42, 0.22) !important;
+        border-radius: 12px !important;
+        padding: 14px 20px !important;
+        box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25) !important;
         transition: all 0.18s ease !important;
     }
 
     .stButton > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 20px rgba(44, 74, 42, 0.3) !important;
+        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35) !important;
+    }
+
+    /* Botón Secundario / Salir */
+    .btn-secondary-custom > button {
+        background: transparent !important;
+        color: var(--slate-500) !important;
+        border: 1.5px solid var(--slate-200) !important;
+        box-shadow: none !important;
+        font-weight: 700 !important;
+    }
+
+    .btn-secondary-custom > button:hover {
+        background: var(--slate-100) !important;
+        color: var(--slate-900) !important;
+        border-color: var(--slate-500) !important;
+        transform: none !important;
+    }
+
+    /* Badges de Tabla de Previsión */
+    .badge-optimo {
+        background-color: #DCFCE7;
+        color: #15803D;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+    .badge-precaucion {
+        background-color: #FEF3C7;
+        color: #B45309;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+    .badge-peligro {
+        background-color: #FEE2E2;
+        color: #B91C1C;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        display: inline-block;
     }
 
     div[data-baseweb="input"], div[data-baseweb="select"], div[data-baseweb="textarea"] {
@@ -341,7 +391,7 @@ st.markdown("""
     }
 
     div[data-testid="stDataFrame"] {
-        border: 1px solid var(--border) !important;
+        border: 1px solid var(--slate-200) !important;
         border-radius: 14px !important;
         overflow: hidden !important;
     }
@@ -385,7 +435,7 @@ def guardar_json(archivo, datos):
 def render_google_map(latitud, longitud, zoom=16, height=380):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 20px; overflow: hidden; border: 2px solid #E2D6BC; box-shadow: 0 10px 25px -5px rgba(36,31,23,0.15);">
+    <div style="border-radius: 18px; overflow: hidden; border: 1.5px solid #E2D6BC; box-shadow: 0 10px 25px -5px rgba(15,23,42,0.08);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -393,9 +443,9 @@ def render_google_map(latitud, longitud, zoom=16, height=380):
 
 def render_copy_box(texto_a_copiar):
     html_code = f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFDF8; border: 1.5px solid #E2D6BC; border-radius: 12px; padding: 12px 14px; margin: 8px 0 12px 0;">
-        <span id="target-text" style="font-style: italic; font-size: 1rem; color: #241F17; font-weight: 600;">{texto_a_copiar}</span>
-        <button onclick="copiarAlPortapapeles()" style="background: #4B7A3E; color: #FFFDF8; border: none; border-radius: 8px; padding: 7px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; margin: 8px 0 12px 0;">
+        <span id="target-text" style="font-style: italic; font-size: 1rem; color: #0F172A; font-weight: 600;">{texto_a_copiar}</span>
+        <button onclick="copiarAlPortapapeles()" style="background: #16A34A; color: #FFFFFF; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">
             <span id="btn-label">📋 Copiar texto</span>
         </button>
     </div>
@@ -429,7 +479,7 @@ def instrumento_html(icono, etiqueta, valor, unidad, maximo, umbral, decimales=1
             <div class="instrument-threshold" style="left:{umbral_pct:.0f}%;"></div>
         </div>
         <div class="instrument-scale">
-            <span>0</span><span>límite {umbral:g}</span><span>{maximo:g}</span>
+            <span>0</span><span>límite {umbral:g} {unidad}</span><span>{maximo:g}</span>
         </div>
     </div>
     """
@@ -486,14 +536,14 @@ if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
 if not st.session_state.usuario_autenticado:
-    c1, col_login, c2 = st.columns([1, 1.9, 1])
+    c1, col_login, c2 = st.columns([1, 1.8, 1])
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
         <div style="text-align: center; margin-bottom: 26px;">
-            <div style="font-size: 3.6rem; margin-bottom: 4px; filter: drop-shadow(0 8px 16px rgba(44,74,42,0.25));">🌾</div>
-            <h1 style="font-family:'Fraunces', serif; font-size: 2.3rem; font-weight: 800; color: var(--ink); margin: 0; letter-spacing: -0.02em;">AgroAlert Pro</h1>
-            <p style="font-size: 1.05rem; color: var(--ink-soft); font-weight: 600; margin-top: 6px;">Tu cuaderno de campo y avisos por WhatsApp</p>
+            <div style="font-size: 3.4rem; margin-bottom: 4px;">🌾</div>
+            <h1 class="brand-title" style="font-size: 2.2rem; color: #0F172A;">AgroAlert Pro</h1>
+            <p style="font-size: 1.05rem; color: #64748B; font-weight: 600; margin-top: 4px;">Monitor de campo y avisos por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -513,15 +563,14 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
-            # GUÍA PASO A PASO CON NÚMERO Y COPIADO
             st.markdown("""
-            <div class="guide-card">
-                <div style="font-size: 1.1rem; font-weight: 900; color: var(--green-deep); margin-bottom: 8px;">
+            <div style="background: #FFFFFF; border: 1.5px solid #16A34A; border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(22,163,74,0.1);">
+                <div style="font-size: 1.05rem; font-weight: 800; color: #15803D; margin-bottom: 8px;">
                     🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
                 </div>
-                <div style="font-size: 0.95rem; color: var(--ink); line-height: 1.55;">
-                    <b>1.</b> Abre un chat en WhatsApp con el número del bot: 
-                    <span style="background: var(--gold-soft); color: var(--ink); font-weight: 800; padding: 3px 8px; border-radius: 6px;">+34 623 91 22 04</span><br>
+                <div style="font-size: 0.95rem; color: #334155; line-height: 1.55;">
+                    <b>1.</b> Abre un chat en WhatsApp con el número: 
+                    <span style="background: #FEF3C7; color: #92400E; font-weight: 800; padding: 3px 8px; border-radius: 6px;">+34 623 91 22 04</span><br>
                     <b>2.</b> Envía este mensaje exacto:
                 </div>
             </div>
@@ -532,12 +581,12 @@ if not st.session_state.usuario_autenticado:
             st.markdown("""
             <div style="margin-top: -10px; margin-bottom: 16px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: var(--green); color: #FFFDF8; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(75, 122, 62, 0.3);">
-                        📲 TOCAR AQUÍ PARA ABRIR WHATSAPP AUTOMÁTICAMENTE
+                    <div style="background-color: #16A34A; color: #FFFFFF; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);">
+                        📲 TOCAR AQUÍ PARA ABRIR WHATSAPP DIRECTO
                     </div>
                 </a>
-                <p style="font-size: 0.88rem; color: var(--ink-soft); margin-top: 8px; text-align: center;">
-                    <b>3.</b> El bot te responderá con tu número de <b>apikey</b>. Pégalo en el formulario:
+                <p style="font-size: 0.88rem; color: #64748B; margin-top: 8px; text-align: center;">
+                    <b>3.</b> Pega el código numérico recibido en la casilla:
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -598,17 +647,17 @@ fincas_usuario = st.session_state.db_privada[user_activo]
 st.markdown(f"""
 <div class="top-badge-container">
     <div>
-        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: #B8D9A8; font-weight: 800;">EXPLOTACIÓN AGRÍCOLA</div>
-        <div style="font-family:'Fraunces', serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em;">{nombre_cliente}</div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4ADE80; font-weight: 800;">EXPLOTACIÓN AGRÍCOLA</div>
+        <div class="brand-title">{nombre_cliente}</div>
     </div>
     <div style="text-align: right;">
-        <span style="background: rgba(199, 154, 44, 0.22); color: #F0D998; padding: 6px 14px; border-radius: 9999px; font-weight: 800; font-size: 0.85rem;">● SISTEMA CONECTADO</span>
+        <span style="background: rgba(34, 197, 94, 0.18); color: #86EFAC; padding: 6px 14px; border-radius: 9999px; font-weight: 800; font-size: 0.85rem;">● SISTEMA CONECTADO</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Selectores superiores
-c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
+# Selectores superiores de Finca y Salida
+c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.6])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo activo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
 
@@ -634,10 +683,11 @@ with c_top2:
         riego_tipo = dp.get("riego", "Secano")
 
 with c_top3:
-    st.write("")
+    st.markdown('<div class="btn-secondary-custom" style="margin-top: 28px;">', unsafe_allow_html=True)
     if st.button("🚪 Salir", use_container_width=True):
         st.session_state.usuario_autenticado = None
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- CONSULTA METEOROLÓGICA ---
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
@@ -671,9 +721,9 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # ==============================================================================
-# NAVEGACIÓN EN MOSAICO
+# NAVEGACIÓN EN PÍLDORAS (PILL TABS)
 # ==============================================================================
-st.markdown("<p style='font-size: 0.85rem; font-weight: 800; color: var(--ink-soft); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 15px; margin-bottom: 8px;'>MÓDULOS ACTIVOS:</p>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 0.8rem; font-weight: 800; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 14px; margin-bottom: 8px;'>MÓDULOS DE EXPLOTACIÓN:</p>", unsafe_allow_html=True)
 
 opciones_menu = [
     "🚦 Semáforo del Día",
@@ -682,7 +732,7 @@ opciones_menu = [
     "🌾 Labores y Cosecha",
     "📲 Alertas WhatsApp",
     "🗺️ Mis Fincas",
-    "ℹ️ Leyenda y Fuentes de Datos"
+    "ℹ️ Leyenda y Fuentes"
 ]
 
 if user_activo == "admin":
@@ -696,9 +746,9 @@ st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
 # ==============================================================================
 if "Semáforo del Día" in seccion_activa:
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 6px;">
-        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0;">📍 {nombre_parcela}</h2>
-        <span style="font-size: 1rem; color: var(--ink-soft); font-weight: 700;">{superficie_ha} ha | {variedad}</span>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; flex-wrap: wrap; gap: 6px;">
+        <h2 style="font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0;">📍 {nombre_parcela}</h2>
+        <span style="font-size: 0.95rem; color: #64748B; font-weight: 700;">{superficie_ha} ha | {variedad}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -740,10 +790,11 @@ if "Semáforo del Día" in seccion_activa:
     else:
         riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ BAJO"
 
+    # Instrumentos de campo proporcionales
     st.markdown(f"""
     <div class="instrument-row">
         {instrumento_html("💨", "Viento", viento_hoy, "km/h", 30, 15, decimales=0)}
-        {instrumento_html("🌧️", "Lluvia", lluvia_hoy, "L/m²", 10, 2, decimales=1)}
+        {instrumento_html("🌧️", "Lluvia Prevista", lluvia_hoy, "L/m²", 10, 2, decimales=1)}
     </div>
     """, unsafe_allow_html=True)
 
@@ -751,28 +802,30 @@ if "Semáforo del Día" in seccion_activa:
     with c_m1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">🌡️ Temperatura de Hoy</div>
+            <div class="metric-title">🌡️ Rango Térmico de Hoy</div>
             <div class="metric-val">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="metric-unit">C</span></div>
         </div>
         """, unsafe_allow_html=True)
     with c_m2:
-        color_r = '#A83228' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else ('#B5720A' if 'Oídio' in riesgo_txt else '#3E6B37')
+        color_r = '#DC2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else ('#D97706' if 'Oídio' in riesgo_txt else '#16A34A')
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">🛡️ Riesgo Fitosanitario</div>
+            <div class="metric-title">🛡️ Estado Fitosanitario</div>
             <div class="metric-val" style="font-size:1.45rem; color: {color_r};">{riesgo_txt}</div>
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 15px;'>📅 Previsión de Tratabilidad (7 Días):</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 18px; margin-bottom: 10px;'>📅 Previsión de Tratabilidad (7 Días):</h3>", unsafe_allow_html=True)
+    
+    # Renderizado con formato limpio para la tabla
     df_dias = []
     for i in range(len(fechas_legibles)):
         apto = "✅ Óptimo" if (viento[i] <= 15 and lluvia[i] <= 2.0 and t_max[i] < 32) else ("⛔ No tratar" if (viento[i] > 15 or lluvia[i] > 2.0) else "⚠️ Precaución")
         df_dias.append({
             "Día": fechas_legibles[i],
             "Tª Min/Max": f"{t_min[i]:.0f}° / {t_max[i]:.0f}°C",
-            "Lluvia": f"{lluvia[i]:.1f} L",
-            "Viento": f"{viento[i]:.0f} km/h",
+            "Lluvia (L/m²)": f"{lluvia[i]:.1f} L",
+            "Viento (km/h)": f"{viento[i]:.0f} km/h",
             "Estado": apto
         })
     st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
@@ -781,7 +834,7 @@ if "Semáforo del Día" in seccion_activa:
 # 2. CALCULADORA DE DEPÓSITO
 # ==============================================================================
 elif "Calculadora de Mezcla" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>🧪 Dosificación y Calibración de Depósito</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0 0 15px 0;'>🧪 Dosificación y Calibración de Depósito</h2>", unsafe_allow_html=True)
     c_c1, c_c2 = st.columns(2)
     with c_c1:
         st.markdown("#### 🚜 Maquinaria:")
@@ -819,12 +872,12 @@ elif "Calculadora de Mezcla" in seccion_activa:
     st.markdown(f"""
     <div class="recipe-card">
         <div class="recipe-tag">Orden de Mezcla Directa</div>
-        <div class="recipe-amount">{kilos_por_cuba:.2f} <span style="font-size: 1.4rem; font-weight: 700; opacity: 0.9;">kg o Litros por depósito lleno ({litros_cuba} L)</span></div>
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 18px 0;">
-        <div style="font-size: 1.15rem; font-weight: 700;">
+        <div class="recipe-amount">{kilos_por_cuba:.2f} <span style="font-size: 1.3rem; font-weight: 700; opacity: 0.9;">kg o Litros por depósito lleno ({litros_cuba} L)</span></div>
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 16px 0;">
+        <div style="font-size: 1.1rem; font-weight: 700;">
             🚜 Para <b>{ha_a_sulfatar} ha</b> necesitas <b>{num_cubas_necesarias:.1f} depósitos</b> ({kilos_totales_finca:.2f} kg/L totales).
         </div>
-        <div style="font-size: 1rem; font-weight: 600; opacity: 0.9; margin-top: 6px;">
+        <div style="font-size: 0.95rem; font-weight: 600; opacity: 0.9; margin-top: 6px;">
             💰 Inversión estimada: <b>{coste_total_euros:.2f} €</b> ({(coste_total_euros/ha_a_sulfatar if ha_a_sulfatar>0 else 0):.2f} €/ha).
         </div>
     </div>
@@ -834,7 +887,7 @@ elif "Calculadora de Mezcla" in seccion_activa:
 # 3. CUADERNO DE FITOSANITARIOS
 # ==============================================================================
 elif "Cuaderno de Campo" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
 
     with st.form("form_fito"):
         st.markdown("#### ➕ Registrar Aplicación:")
@@ -884,7 +937,7 @@ elif "Cuaderno de Campo" in seccion_activa:
 # 4. LABORES Y RENDIMIENTOS
 # ==============================================================================
 elif "Labores y Cosecha" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>🌾 Labores y Liquidaciones de Cosecha</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0 0 15px 0;'>🌾 Labores y Liquidaciones de Cosecha</h2>", unsafe_allow_html=True)
     sub_lab1, sub_lab2 = st.tabs(["🚜 REGISTRAR LABOR / RIEGO", "🍇 REGISTRAR COSECHA / VENTA"])
 
     with sub_lab1:
@@ -964,8 +1017,8 @@ elif "Labores y Cosecha" in seccion_activa:
 # 5. BOT WHATSAPP
 # ==============================================================================
 elif "Alertas WhatsApp" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>📲 Centro de Disparos WhatsApp</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size: 1.05rem; color: var(--ink-soft);'>Teléfono receptor: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0 0 15px 0;'>📲 Centro de Disparos WhatsApp</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 1.05rem; color: #64748B;'>Teléfono receptor: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
 
     if "Viña" in tipo_cultivo:
         riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
@@ -1016,7 +1069,7 @@ elif "Alertas WhatsApp" in seccion_activa:
 # 6. GESTIÓN DE FINCAS Y SATÉLITE
 # ==============================================================================
 elif "Mis Fincas" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>🗺️ Gestión Catastral y Satélite ({tipo_cultivo})</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0 0 15px 0;'>🗺️ Gestión Catastral y Satélite ({tipo_cultivo})</h2>", unsafe_allow_html=True)
 
     fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
 
@@ -1130,7 +1183,7 @@ elif "Mis Fincas" in seccion_activa:
             url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
             st.markdown(f"""
             <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
-                <div style="background-color: var(--green-deep); color: #FBF7EA; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
+                <div style="background-color: #0F172A; color: #FFFFFF; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
                     🚗 ABRIR EN APP DE GOOGLE MAPS (GPS)
                 </div>
             </a>
@@ -1192,10 +1245,10 @@ elif "Mis Fincas" in seccion_activa:
             st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 7. LEYENDA Y FUENTES DE DATOS (NUEVA SECCIÓN)
+# 7. LEYENDA Y FUENTES DE DATOS
 # ==============================================================================
 elif "Leyenda y Fuentes" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
     
     st.markdown("""
     <div class="legend-box">
@@ -1241,7 +1294,7 @@ elif "Leyenda y Fuentes" in seccion_activa:
 # 8. PANEL ADMINISTRADOR
 # ==============================================================================
 elif "Administración" in seccion_activa and user_activo == "admin":
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--red-deep); margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #DC2626; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
 
     st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
     todos_los_usuarios = list(st.session_state.usuarios_db.keys())
