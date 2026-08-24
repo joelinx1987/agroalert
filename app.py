@@ -10,13 +10,13 @@ import json
 import hashlib
 
 st.set_page_config(
-    page_title="AgroAlert Campo | Monitor Diario & WhatsApp",
+    page_title="AgroAlert Campo | Monitor & WhatsApp Bot",
     page_icon="🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES DE ALTO CONTRASTE Y BOTONES WHATSAPP GIGANTES ---
+# --- ESTILOS VISUALES DE ALTO CONTRASTE ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -30,7 +30,6 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* SEMÁFOROS GRANDES */
     .traffic-ok {
         background-color: #dcfce7;
         border: 3px solid #16a34a;
@@ -66,7 +65,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* TARJETAS DE DATOS METEOROLÓGICOS */
     .field-card {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
@@ -94,62 +92,6 @@ st.markdown("""
         color: #64748b;
     }
 
-    /* BOTONES WHATSAPP PROFESIONALES */
-    .btn-wa-green {
-        display: block;
-        background: linear-gradient(135deg, #25D366, #128C7E);
-        color: #ffffff !important;
-        text-align: center;
-        padding: 18px 20px;
-        font-size: 1.2rem;
-        font-weight: 900;
-        border-radius: 16px;
-        text-decoration: none;
-        box-shadow: 0 6px 18px rgba(37, 211, 102, 0.35);
-        margin-bottom: 14px;
-        transition: transform 0.15s ease;
-    }
-    .btn-wa-green:hover {
-        transform: translateY(-2px);
-    }
-
-    .btn-wa-red {
-        display: block;
-        background: linear-gradient(135deg, #ef4444, #b91c1c);
-        color: #ffffff !important;
-        text-align: center;
-        padding: 18px 20px;
-        font-size: 1.2rem;
-        font-weight: 900;
-        border-radius: 16px;
-        text-decoration: none;
-        box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
-        margin-bottom: 14px;
-        transition: transform 0.15s ease;
-    }
-    .btn-wa-red:hover {
-        transform: translateY(-2px);
-    }
-
-    .btn-wa-blue {
-        display: block;
-        background: linear-gradient(135deg, #0284c7, #0369a1);
-        color: #ffffff !important;
-        text-align: center;
-        padding: 18px 20px;
-        font-size: 1.2rem;
-        font-weight: 900;
-        border-radius: 16px;
-        text-decoration: none;
-        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
-        margin-bottom: 14px;
-        transition: transform 0.15s ease;
-    }
-    .btn-wa-blue:hover {
-        transform: translateY(-2px);
-    }
-
-    /* RECETA DE LA CUBA */
     .recipe-box {
         background-color: #ecfdf5;
         border: 3px solid #059669;
@@ -180,8 +122,35 @@ st.markdown("""
         background-color: #15803d !important;
         color: #ffffff !important;
     }
+    
+    .stButton>button {
+        font-size: 1.15rem !important;
+        font-weight: 800 !important;
+        padding: 14px !important;
+        border-radius: 14px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# --- FUNCIÓN PARA DISPARAR WHATSAPP DESDE LA APP (CALLMEBOT API) ---
+def disparar_whatsapp_servidor(telefono, apikey, mensaje):
+    try:
+        num_limpio = telefono.replace(" ", "").replace("-", "")
+        if not num_limpio.startswith("+"):
+            num_limpio = "+34" + num_limpio if not num_limpio.startswith("34") else "+" + num_limpio
+            
+        texto_encoded = urllib.parse.quote(mensaje)
+        url = f"https://api.callmebot.com/whatsapp.php?phone={num_limpio}&text={texto_encoded}&apikey={apikey.strip()}"
+        
+        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            res_body = resp.read().decode('utf-8', errors='ignore')
+            if "Message queued" in res_body or "Message sent" in res_body or resp.status == 200:
+                return True, "¡WhatsApp enviado con éxito desde la app!"
+            else:
+                return False, f"Respuesta del servidor: {res_body}"
+    except Exception as e:
+        return False, f"Error al enviar: {str(e)}"
 
 # --- AUTENTICACIÓN ---
 def make_hash(password):
@@ -224,7 +193,7 @@ if not st.session_state.usuario_autenticado:
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.3rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Campo</h1>
-            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">El aviso diario del campo, cálculo de cubas y alertas WhatsApp</p>
+            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">El aviso diario del campo, cálculo de cubas y bot WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -322,7 +291,7 @@ temp_media_hoy = (min_hoy + max_hoy) / 2
 tab1, tab2, tab3, tab4 = st.tabs([
     "🚜 ¿PUEDO SULFATAR HOY?",
     "🧪 CUÁNTO ECHAR A LA CUBA",
-    "📲 AVISOS POR WHATSAPP",
+    "📲 DISPARAR WHATSAPP DESDE LA APP",
     "➕ MIS FINCAS"
 ])
 
@@ -466,71 +435,83 @@ with tab2:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: ENVÍO DIRECTO POR WHATSAPP
+# PESTAÑA 3: BOT DIRECTO DE WHATSAPP DESDE EL SERVIDOR (PRECONFIGURADO)
 # ==============================================================================
 with tab3:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Avisos Directos por WhatsApp</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 1.15rem; color: #475569;'>Toca un botón y se abrirá WhatsApp con el mensaje preparado al 100%.</p>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Disparo Directo de WhatsApp desde la App</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 1.15rem; color: #475569;'>La aplicación envía el WhatsApp directamente a tu móvil desde el servidor.</p>", unsafe_allow_html=True)
 
-    # Campo de teléfono opcional
-    col_tel1, col_tel2 = st.columns([1, 1.5])
-    with col_tel1:
-        tel_destino = st.text_input("📱 Teléfono de destino (Opcional):", placeholder="Ej: 34612345678 (o déjalo en blanco)")
-        st.caption("Si lo dejas en blanco, WhatsApp te dejará elegir a cualquier contacto o grupo.")
+    col_wa_cfg1, col_wa_cfg2 = st.columns(2)
+    with col_wa_cfg1:
+        st.markdown("#### ⚙️ Configuración del Destinatario")
+        wa_tel_input = st.text_input("📱 Teléfono Móvil:", value="+34626665232")
+        wa_key_input = st.text_input("🔑 APIKey de CallMeBot:", value="3443251", type="password")
+        st.success("✅ WhatsApp configurado y vinculado.")
 
-    prefix_url = f"https://wa.me/{tel_destino.strip()}?text=" if tel_destino.strip() else "https://wa.me/?text="
-
-    # 1. MENSAJE PARTE DIARIO
-    txt_wa_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
-📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
-
-{ '🟢 *DÍA PERFECTO PARA SULFATAR*' if semaforo_estado == 'VERDE' else ('🟠 *ATENCIÓN: TRATAR SOLO TEMPRANO*' if semaforo_estado == 'AMBAR' else '🔴 *NO SULFATAR HOY (VIENTO/LLUVIA)*') }
-
-🌡️ *Temperaturas:* {min_hoy:.0f}°C a {max_hoy:.0f}°C
-💨 *Viento máx:* {viento_hoy:.0f} km/h
-🌧️ *Lluvia:* {lluvia_hoy:.1f} mm
-🛡️ *Estado fitosanitario:* {riesgo_txt}
-
-_AgroAlert Pro - Monitor de Campo_"""
-
-    # 2. MENSAJE ALERTA HELADA
-    txt_wa_helada = f"""🚨 *¡ALERTA ROJA DE HELADA!*
-📍 *Parcela:* {nombre_parcela}
-
-⚠️ *Riesgo Inminente:* Previsión de temperatura crítica de *{min_hoy:.1f}°C*.
-🛡️ *Acción:* Activar medidas antihelada y proteger brotación."""
-
-    # 3. MENSAJE ORDEN DE TRABAJO AL TRACTORISTA
-    txt_wa_cuba = f"""📋 *ORDEN DE TRABAJO - CUBA DEL TRACTOR*
-📍 *Parcela:* {nombre_parcela} ({ha_a_sulfatar} ha a tratar)
-
-🚜 *Cuba de:* {litros_cuba} Litros
-🧪 *Dosis exacta:* *{kilos_por_cuba:.2f} kg o Litros* por cada CUBA LLENA
-📦 *Cubas necesarias:* {num_cubas_necesarias:.1f} cubas
-⚖️ *Producto total a gastar:* {kilos_totales_finca:.2f} kg/L
-
-_Instrucciones automáticas de AgroAlert_"""
-
-    link_wa_1 = prefix_url + urllib.parse.quote(txt_wa_parte)
-    link_wa_2 = prefix_url + urllib.parse.quote(txt_wa_helada)
-    link_wa_3 = prefix_url + urllib.parse.quote(txt_wa_cuba)
+    with col_wa_cfg2:
+        st.markdown("#### 📋 Mensaje que se disparará:")
+        st.info(f"""
+        🚜 <b>PARTE MATUTINO AGROALERT</b>
+        📍 Parcela: <b>{nombre_parcela}</b> ({superficie_ha} ha)
+        
+        {'🟢 DÍA PERFECTO PARA SULFATAR' if semaforo_estado == 'VERDE' else '🔴 PRECAUCIÓN / NO SULFATAR'}
+        🌡️ Tª: {min_hoy:.0f}°C a {max_hoy:.0f}°C
+        💨 Viento: {viento_hoy:.0f} km/h
+        🌧️ Lluvia: {lluvia_hoy:.1f} mm
+        """)
 
     st.write("---")
     
-    # BOTONES GRANDES PARA CAMPO
-    c_w1, c_w2, c_w3 = st.columns(3)
+    # TEXTOS A ENVIAR
+    msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
+📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
+
+{'🟢 *DÍA PERFECTO PARA SULFATAR*' if semaforo_estado == 'VERDE' else ('🟠 *ATENCIÓN: TRATAR TEMPRANO*' if semaforo_estado == 'AMBAR' else '🔴 *NO SULFATAR HOY*')}
+
+🌡️ *Temperaturas:* {min_hoy:.0f}°C a {max_hoy:.0f}°C
+💨 *Viento:* {viento_hoy:.0f} km/h
+🌧️ *Lluvia:* {lluvia_hoy:.1f} mm
+🛡️ *Estado:* {riesgo_txt}"""
+
+    msg_helada = f"""🚨 *¡ALERTA ROJA DE EMERGENCIA POR HELADA!*
+📍 *Parcela:* {nombre_parcela}
+
+⚠️ *Riesgo Inminente:* Previsión de temperatura crítica de *{min_hoy:.1f}°C*.
+🛡️ *Acción:* Activar medidas antihelada inmediatamente."""
+
+    msg_cuba = f"""📋 *ORDEN DE TRATAMIENTO PARA LA CUBA*
+📍 *Parcela:* {nombre_parcela} ({ha_a_sulfatar} ha)
+
+🚜 *Cuba de:* {litros_cuba} Litros
+🧪 *Dosis por cuba llena:* *{kilos_por_cuba:.2f} kg o Litros*
+📦 *Cubas necesarias:* {num_cubas_necesarias:.1f} cubas
+⚖️ *Gasto total finca:* {kilos_totales_finca:.2f} kg/L"""
+
+    c_b1, c_b2, c_b3 = st.columns(3)
     
-    with c_w1:
-        st.markdown(f'<a href="{link_wa_1}" target="_blank" class="btn-wa-green">💬 ENVIAR PARTE MATUTINO</a>', unsafe_allow_html=True)
-        st.caption("Envía el semáforo diario, viento y temperaturas.")
+    with c_b1:
+        if st.button("📲 DISPARAR PARTE MATUTINO", use_container_width=True, type="primary"):
+            ok, res = disparar_whatsapp_servidor(wa_tel_input, wa_key_input, msg_parte)
+            if ok:
+                st.success(res)
+            else:
+                st.error(res)
 
-    with c_w2:
-        st.markdown(f'<a href="{link_wa_2}" target="_blank" class="btn-wa-red">🚨 ENVIAR ALERTA HELADA</a>', unsafe_allow_html=True)
-        st.caption("Aviso de emergencia por riesgo de bajas temperaturas.")
+    with c_b2:
+        if st.button("🚨 DISPARAR ALERTA HELADA", use_container_width=True):
+            ok, res = disparar_whatsapp_servidor(wa_tel_input, wa_key_input, msg_helada)
+            if ok:
+                st.warning("¡Alerta de helada enviada a WhatsApp!")
+            else:
+                st.error(res)
 
-    with c_w3:
-        st.markdown(f'<a href="{link_wa_3}" target="_blank" class="btn-wa-blue">🚜 ENVIAR RECETA AL TRACTORISTA</a>', unsafe_allow_html=True)
-        st.caption("Instrucciones exactas de mezcla de la cuba.")
+    with c_b3:
+        if st.button("🚜 DISPARAR RECETA AL TRACTORISTA", use_container_width=True):
+            ok, res = disparar_whatsapp_servidor(wa_tel_input, wa_key_input, msg_cuba)
+            if ok:
+                st.success("¡Receta de cuba enviada a WhatsApp!")
+            else:
+                st.error(res)
 
 # ==============================================================================
 # PESTAÑA 4: GESTIÓN DE FINCAS
