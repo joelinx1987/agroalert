@@ -1,20 +1,8 @@
 import urllib.request
 import urllib.parse
 import json
+import os
 from datetime import datetime
-
-# Lista de usuarios a los que se enviará el WhatsApp
-USUARIOS = [
-    {
-        "nombre": "Joel",
-        "telefono": "+34626665232",
-        "apikey": "3443251",
-        "parcela": "Frontón Jaime",
-        "lat": 42.3659,
-        "lon": -2.4235,
-        "ha": 2.0
-    }
-]
 
 def obtener_tiempo(lat, lon):
     try:
@@ -41,11 +29,33 @@ def enviar_whatsapp(telefono, apikey, mensaje):
     urllib.request.urlopen(req, timeout=10)
 
 def main():
-    for u in USUARIOS:
-        if not u["apikey"]:
-            continue
-        clima = obtener_tiempo(u["lat"], u["lon"])
+    archivo_db = "usuarios_alertas.json"
+    
+    # Si no existe archivo aún, usamos al admin por defecto
+    if os.path.exists(archivo_db):
+        with open(archivo_db, "r", encoding="utf-8") as f:
+            usuarios = json.load(f)
+    else:
+        usuarios = [
+            {
+                "nombre": "Joel",
+                "telefono": "+34626665232",
+                "apikey": "3443251",
+                "parcela": "Frontón Jaime",
+                "lat": 42.3659,
+                "lon": -2.4235,
+                "ha": 2.0
+            }
+        ]
 
+    for u in usuarios:
+        if not u.get("apikey") or not u.get("telefono"):
+            continue
+            
+        lat = u.get("lat", 42.3659)
+        lon = u.get("lon", -2.4235)
+        clima = obtener_tiempo(lat, lon)
+        
         if clima["viento"] > 15 or clima["lluvia"] > 2.0:
             estado = "🔴 *NO SULFATAR HOY (VIENTO/LLUVIA)*"
         elif clima["t_max"] >= 32:
@@ -54,7 +64,7 @@ def main():
             estado = "🟢 *DÍA PERFECTO PARA SULFATAR*"
 
         mensaje = f"""🚜 *PARTE MATUTINO AGROALERT (05:00 AM)*
-📍 *Parcela:* {u['parcela']} ({u['ha']} ha)
+📍 *Parcela:* {u.get('parcela', 'Principal')} ({u.get('ha', 2.0)} ha)
 
 {estado}
 
@@ -63,12 +73,12 @@ def main():
 🌧️ *Lluvia prevista:* {clima['lluvia']:.1f} mm
 
 _Que tengas buena jornada en el campo._"""
-
+        
         try:
             enviar_whatsapp(u["telefono"], u["apikey"], mensaje)
-            print(f"Enviado con éxito a {u['nombre']}")
+            print(f"Enviado con éxito a {u.get('nombre')}")
         except Exception as e:
-            print(f"Error al enviar a {u['nombre']}: {e}")
+            print(f"Error al enviar a {u.get('nombre')}: {e}")
 
 if __name__ == "__main__":
     main()
