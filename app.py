@@ -17,12 +17,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS PROFESIONAL AGTECH (SISTEMA DE DISEÑO AVANZADO) ---
+# --- CSS PROFESIONAL AGTECH ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
-    /* Global */
     html, body, [class*="css"], [class*="st-"] {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
@@ -32,7 +31,6 @@ st.markdown("""
         color: #0f172a;
     }
     
-    /* Header Superior Explotación */
     .top-badge-container {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border-radius: 20px;
@@ -46,7 +44,6 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* Menú Vertical / Segmentos */
     div[data-testid="stRadio"] > div {
         display: flex !important;
         flex-direction: column !important;
@@ -60,25 +57,22 @@ st.markdown("""
         padding: 16px 20px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02) !important;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02) !important;
+        transition: all 0.2s ease !important;
     }
     
     div[data-testid="stRadio"] label:hover {
         border-color: #10b981 !important;
         background: #f0fdf4 !important;
         transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1) !important;
     }
 
     div[data-testid="stRadio"] label div p {
         font-size: 1.05rem !important;
         font-weight: 700 !important;
         color: #1e293b !important;
-        letter-spacing: -0.01em !important;
     }
 
-    /* Semáforos Rediseñados */
     .traffic-banner {
         border-radius: 20px;
         padding: 24px;
@@ -87,40 +81,15 @@ st.markdown("""
         flex-direction: column;
         gap: 6px;
         border-left: 8px solid;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
     }
     
-    .traffic-green {
-        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-        border-left-color: #059669;
-        color: #064e3b;
-    }
-    
-    .traffic-amber {
-        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-        border-left-color: #d97706;
-        color: #78350f;
-    }
-    
-    .traffic-red {
-        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-        border-left-color: #dc2626;
-        color: #7f1d1d;
-    }
+    .traffic-green { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left-color: #059669; color: #064e3b; }
+    .traffic-amber { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left-color: #d97706; color: #78350f; }
+    .traffic-red { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left-color: #dc2626; color: #7f1d1d; }
 
-    .traffic-title {
-        font-size: 1.45rem;
-        font-weight: 900;
-        letter-spacing: -0.02em;
-    }
-    
-    .traffic-sub {
-        font-size: 1.05rem;
-        font-weight: 600;
-        opacity: 0.95;
-    }
+    .traffic-title { font-size: 1.45rem; font-weight: 900; }
+    .traffic-sub { font-size: 1.05rem; font-weight: 600; opacity: 0.95; }
 
-    /* Tarjetas Métricas */
     .metric-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -129,43 +98,17 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         margin-bottom: 14px;
-        transition: transform 0.2s ease;
     }
     
-    .metric-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.06);
-    }
-    
-    .metric-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    .metric-val {
-        font-size: 2.1rem;
-        font-weight: 900;
-        color: #0f172a;
-        margin-top: 6px;
-        letter-spacing: -0.03em;
-    }
-    
-    .metric-unit {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #94a3b8;
-    }
+    .metric-title { font-size: 0.85rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+    .metric-val { font-size: 2.1rem; font-weight: 900; color: #0f172a; margin-top: 6px; }
+    .metric-unit { font-size: 1rem; font-weight: 700; color: #94a3b8; }
 
-    /* Caja Receta de Tratamiento */
     .recipe-card {
         background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
         border-radius: 22px;
         padding: 26px;
         color: #ffffff;
-        box-shadow: 0 15px 30px -5px rgba(4, 120, 87, 0.3);
         margin-top: 15px;
     }
     
@@ -175,20 +118,21 @@ st.markdown("""
         border-radius: 9999px;
         font-size: 0.85rem;
         font-weight: 800;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
         display: inline-block;
         margin-bottom: 14px;
     }
     
-    .recipe-amount {
-        font-size: 2.5rem;
-        font-weight: 900;
-        letter-spacing: -0.03em;
-        line-height: 1.1;
+    .recipe-amount { font-size: 2.5rem; font-weight: 900; line-height: 1.1; }
+
+    .guide-card {
+        background: #ffffff;
+        border: 2px solid #22c55e;
+        border-radius: 18px;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 20px -4px rgba(34, 197, 94, 0.15);
     }
 
-    /* Botones de acción */
     .stButton > button {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
         color: #ffffff !important;
@@ -198,17 +142,6 @@ st.markdown("""
         border-radius: 14px !important;
         padding: 14px 20px !important;
         box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25) !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
-    }
-    
-    /* Inputs y Formularios */
-    div[data-baseweb="input"], div[data-baseweb="select"] {
-        border-radius: 12px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -308,18 +241,18 @@ if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
 if not st.session_state.usuario_autenticado:
-    c1, col_login, c2 = st.columns([1, 1.8, 1])
+    c1, col_login, c2 = st.columns([1, 1.9, 1])
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 30px;">
-            <div style="font-size: 3.6rem; margin-bottom: 6px; filter: drop-shadow(0 8px 16px rgba(16, 185, 129, 0.2));">🌱</div>
-            <h1 style="font-size: 2.3rem; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.03em;">AgroAlert Pro</h1>
-            <p style="font-size: 1.1rem; color: #64748b; font-weight: 600; margin-top: 6px;">Suite de Gestión de Campo y Avisos WhatsApp</p>
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="font-size: 3.6rem; margin-bottom: 6px;">🌱</div>
+            <h1 style="font-size: 2.3rem; font-weight: 900; color: #0f172a; margin: 0;">AgroAlert Pro</h1>
+            <p style="font-size: 1.1rem; color: #64748b; font-weight: 600; margin-top: 4px;">Suite Agrícola y Bot de Avisos por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
-        modo_acceso = st.radio("Acceso:", ["🔑 Iniciar Sesión", "📝 Registrar Explotación"], label_visibility="collapsed")
+        modo_acceso = st.radio("Acceso:", ["🔑 Iniciar Sesión", "📝 Registrar Explotación y Activar Bot"], label_visibility="collapsed")
         st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
         
         if "Iniciar Sesión" in modo_acceso:
@@ -335,21 +268,41 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
-            st.info("💡 Envía `I allow callmebot to send me messages` por WhatsApp al `+34 623 91 22 04` para recibir tu clave.")
+            # GUÍA PASO A PASO PARA OBTENER LA APIKEY
+            st.markdown("""
+            <div class="guide-card">
+                <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 8px;">
+                    🔑 CÓMO OBTENER TU APIKEY EN 10 SEGUNDOS (GRATIS):
+                </div>
+                <div style="font-size: 0.95rem; color: #334155; line-height: 1.5;">
+                    <b>1.</b> Toca el botón verde de abajo para abrir WhatsApp.<br>
+                    <b>2.</b> Envía el mensaje predefinido: <code>I allow callmebot to send me messages</code><br>
+                    <b>3.</b> El bot te responderá al instante con tu número de <b>apikey</b>. Cópialo y pégalo en la casilla de registro.
+                </div>
+                <div style="margin-top: 14px;">
+                    <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
+                        <div style="background-color: #22c55e; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);">
+                            📲 ABRIR WHATSAPP Y SOLICITAR MI CLAVE AHORA
+                        </div>
+                    </a>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
             with st.form("form_reg"):
-                nu = st.text_input("Usuario").strip()
-                nn = st.text_input("Nombre de Explotación / Finca").strip()
-                ntel = st.text_input("📱 Teléfono Móvil (+34)").strip()
-                napi = st.text_input("🔑 APIKey WhatsApp (CallMeBot)").strip()
+                nu = st.text_input("Usuario (ej: jgarcia)").strip()
+                nn = st.text_input("Nombre de Explotación (ej: Bodega San Juan)").strip()
+                ntel = st.text_input("📱 Teléfono Móvil (ej: +34 612 34 56 78)").strip()
+                napi = st.text_input("🔑 APIKey WhatsApp (el código numérico recibido)").strip()
                 np = st.text_input("Contraseña", type="password")
                 
-                b_up = st.form_submit_button("🚀 CREAR CUENTA Y ACTIVAR", use_container_width=True)
+                b_up = st.form_submit_button("🚀 CREAR CUENTA Y ENTRAR", use_container_width=True)
                 if b_up:
                     nu_clean = nu.lower()
                     tel_clean = normalizar_telefono(ntel) if ntel else ""
                     
-                    if not nu_clean or not np.strip() or not ntel:
-                        st.error("Rellena los datos requeridos.")
+                    if not nu_clean or not np.strip() or not ntel or not napi:
+                        st.error("Por favor, rellena todos los campos incluyendo la APIKey de WhatsApp.")
                     elif any(k.lower() == nu_clean for k in st.session_state.usuarios_db.keys()):
                         st.error(f"El usuario '{nu}' ya existe.")
                     elif any(normalizar_telefono(u_data.get("telefono", "")) == tel_clean for u_data in st.session_state.usuarios_db.values() if u_data.get("telefono")):
@@ -367,16 +320,15 @@ if not st.session_state.usuario_autenticado:
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
                         
-                        if napi:
-                            msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu explotación ha sido activada."
-                            disparar_whatsapp_servidor(tel_clean, napi, msg)
+                        msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu explotación ha sido activada y vinculada a este móvil."
+                        disparar_whatsapp_servidor(tel_clean, napi, msg)
                         
                         st.session_state.usuario_autenticado = nu
                         st.rerun()
     st.stop()
 
 # ==============================================================================
-# PANEL PRINCIPAL REDISEÑADO
+# PANEL PRINCIPAL
 # ==============================================================================
 user_activo = st.session_state.usuario_autenticado
 datos_usuario = st.session_state.usuarios_db.get(user_activo, {})
@@ -389,7 +341,6 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
-# Cabecera de Explotación
 st.markdown(f"""
 <div class="top-badge-container">
     <div>
@@ -402,7 +353,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Selectores superiores integrados
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo activo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -434,7 +384,7 @@ with c_top3:
         st.session_state.usuario_autenticado = None
         st.rerun()
 
-# --- CONSULTA METEOROLÓGICA ---
+# --- METEOROLOGÍA ---
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
 
 try:
@@ -465,9 +415,7 @@ lluvia_hoy = lluvia[0]
 viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
-# ==============================================================================
-# MENÚ TÁCTIL VERTICAL
-# ==============================================================================
+# --- MENÚ TÁCTIL ---
 st.markdown("<p style='font-size: 0.85rem; font-weight: 800; color: #94a3b8; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 15px; margin-bottom: 8px;'>MÓDULOS ACTIVOS:</p>", unsafe_allow_html=True)
 
 opciones_menu = [
@@ -486,7 +434,7 @@ seccion_activa = st.radio("Navegación:", opciones_menu, label_visibility="colla
 st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# 1. SEMÁFORO Y TIEMPO
+# 1. SEMÁFORO
 # ==============================================================================
 if "Semáforo y Previsión" in seccion_activa:
     st.markdown(f"""
@@ -579,7 +527,7 @@ if "Semáforo y Previsión" in seccion_activa:
     st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 2. CALCULADORA DE DEPÓSITO
+# 2. CALCULADORA
 # ==============================================================================
 elif "Calculadora de Mezcla" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0 0 15px 0;'>🧪 Dosificación y Calibración de Depósito</h2>", unsafe_allow_html=True)
@@ -814,7 +762,7 @@ elif "Centro de Alertas" in seccion_activa:
                     st.error(res)
 
 # ==============================================================================
-# 6. GESTIÓN DE FINCAS Y SATÉLITE INTEGRADO
+# 6. GESTIÓN DE FINCAS Y SATÉLITE
 # ==============================================================================
 elif "Gestión de Fincas" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0 0 15px 0;'>🗺️ Gestión Catastral y Satélite ({tipo_cultivo})</h2>", unsafe_allow_html=True)
