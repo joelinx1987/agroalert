@@ -2,6 +2,7 @@ import os
 os.environ.pop("SSLKEYLOGFILE", None)
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 from datetime import datetime, date
 import urllib.request
@@ -63,7 +64,7 @@ st.markdown("""
         border-radius: 18px;
         padding: 20px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
     }
     .traffic-danger {
         background-color: #fee2e2;
@@ -175,6 +176,16 @@ def guardar_json(archivo, datos):
     except Exception as e:
         st.error(f"Error al guardar: {e}")
 
+# Función para renderizar Google Maps Satélite
+def render_google_map(latitud, longitud, zoom=16, height=360):
+    gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
+    iframe_html = f"""
+    <div style="border-radius: 16px; overflow: hidden; border: 2px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
+    </div>
+    """
+    components.html(iframe_html, height=height + 10)
+
 DEFAULT_USERS = {
     "admin": {
         "pwd": make_hash("admin123"),
@@ -222,7 +233,7 @@ def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
-# --- ACCESO Y REGISTRO BLINDADO ---
+# --- ACCESO Y REGISTRO ---
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
@@ -234,7 +245,7 @@ if not st.session_state.usuario_autenticado:
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Pro</h1>
-            <p style="font-size: 1.05rem; color: #475569; font-weight: 600; margin-top: 6px;">Gestión de campo, cuaderno de tratamientos y bot WhatsApp</p>
+            <p style="font-size: 1.05rem; color: #475569; font-weight: 600; margin-top: 6px;">Gestión de campo, mapas satelitales y bot WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -269,7 +280,7 @@ if not st.session_state.usuario_autenticado:
                     tel_clean = normalizar_telefono(ntel) if ntel else ""
                     
                     if not nu_clean or not np.strip() or not ntel:
-                        st.error("Por favor, completa los campos obligatorios (Usuario, Contraseña y Teléfono).")
+                        st.error("Por favor, completa los campos obligatorios.")
                     elif any(k.lower() == nu_clean for k in st.session_state.usuarios_db.keys()):
                         st.error(f"⛔ El usuario '{nu}' ya existe.")
                     elif any(normalizar_telefono(u_data.get("telefono", "")) == tel_clean for u_data in st.session_state.usuarios_db.values() if u_data.get("telefono")):
@@ -288,7 +299,7 @@ if not st.session_state.usuario_autenticado:
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
                         
                         if napi:
-                            msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu explotación ha quedado registrada y vinculada."
+                            msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu explotación ha quedado vinculada."
                             disparar_whatsapp_servidor(tel_clean, napi, msg)
                         
                         st.session_state.usuario_autenticado = nu
@@ -310,7 +321,6 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
-# Selector superior
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -374,12 +384,13 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # ==============================================================================
-# NAVEGACIÓN EN FILAS (CON PANEL ADMIN SI ES ADMIN)
+# NAVEGACIÓN EN FILAS
 # ==============================================================================
 st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-top: 10px; margin-bottom: 6px;'>MÓDULOS DE GESTIÓN:</p>", unsafe_allow_html=True)
 
 opciones_menu = [
     "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
+    "🗺️ Mapa Google Satélite y Localización",
     "🧪 Calculadora de dosis y depósito / cuba",
     "📋 Cuaderno de tratamientos fitosanitarios",
     "🌾 Labores, riegos y cosecha",
@@ -479,7 +490,31 @@ if "Puedo sulfatar hoy" in seccion_activa:
     st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 2. CALCULADORA
+# 2. GOOGLE MAPS SATÉLITE
+# ==============================================================================
+elif "Mapa Google Satélite" in seccion_activa:
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 10px 0;'>🗺️ Localización Satelital: {nombre_parcela}</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Coordenadas: <b>{lat:.4f}, {lon:.4f}</b> | Polígono <b>{poligono}</b> Parcela <b>{parcela_cat}</b></p>", unsafe_allow_html=True)
+
+    c_zoom, c_link = st.columns([1.2, 1])
+    with c_zoom:
+        zoom_nivel = st.slider("🔍 Nivel de Zoom:", min_value=12, max_value=19, value=16)
+    with c_link:
+        st.write("")
+        url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
+        st.markdown(f"""
+        <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
+            <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1.05rem; margin-top: 10px;">
+                🚗 ABRIR NAVEGACIÓN GPS EN GOOGLE MAPS
+            </div>
+        </a>
+        """, unsafe_allow_html=True)
+
+    st.write("")
+    render_google_map(lat, lon, zoom=zoom_nivel, height=420)
+
+# ==============================================================================
+# 3. CALCULADORA
 # ==============================================================================
 elif "Calculadora de dosis" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🧪 Calculadora de Dosis y Tanque / Cuba</h2>", unsafe_allow_html=True)
@@ -532,7 +567,7 @@ elif "Calculadora de dosis" in seccion_activa:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 3. CUADERNO DE FITOSANITARIOS
+# 4. CUADERNO DE FITOSANITARIOS
 # ==============================================================================
 elif "Cuaderno de tratamientos" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
@@ -583,7 +618,7 @@ elif "Cuaderno de tratamientos" in seccion_activa:
         st.info("Aún no has registrado ningún tratamiento en tu cuaderno.")
 
 # ==============================================================================
-# 4. LABORES, RIEGOS Y COSECHA
+# 5. LABORES, RIEGOS Y COSECHA
 # ==============================================================================
 elif "Labores, riegos y cosecha" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Labores de Campo, Riegos y Cosecha</h2>", unsafe_allow_html=True)
@@ -678,7 +713,7 @@ elif "Labores, riegos y cosecha" in seccion_activa:
             st.caption("Sin cosechas aún.")
 
 # ==============================================================================
-# 5. BOT WHATSAPP
+# 6. BOT WHATSAPP
 # ==============================================================================
 elif "Bot de avisos" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📲 Bot de Avisos por WhatsApp</h2>", unsafe_allow_html=True)
@@ -728,7 +763,7 @@ elif "Bot de avisos" in seccion_activa:
                 st.error(res)
 
 # ==============================================================================
-# 6. GESTIÓN DE FINCAS
+# 7. GESTIÓN DE FINCAS
 # ==============================================================================
 elif "Gestión de mis fincas" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Parcelas y Catastro ({tipo_cultivo})</h2>", unsafe_allow_html=True)
@@ -829,7 +864,7 @@ elif "Gestión de mis fincas" in seccion_activa:
                     if nuevo_nombre.strip() != finca_a_editar:
                         del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
                     st.session_state.db_privada[user_activo][tipo_cultivo][nuevo_nombre.strip()] = {
-                        "lat": nueva_lat, "lon": nueva_lon, "variedad": nueva_var, "suelo": nuevo_suelo, "ha": nueva_ha,
+                        "lat": nueva_lat, "lon": nueva_lon, "variedad": normalizar_telefono(user_telefono), "suelo": nuevo_suelo, "ha": nueva_ha,
                         "poligono": nuevo_pol, "parcela": nuevo_parc, "riego": nuevo_riego
                     }
                     guardar_json(FINCAS_FILE, st.session_state.db_privada)
@@ -898,14 +933,13 @@ elif "Gestión de mis fincas" in seccion_activa:
             st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 7. PANEL ADMINISTRADOR (ELIMINAR USUARIOS)
+# 8. PANEL ADMINISTRADOR
 # ==============================================================================
 elif "PANEL ADMINISTRADOR" in seccion_activa and user_activo == "admin":
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
     
     st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
     todos_los_usuarios = list(st.session_state.usuarios_db.keys())
-    
     usuarios_borrables = [u for u in todos_los_usuarios if u != "admin"]
     
     if not usuarios_borrables:
@@ -915,29 +949,25 @@ elif "PANEL ADMINISTRADOR" in seccion_activa and user_activo == "admin":
         usuario_a_borrar = st.selectbox("Selecciona el usuario que quieres eliminar:", usuarios_borrables)
         datos_u_borrar = st.session_state.usuarios_db[usuario_a_borrar]
         
-        st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}). Sus fincas, labores y cuaderno también se borrarán.")
+        st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}).")
         
         if st.button(f"❌ CONFIRMAR Y ELIMINAR A '{usuario_a_borrar}'", type="primary"):
-            # 1. Borrar de usuarios_db
             del st.session_state.usuarios_db[usuario_a_borrar]
             guardar_json(USERS_FILE, st.session_state.usuarios_db)
             
-            # 2. Borrar sus fincas
             if usuario_a_borrar in st.session_state.db_privada:
                 del st.session_state.db_privada[usuario_a_borrar]
                 guardar_json(FINCAS_FILE, st.session_state.db_privada)
                 
-            # 3. Borrar sus fitosanitarios
             if usuario_a_borrar in st.session_state.fitos_db:
                 del st.session_state.fitos_db[usuario_a_borrar]
                 guardar_json(FITOS_FILE, st.session_state.fitos_db)
                 
-            # 4. Borrar sus labores
             if usuario_a_borrar in st.session_state.labores_db:
                 del st.session_state.labores_db[usuario_a_borrar]
                 guardar_json(LABORES_FILE, st.session_state.labores_db)
                 
-            st.success(f"¡Usuario '{usuario_a_borrar}' y todos sus datos han sido eliminados por completo!")
+            st.success(f"¡Usuario '{usuario_a_borrar}' y todos sus datos han sido eliminados!")
             st.rerun()
 
     st.write("---")
