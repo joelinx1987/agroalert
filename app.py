@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES ADAPTADOS A MÓVIL (FILAS CLARAS CON TEXTO) ---
+# --- ESTILOS VISUALES ADAPTADOS A MÓVIL ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -30,7 +30,6 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* FILAS VERTICALES DE BOTONES GRANDES */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
         gap: 10px !important;
@@ -58,14 +57,13 @@ st.markdown("""
         color: #0f172a !important;
     }
 
-    /* SEMÁFOROS */
     .traffic-ok {
         background-color: #dcfce7;
         border: 3px solid #16a34a;
         border-radius: 18px;
         padding: 22px 24px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
     }
     .traffic-danger {
         background-color: #fee2e2;
@@ -94,7 +92,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* TARJETAS METEOROLÓGICAS */
     .field-card {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
@@ -181,10 +178,7 @@ DEFAULT_USERS = {
 
 DEFAULT_FINCAS = {
     "admin": {
-        "🍇 Viña": {
-            "Frontón Jaime": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Cascajo / Calcáreo", "ha": 2.0}
-        },
-        "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
+        "🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
     }
 }
 
@@ -265,7 +259,8 @@ if not st.session_state.usuario_autenticado:
                             "telefono": ntel.strip(),
                             "apikey": napi.strip()
                         }
-                        st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
+                        if nu not in st.session_state.db_privada:
+                            st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
                         
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
@@ -288,21 +283,28 @@ nombre_cliente = datos_usuario.get("nombre", "Agricultor")
 user_telefono = datos_usuario.get("telefono", "+34626665232")
 user_apikey = datos_usuario.get("apikey", "3443251")
 
-fincas_usuario = st.session_state.db_privada.get(user_activo, {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}})
+# Asegurar estructura de datos de fincas
+if user_activo not in st.session_state.db_privada:
+    st.session_state.db_privada[user_activo] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
+
+fincas_usuario = st.session_state.db_privada[user_activo]
 
 # Selectores superiores
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
 
+if tipo_cultivo not in fincas_usuario:
+    fincas_usuario[tipo_cultivo] = {}
+
 fincas_del_cultivo = fincas_usuario.get(tipo_cultivo, {})
 nombres_disponibles = list(fincas_del_cultivo.keys())
 
 with c_top2:
     if not nombres_disponibles:
-        st.selectbox("Parcela:", ["(Sin parcelas)"])
+        st.selectbox("Parcela:", ["⚠️ Sin parcelas (Crea una abajo)"])
         nombre_parcela = "Sin Parcela Registrada"
-        lat, lon, variedad, suelo, superficie_ha = 42.3659, -2.4235, "Tempranillo", "Franco", 2.0
+        lat, lon, variedad, suelo, superficie_ha = 42.4658, -2.4499, "Tempranillo", "Franco", 1.0
     else:
         seleccion_parcela = st.selectbox("Parcela activa:", nombres_disponibles)
         nombre_parcela = seleccion_parcela
@@ -348,7 +350,7 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # ==============================================================================
-# SECCIONES EN FILAS CON TEXTO CLARO
+# NAVEGACIÓN
 # ==============================================================================
 st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-top: 15px; margin-bottom: 6px;'>SELECCIONA UNA SECCIÓN:</p>", unsafe_allow_html=True)
 seccion_activa = st.radio(
@@ -368,6 +370,10 @@ st.write("---")
 # SECCIÓN 1: SEMÁFORO DIARIO
 # ==============================================================================
 if "Puedo sulfatar hoy" in seccion_activa:
+    if not nombres_disponibles:
+        st.warning(f"⚠️ Aún no has registrado ninguna parcela en **{tipo_cultivo}**.")
+        st.info("Baja a la sección **'🌾 Gestión de mis fincas y parcelas'** para añadir tu primera finca.")
+    
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
     if viento_hoy > 15:
@@ -553,30 +559,72 @@ elif "Bot de alertas" in seccion_activa:
                 st.error(res)
 
 # ==============================================================================
-# SECCIÓN 4: GESTIÓN DE FINCAS
+# SECCIÓN 4: GESTIÓN DE FINCAS (RESTAURADA Y DIRECTA)
 # ==============================================================================
 elif "Gestión de mis fincas" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Fincas</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Fincas ({tipo_cultivo})</h2>", unsafe_allow_html=True)
     
-    modo_finca = st.radio("Acción en Fincas:", ["✏️ Modificar o Eliminar Finca Existente", "➕ Añadir Nueva Finca"], label_visibility="collapsed")
+    fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
     
-    if "Modificar o Eliminar" in modo_finca:
-        fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
-        if not fincas_actuales:
-            st.info(f"No tienes parcelas registradas en {tipo_cultivo}.")
-        else:
+    # Si no hay fincas, mostramos directamente el formulario de alta sin opciones vacías
+    if not fincas_actuales:
+        st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos para añadir la primera:")
+        
+        with st.form("form_alta_primera_finca"):
+            nom_finca = st.text_input("Nombre de la Parcela:", value="Mi Parcela 1")
+            c_lat, c_lon = st.columns(2)
+            with c_lat:
+                lat_finca = st.number_input("Latitud decimal:", value=42.4658, format="%.4f")
+            with c_lon:
+                lon_finca = st.number_input("Longitud decimal:", value=-2.4499, format="%.4f")
+            
+            c_var, c_ha = st.columns(2)
+            with c_var:
+                var_finca = st.text_input("Variedad:", value="Tempranillo")
+            with c_ha:
+                ha_finca = st.number_input("Superficie (hectáreas):", value=2.0, min_value=0.1, step=0.5)
+            
+            suelo_finca = st.selectbox("Tipo de suelo:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
+
+            btn_crear_primera = st.form_submit_button("💾 CREAR Y GUARDAR ESTA PARCELA", use_container_width=True, type="primary")
+
+            if btn_crear_primera and nom_finca.strip():
+                if user_activo not in st.session_state.db_privada:
+                    st.session_state.db_privada[user_activo] = {}
+                if tipo_cultivo not in st.session_state.db_privada[user_activo]:
+                    st.session_state.db_privada[user_activo][tipo_cultivo] = {}
+
+                st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
+                    "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca
+                }
+                guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                st.success(f"¡Parcela '{nom_finca}' creada y guardada con éxito!")
+                st.rerun()
+
+    else:
+        modo_finca = st.radio("Acción en Fincas:", ["✏️ Modificar o Eliminar Finca Existente", "➕ Añadir Nueva Finca"], label_visibility="collapsed")
+        
+        if "Modificar o Eliminar" in modo_finca:
             finca_a_editar = st.selectbox("Selecciona la finca a editar:", list(fincas_actuales.keys()))
             datos_f = fincas_actuales[finca_a_editar]
             
-            suelos_lista = ["Cascajo / Calcáreo", "Cascajo / Pedregoso", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"]
+            suelos_lista = ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"]
             suelo_index = suelos_lista.index(datos_f["suelo"]) if datos_f["suelo"] in suelos_lista else 0
             
             with st.form("form_editar_finca"):
                 nuevo_nombre = st.text_input("Nombre finca:", value=finca_a_editar)
-                nueva_lat = st.number_input("Latitud:", value=float(datos_f["lat"]), format="%.4f")
-                nueva_lon = st.number_input("Longitud:", value=float(datos_f["lon"]), format="%.4f")
-                nueva_var = st.text_input("Variedad:", value=datos_f["variedad"])
-                nueva_ha = st.number_input("Superficie (ha):", value=float(datos_f["ha"]), min_value=0.1, step=0.5)
+                c_elat, c_elon = st.columns(2)
+                with c_elat:
+                    nueva_lat = st.number_input("Latitud:", value=float(datos_f["lat"]), format="%.4f")
+                with c_elon:
+                    nueva_lon = st.number_input("Longitud:", value=float(datos_f["lon"]), format="%.4f")
+                
+                c_evar, c_eha = st.columns(2)
+                with c_evar:
+                    nueva_var = st.text_input("Variedad:", value=datos_f["variedad"])
+                with c_eha:
+                    nueva_ha = st.number_input("Superficie (ha):", value=float(datos_f["ha"]), min_value=0.1, step=0.5)
+                
                 nuevo_suelo = st.selectbox("Suelo:", suelos_lista, index=suelo_index)
                 
                 c_btn_save, c_btn_del = st.columns(2)
@@ -601,31 +649,38 @@ elif "Gestión de mis fincas" in seccion_activa:
                     st.warning("¡Finca eliminada!")
                     st.rerun()
 
-    else:
-        with st.form("form_alta_finca"):
-            nom_finca = st.text_input("Nombre finca:", value="Parcela Alta")
-            lat_finca = st.number_input("Latitud decimal:", value=42.3659, format="%.4f")
-            lon_finca = st.number_input("Longitud decimal:", value=-2.4235, format="%.4f")
-            var_finca = st.text_input("Variedad:", value="Tempranillo")
-            ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
-            suelo_finca = st.selectbox("Terreno:", ["Cascajo / Calcáreo", "Cascajo / Pedregoso", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
+        else:
+            with st.form("form_alta_finca_extra"):
+                nom_finca = st.text_input("Nombre finca:", value="Parcela Nueva")
+                c_alat, c_alon = st.columns(2)
+                with c_alat:
+                    lat_finca = st.number_input("Latitud decimal:", value=42.4658, format="%.4f")
+                with c_alon:
+                    lon_finca = st.number_input("Longitud decimal:", value=-2.4499, format="%.4f")
+                
+                c_avar, c_aha = st.columns(2)
+                with c_avar:
+                    var_finca = st.text_input("Variedad:", value="Tempranillo")
+                with c_aha:
+                    ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
+                
+                suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
 
-            btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
+                btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
 
-            if btn_guardar_f and nom_finca.strip():
-                st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
-                    "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca
-                }
-                guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                st.success(f"¡Parcela '{nom_finca}' guardada!")
-                st.rerun()
+                if btn_guardar_f and nom_finca.strip():
+                    st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
+                        "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca
+                    }
+                    guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    st.success(f"¡Parcela '{nom_finca}' guardada!")
+                    st.rerun()
 
-    st.write("---")
-    st.markdown("### 📋 Resumen de Parcelas:")
-    tabla_fincas = [
-        {"Parcela": k, "Hectáreas": v["ha"], "Variedad": v["variedad"], "Terreno": v["suelo"]}
-        for k, v in fincas_usuario.get(tipo_cultivo, {}).items()
-    ]
-    if tabla_fincas:
-        st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
-        
+        st.write("---")
+        st.markdown("### 📋 Resumen de Parcelas:")
+        tabla_fincas = [
+            {"Parcela": k, "Hectáreas": v["ha"], "Variedad": v["variedad"], "Terreno": v["suelo"]}
+            for k, v in fincas_usuario.get(tipo_cultivo, {}).items()
+        ]
+        if tabla_fincas:
+            st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
