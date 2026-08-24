@@ -240,7 +240,6 @@ if not st.session_state.usuario_autenticado:
 
         modo_acceso = st.radio("Acceso:", ["🔑 Iniciar Sesión", "📝 Registrarme y Activar Bot"], label_visibility="collapsed")
         
-        # Siempre recargar la base de datos de usuarios fresca de disco
         st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
         
         if modo_acceso == "🔑 Iniciar Sesión":
@@ -249,7 +248,6 @@ if not st.session_state.usuario_autenticado:
                 p = st.text_input("Contraseña", type="password", value="admin123")
                 b_in = st.form_submit_button("🚜 ENTRAR A MIS PARCELAS", use_container_width=True, type="primary")
                 if b_in:
-                    # Búsqueda insensible a mayúsculas
                     usuarios_lower = {k.lower(): (k, v) for k, v in st.session_state.usuarios_db.items()}
                     if u in usuarios_lower and check_hash(p, usuarios_lower[u][1]["pwd"]):
                         st.session_state.usuario_autenticado = usuarios_lower[u][0]
@@ -270,18 +268,12 @@ if not st.session_state.usuario_autenticado:
                     nu_clean = nu.lower()
                     tel_clean = normalizar_telefono(ntel) if ntel else ""
                     
-                    # Validación de campos obligatorios
                     if not nu_clean or not np.strip() or not ntel:
                         st.error("Por favor, completa los campos obligatorios (Usuario, Contraseña y Teléfono).")
-                    
-                    # 1. Comprobar si el nombre de usuario ya existe (insensible a mayúsculas)
                     elif any(k.lower() == nu_clean for k in st.session_state.usuarios_db.keys()):
-                        st.error(f"⛔ El usuario '{nu}' ya está registrado. Por favor, inicia sesión o elige otro nombre de usuario.")
-                    
-                    # 2. Comprobar si el número de teléfono ya está registrado en el sistema
+                        st.error(f"⛔ El usuario '{nu}' ya existe.")
                     elif any(normalizar_telefono(u_data.get("telefono", "")) == tel_clean for u_data in st.session_state.usuarios_db.values() if u_data.get("telefono")):
-                        st.error(f"⛔ El teléfono '{ntel}' ya tiene una cuenta asociada. Inicia sesión con tu usuario existente.")
-                    
+                        st.error(f"⛔ El teléfono '{ntel}' ya está registrado.")
                     else:
                         st.session_state.usuarios_db[nu] = {
                             "pwd": make_hash(np),
@@ -300,7 +292,7 @@ if not st.session_state.usuario_autenticado:
                             disparar_whatsapp_servidor(tel_clean, napi, msg)
                         
                         st.session_state.usuario_autenticado = nu
-                        st.success("¡Cuenta creada con éxito! Entrando al panel...")
+                        st.success("¡Cuenta creada con éxito! Entrando...")
                         st.rerun()
     st.stop()
 
@@ -318,6 +310,7 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
+# Selector superior
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -381,22 +374,23 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # ==============================================================================
-# SECCIONES
+# NAVEGACIÓN EN FILAS (CON PANEL ADMIN SI ES ADMIN)
 # ==============================================================================
 st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-top: 10px; margin-bottom: 6px;'>MÓDULOS DE GESTIÓN:</p>", unsafe_allow_html=True)
-seccion_activa = st.radio(
-    "Navegación:",
-    [
-        "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
-        "🧪 Calculadora de dosis y depósito / cuba",
-        "📋 Cuaderno de tratamientos fitosanitarios",
-        "🌾 Labores, riegos y cosecha",
-        "📲 Bot de avisos por WhatsApp",
-        "🌾 Gestión de mis fincas y parcelas"
-    ],
-    label_visibility="collapsed"
-)
 
+opciones_menu = [
+    "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
+    "🧪 Calculadora de dosis y depósito / cuba",
+    "📋 Cuaderno de tratamientos fitosanitarios",
+    "🌾 Labores, riegos y cosecha",
+    "📲 Bot de avisos por WhatsApp",
+    "🌾 Gestión de mis fincas y parcelas"
+]
+
+if user_activo == "admin":
+    opciones_menu.append("🛠️ PANEL ADMINISTRADOR (Gestionar Usuarios)")
+
+seccion_activa = st.radio("Navegación:", opciones_menu, label_visibility="collapsed")
 st.write("---")
 
 # ==============================================================================
@@ -734,7 +728,7 @@ elif "Bot de avisos" in seccion_activa:
                 st.error(res)
 
 # ==============================================================================
-# 6. GESTIÓN DE FINCAS Y CATASTRO
+# 6. GESTIÓN DE FINCAS
 # ==============================================================================
 elif "Gestión de mis fincas" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Parcelas y Catastro ({tipo_cultivo})</h2>", unsafe_allow_html=True)
@@ -902,3 +896,54 @@ elif "Gestión de mis fincas" in seccion_activa:
         ]
         if tabla_fincas:
             st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
+
+# ==============================================================================
+# 7. PANEL ADMINISTRADOR (ELIMINAR USUARIOS)
+# ==============================================================================
+elif "PANEL ADMINISTRADOR" in seccion_activa and user_activo == "admin":
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
+    
+    st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
+    todos_los_usuarios = list(st.session_state.usuarios_db.keys())
+    
+    usuarios_borrables = [u for u in todos_los_usuarios if u != "admin"]
+    
+    if not usuarios_borrables:
+        st.info("No hay otros usuarios registrados en el sistema.")
+    else:
+        st.markdown("#### 🗑️ Eliminar una cuenta de usuario:")
+        usuario_a_borrar = st.selectbox("Selecciona el usuario que quieres eliminar:", usuarios_borrables)
+        datos_u_borrar = st.session_state.usuarios_db[usuario_a_borrar]
+        
+        st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}). Sus fincas, labores y cuaderno también se borrarán.")
+        
+        if st.button(f"❌ CONFIRMAR Y ELIMINAR A '{usuario_a_borrar}'", type="primary"):
+            # 1. Borrar de usuarios_db
+            del st.session_state.usuarios_db[usuario_a_borrar]
+            guardar_json(USERS_FILE, st.session_state.usuarios_db)
+            
+            # 2. Borrar sus fincas
+            if usuario_a_borrar in st.session_state.db_privada:
+                del st.session_state.db_privada[usuario_a_borrar]
+                guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                
+            # 3. Borrar sus fitosanitarios
+            if usuario_a_borrar in st.session_state.fitos_db:
+                del st.session_state.fitos_db[usuario_a_borrar]
+                guardar_json(FITOS_FILE, st.session_state.fitos_db)
+                
+            # 4. Borrar sus labores
+            if usuario_a_borrar in st.session_state.labores_db:
+                del st.session_state.labores_db[usuario_a_borrar]
+                guardar_json(LABORES_FILE, st.session_state.labores_db)
+                
+            st.success(f"¡Usuario '{usuario_a_borrar}' y todos sus datos han sido eliminados por completo!")
+            st.rerun()
+
+    st.write("---")
+    st.markdown("### 👥 Todos los Usuarios Registrados:")
+    resumen_users = [
+        {"Usuario": k, "Nombre / Explotación": v.get("nombre", ""), "Teléfono": v.get("telefono", ""), "Tiene APIKey": "✅ Sí" if v.get("apikey") else "❌ No"}
+        for k, v in st.session_state.usuarios_db.items()
+    ]
+    st.dataframe(pd.DataFrame(resumen_users), use_container_width=True, hide_index=True)
