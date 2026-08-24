@@ -9,28 +9,28 @@ import json
 
 st.set_page_config(page_title="AgroAlert MultiCultivo Pro", page_icon="🌱", layout="wide")
 
-st.title("🌱 AgroAlert Pro - Monitor Integral de Riesgo Agrícola")
-st.caption("Sistema de soporte a la decisión (DSS) multicultivo: Viñedo, Olivar, Cereal y Frutales")
+st.title("🌱 AgroAlert Pro - Monitor Integral & Soporte de Tratamiento")
+st.caption("Sistema de soporte a la decisión (DSS) multicultivo y dosificación agronómica")
 
 # --- 1. GESTIÓN Y PERSISTENCIA DE PARCELAS ---
 DB_FILE = "fincas.json"
 
 parcelas_base = {
     "🍇 Viñedo": {
-        "Finca Valdegón (Logroño)": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo"},
-        "Viña El Poyo (Haro)": {"lat": 42.5764, "lon": -2.8465, "variedad": "Graciano", "suelo": "Aluvial"}
+        "Finca Valdegón (Logroño)": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5},
+        "Viña El Poyo (Haro)": {"lat": 42.5764, "lon": -2.8465, "variedad": "Graciano", "suelo": "Aluvial", "ha": 4.0}
     },
     "🫒 Olivar": {
-        "Finca La Solana (Jaén)": {"lat": 37.7796, "lon": -3.7849, "variedad": "Picual", "suelo": "Arcilloso profundo"},
-        "El Soto (Tarragona)": {"lat": 41.1561, "lon": 1.1069, "variedad": "Arbequina", "suelo": "Franco-arenoso"}
+        "Finca La Solana (Jaén)": {"lat": 37.7796, "lon": -3.7849, "variedad": "Picual", "suelo": "Arcilloso profundo", "ha": 6.0},
+        "El Soto (Tarragona)": {"lat": 41.1561, "lon": 1.1069, "variedad": "Arbequina", "suelo": "Franco-arenoso", "ha": 3.2}
     },
     "🌾 Cereal (Trigo/Cebada)": {
-        "Campiña Alta (Burgos)": {"lat": 42.3439, "lon": -3.6969, "variedad": "Trigo Blando", "suelo": "Franco-arcilloso"},
-        "Tierra de Campos (Palencia)": {"lat": 42.0095, "lon": -4.5288, "variedad": "Cebada", "suelo": "Sedimentario"}
+        "Campiña Alta (Burgos)": {"lat": 42.3439, "lon": -3.6969, "variedad": "Trigo Blando", "suelo": "Franco-arcilloso", "ha": 15.0},
+        "Tierra de Campos (Palencia)": {"lat": 42.0095, "lon": -4.5288, "variedad": "Cebada", "suelo": "Sedimentario", "ha": 22.0}
     },
     "🍑 Frutales / Almendro": {
-        "Valle del Cinca (Lleida)": {"lat": 41.6176, "lon": 0.6200, "variedad": "Melocotonero", "suelo": "Aluvial fértil"},
-        "Vega Alta (Murcia)": {"lat": 38.2342, "lon": -1.4168, "variedad": "Almendro", "suelo": "Calizo pedregoso"}
+        "Valle del Cinca (Lleida)": {"lat": 41.6176, "lon": 0.6200, "variedad": "Melocotonero", "suelo": "Aluvial fértil", "ha": 3.8},
+        "Vega Alta (Murcia)": {"lat": 38.2342, "lon": -1.4168, "variedad": "Almendro", "suelo": "Calizo pedregoso", "ha": 5.5}
     }
 }
 
@@ -65,26 +65,28 @@ lista_parcelas = list(fincas_actuales.keys()) + ["➕ Añadir y Guardar Nueva Fi
 seleccion_parcela = st.sidebar.selectbox("Selecciona Parcela:", lista_parcelas)
 
 if seleccion_parcela == "➕ Añadir y Guardar Nueva Finca":
-    nombre_parcela = st.sidebar.text_input("Nombre de la parcela", value="Frontón Jaime")
-    lat = st.sidebar.number_input("Latitud (ej: 42.4658)", value=42.4658, format="%.4f")
-    lon = st.sidebar.number_input("Longitud (ej: -2.4499)", value=-2.4499, format="%.4f")
+    nombre_parcela = st.sidebar.text_input("Nombre de la parcela", value="Mi Parcela")
+    lat = st.sidebar.number_input("Latitud (ej: 42.3659)", value=42.3659, format="%.4f")
+    lon = st.sidebar.number_input("Longitud (ej: -2.4235)", value=-2.4235, format="%.4f")
     variedad = st.sidebar.text_input("Variedad", value="Tempranillo")
     suelo = st.sidebar.selectbox("Tipo de suelo", ["Arcillo-calcáreo", "Aluvial", "Arenoso", "Franco", "Ferroso-arcilloso"])
+    superficie_ha = st.sidebar.number_input("Superficie (Hectáreas)", value=2.0, min_value=0.1, step=0.5)
     
     if st.sidebar.button("💾 Guardar Parcela en la App"):
         if nombre_parcela.strip():
             st.session_state.db_parcelas[tipo_cultivo][nombre_parcela] = {
-                "lat": lat, "lon": lon, "variedad": variedad, "suelo": suelo
+                "lat": lat, "lon": lon, "variedad": variedad, "suelo": suelo, "ha": superficie_ha
             }
             guardar_parcelas(st.session_state.db_parcelas)
             st.sidebar.success(f"¡{nombre_parcela} guardada correctamente!")
             st.rerun()
 else:
     nombre_parcela = seleccion_parcela
-    lat = fincas_actuales[seleccion_parcela]["lat"]
-    lon = fincas_actuales[seleccion_parcela]["lon"]
-    variedad = fincas_actuales[seleccion_parcela]["variedad"]
-    suelo = fincas_actuales[seleccion_parcela]["suelo"]
+    lat = fincas_actuales[seleccion_parcela].get("lat", 42.4658)
+    lon = fincas_actuales[seleccion_parcela].get("lon", -2.4499)
+    variedad = fincas_actuales[seleccion_parcela].get("variedad", "Estándar")
+    suelo = fincas_actuales[seleccion_parcela].get("suelo", "Franco")
+    superficie_ha = fincas_actuales[seleccion_parcela].get("ha", 2.5)
     
     if st.sidebar.button("🗑️ Eliminar Parcela"):
         del st.session_state.db_parcelas[tipo_cultivo][seleccion_parcela]
@@ -126,7 +128,7 @@ if modo_datos == "🛰️ Previsión en Vivo (Open-Meteo)":
             viento = data["daily"]["wind_speed_10m_max"]
             datos_reales_ok = True
     except Exception:
-        st.sidebar.warning("⚠️ Sin conexión con la estación externa. Aplicando modelo predictivo local.")
+        st.sidebar.warning("⚠️ Sin conexión con estación externa. Usando modelo predictivo local.")
         t_min = [12.0, 11.5, 13.0, 10.5, 11.0, 12.5, 13.0]
         t_max = [24.0, 25.0, 23.5, 22.0, 24.5, 26.0, 25.5]
         lluvia = [0.0, 1.2, 0.0, 0.0, 2.5, 0.0, 0.0]
@@ -163,176 +165,240 @@ lluvia_hoy = lluvia[0]
 viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
-# --- 3. PANEL DE INFORMACIÓN Y MAPA ---
-col_info, col_mapa = st.columns([1.4, 1])
+# --- PESTAÑAS PRINCIPALES ---
+tab_alertas, tab_calculadora = st.tabs(["🛡️ Diagnóstico y Alertas", "🧪 Calculadora de Caldo y Dosis"])
 
-with col_info:
-    st.subheader(f"📍 {nombre_parcela}")
-    st.write(f"**Cultivo:** {tipo_cultivo} | **Variedad:** {variedad} | **Suelo:** {suelo}")
-    st.write(f"**Fase actual:** {fase_fenologica}")
-    st.caption(f"Coordenadas: Lat {lat:.4f}, Lon {lon:.4f} | Origen: {'🟢 Datos en tiempo real (Open-Meteo)' if datos_reales_ok else '🔵 Datos simulados'}")
+# ==========================================
+# PESTAÑA 1: DIAGNÓSTICO Y ALERTAS
+# ==========================================
+with tab_alertas:
+    col_info, col_mapa = st.columns([1.4, 1])
 
-with col_mapa:
-    if -90 <= lat <= 90 and -180 <= lon <= 180:
-        df_map = pd.DataFrame({"lat": [lat], "lon": [lon]})
-        st.map(df_map, zoom=12)
-    else:
-        st.error("Coordenadas fuera de rango válido (-90 a 90, -180 a 180).")
+    with col_info:
+        st.subheader(f"📍 {nombre_parcela}")
+        st.write(f"**Cultivo:** {tipo_cultivo} | **Variedad:** {variedad} | **Superficie:** {superficie_ha} ha")
+        st.write(f"**Fase actual:** {fase_fenologica} | **Suelo:** {suelo}")
+        st.caption(f"Coordenadas: Lat {lat:.4f}, Lon {lon:.4f} | Origen: {'🟢 Datos en tiempo real (Open-Meteo)' if datos_reales_ok else '🔵 Datos simulados'}")
 
-# Cálculos de integrales térmicas
-if "Viñedo" in tipo_cultivo:
-    gdd = sum([max(0, ((t_min[i] + t_max[i]) / 2) - 10) for i in range(len(t_min))])
-    texto_gdd = "GDD (Base 10°C)"
-elif "Olivar" in tipo_cultivo:
-    gdd = sum([max(0, ((t_min[i] + t_max[i]) / 2) - 12.5) for i in range(len(t_min))])
-    texto_gdd = "GDD (Base 12.5°C)"
-elif "Cereal" in tipo_cultivo:
-    gdd = sum([max(0, ((t_min[i] + t_max[i]) / 2) - 0) for i in range(len(t_min))])
-    texto_gdd = "Integral Térmica (Base 0°C)"
-else:
-    gdd = sum([max(0, 7 - t_min[i]) * 3 for i in range(len(t_min))])
-    texto_gdd = "Horas Frío Estimadas (<7°C)"
-
-col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-col_m1.metric("Tª Mín / Máx Hoy", f"{min_hoy:.1f} / {max_hoy:.1f} °C")
-col_m2.metric("Lluvia Prevista Hoy", f"{lluvia_hoy:.1f} mm")
-col_m3.metric("Viento Máximo", f"{viento_hoy:.1f} km/h")
-col_m4.metric(texto_gdd, f"{gdd:.1f}")
-
-st.write("---")
-
-# --- 4. MOTOR DE REGLAS AGRONÓMICAS ---
-st.write("### 🛡️ Diagnóstico Fitosanitario y Operativo")
-col1, col2 = st.columns(2)
-acciones_recomendadas = []
-
-with col1:
-    st.markdown("**1. Riesgo Térmico (Helada / Golpe de Calor)**")
-    if min_hoy <= 0:
-        st.error(f"🚨 HELADA CRÍTICA ({min_hoy:.1f} °C): Daño en brotes y flor.")
-        acciones_recomendadas.append("Activar medidas antihelada y suspender labores de suelo.")
-    elif min_hoy <= 2:
-        st.warning(f"⚠️ PRECAUCIÓN ({min_hoy:.1f} °C): Inversión térmica posible.")
-    elif max_hoy >= 36:
-        st.error(f"🔥 GOLPE DE CALOR ({max_hoy:.1f} °C): Parada vegetativa.")
-        acciones_recomendadas.append("Aportar riego de apoyo si dispone de dotación.")
-    else:
-        st.success(f"✅ Rango térmico seguro ({min_hoy:.1f} a {max_hoy:.1f} °C).")
+    with col_mapa:
+        if -90 <= lat <= 90 and -180 <= lon <= 180:
+            df_map = pd.DataFrame({"lat": [lat], "lon": [lon]})
+            st.map(df_map, zoom=12)
+        else:
+            st.error("Coordenadas fuera de rango.")
 
     if "Viñedo" in tipo_cultivo:
-        st.markdown("**2. Mildiu (*Plasmopara viticola*)**")
-        if lluvia_hoy >= 10 and temp_media_hoy >= 10:
-            st.error(f"🚨 INFECCIÓN PRIMARIA: Lluvia ({lluvia_hoy:.1f} mm) y Tª media ({temp_media_hoy:.1f} °C).")
-            acciones_recomendadas.append("Aplicar fungicida sistémico/penetrante contra mildiu tras la lluvia.")
-        elif lluvia_hoy >= 5 and temp_media_hoy >= 10:
-            st.warning("⚠️ RIESGO MEDIO: Monitorear hojas basales.")
-        else:
-            st.success("✅ Presión de mildiu baja.")
+        gdd = sum([max(0, ((t_min[i] + t_max[i]) / 2) - 10) for i in range(len(t_min))])
+        texto_gdd = "GDD (Base 10°C)"
     elif "Olivar" in tipo_cultivo:
-        st.markdown("**2. Repilo (*Venturia oleaginea*)**")
-        if lluvia_hoy >= 5 and 10 <= temp_media_hoy <= 20:
-            st.error(f"🚨 RIESGO ALTO DE REPILO: Lluvia y Tª óptima ({temp_media_hoy:.1f} °C).")
-            acciones_recomendadas.append("Aplicar tratamiento preventivo de cobre al cesar la lluvia.")
-        else:
-            st.success("✅ Presión de repilo baja.")
+        gdd = sum([max(0, ((t_min[i] + t_max[i]) / 2) - 12.5) for i in range(len(t_min))])
+        texto_gdd = "GDD (Base 12.5°C)"
     elif "Cereal" in tipo_cultivo:
-        st.markdown("**2. Septoria y Roya**")
-        if sum(lluvia[:3]) >= 10 and 12 <= temp_media_hoy <= 22:
-            st.error(f"🚨 ALERTA SEPTORIA: Humedad continua.")
-            acciones_recomendadas.append("Revisar hoja bandera y valorar fungicida en encañado.")
-        else:
-            st.success("✅ Follaje sin presión fúngica crítica.")
+        gdd = sum([max(0, ((t_min[i] + t_max[i]) / 2) - 0) for i in range(len(t_min))])
+        texto_gdd = "Integral Térmica (Base 0°C)"
     else:
-        st.markdown("**2. Monilia y Moteado**")
-        if lluvia_hoy >= 5 and 12 <= temp_media_hoy <= 22:
-            st.error(f"🚨 RIESGO MONILIA: Lluvia en periodo receptivo.")
-            acciones_recomendadas.append("Tratamiento fungicida para protección de flor/fruto.")
-        else:
-            st.success("✅ Presión de monilia baja.")
+        gdd = sum([max(0, 7 - t_min[i]) * 3 for i in range(len(t_min))])
+        texto_gdd = "Horas Frío Estimadas (<7°C)"
 
-with col2:
-    if "Viñedo" in tipo_cultivo:
-        st.markdown("**3. Oídio & Botritis**")
-        if sum(lluvia[:3]) >= 15 and 15 <= temp_media_hoy <= 24:
-            st.error(f"🚨 RIESGO BOTRITIS: Humedad ({sum(lluvia[:3]):.1f} mm en 72h).")
-            acciones_recomendadas.append("Deshojado basal para ventilar racimos y aplicar antibotritis.")
-        elif 22 <= temp_media_hoy <= 28 and lluvia_hoy == 0:
-            st.warning(f"⚠️ CONDICIÓN ÓPTIMA OÍDIO: Tª media de {temp_media_hoy:.1f} °C.")
-            acciones_recomendadas.append("Mantener coberturas antioídio.")
+    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+    col_m1.metric("Tª Mín / Máx Hoy", f"{min_hoy:.1f} / {max_hoy:.1f} °C")
+    col_m2.metric("Lluvia Prevista Hoy", f"{lluvia_hoy:.1f} mm")
+    col_m3.metric("Viento Máximo", f"{viento_hoy:.1f} km/h")
+    col_m4.metric(texto_gdd, f"{gdd:.1f}")
+
+    st.write("---")
+    st.write("### 🛡️ Diagnóstico Fitosanitario y Operativo")
+    col1, col2 = st.columns(2)
+    acciones_recomendadas = []
+
+    with col1:
+        st.markdown("**1. Riesgo Térmico (Helada / Golpe de Calor)**")
+        if min_hoy <= 0:
+            st.error(f"🚨 HELADA CRÍTICA ({min_hoy:.1f} °C): Daño en tejido verde y flor.")
+            acciones_recomendadas.append("Activar medidas antihelada y suspender labores de suelo.")
+        elif min_hoy <= 2:
+            st.warning(f"⚠️ PRECAUCIÓN ({min_hoy:.1f} °C): Inversión térmica posible.")
+        elif max_hoy >= 36:
+            st.error(f"🔥 GOLPE DE CALOR ({max_hoy:.1f} °C): Parada vegetativa.")
+            acciones_recomendadas.append("Aportar riego de apoyo si dispone de dotación.")
         else:
-            st.success("✅ Riesgo secundario bajo.")
-    elif "Olivar" in tipo_cultivo:
-        st.markdown("**3. Mosca del Olivo (*Bactrocera oleae*)**")
-        if 20 <= temp_media_hoy <= 30 and max_hoy < 35:
-            st.warning(f"⚠️ ACTIVIDAD DE MOSCA: Rango óptimo ({temp_media_hoy:.1f} °C).")
-            acciones_recomendadas.append("Revisar mosqueros y trampas cromotrópicas.")
-        elif max_hoy >= 35:
-            st.success("✅ Parada biológica de mosca (>35 °C).")
+            st.success(f"✅ Rango térmico seguro ({min_hoy:.1f} a {max_hoy:.1f} °C).")
+
+        if "Viñedo" in tipo_cultivo:
+            st.markdown("**2. Mildiu (*Plasmopara viticola*)**")
+            if lluvia_hoy >= 10 and temp_media_hoy >= 10:
+                st.error(f"🚨 INFECCIÓN PRIMARIA: Lluvia ({lluvia_hoy:.1f} mm) y Tª media ({temp_media_hoy:.1f} °C).")
+                acciones_recomendadas.append("Aplicar fungicida sistémico/penetrante contra mildiu tras la lluvia.")
+            elif lluvia_hoy >= 5 and temp_media_hoy >= 10:
+                st.warning("⚠️ RIESGO MEDIO: Monitorear hojas basales.")
+            else:
+                st.success("✅ Presión de mildiu baja.")
+        elif "Olivar" in tipo_cultivo:
+            st.markdown("**2. Repilo (*Venturia oleaginea*)**")
+            if lluvia_hoy >= 5 and 10 <= temp_media_hoy <= 20:
+                st.error(f"🚨 RIESGO ALTO REPILO: Lluvia y Tª óptima ({temp_media_hoy:.1f} °C).")
+                acciones_recomendadas.append("Aplicar tratamiento preventivo de cobre al cesar la lluvia.")
+            else:
+                st.success("✅ Presión de repilo baja.")
+        elif "Cereal" in tipo_cultivo:
+            st.markdown("**2. Septoria y Roya**")
+            if sum(lluvia[:3]) >= 10 and 12 <= temp_media_hoy <= 22:
+                st.error(f"🚨 ALERTA SEPTORIA: Humedad continua.")
+                acciones_recomendadas.append("Revisar hoja bandera y valorar fungicida.")
+            else:
+                st.success("✅ Follaje sin presión fúngica crítica.")
         else:
-            st.success("✅ Sin riesgo de vuelo.")
-    elif "Cereal" in tipo_cultivo:
-        st.markdown("**3. Asurado / Desecación**")
-        if max_hoy >= 32 and viento_hoy >= 15:
-            st.error(f"🚨 RIESGO ASURADO: Calor ({max_hoy:.1f} °C) y viento ({viento_hoy:.1f} km/h).")
-            acciones_recomendadas.append("Anticipar cosecha en parcelas maduras.")
+            st.markdown("**2. Monilia y Moteado**")
+            if lluvia_hoy >= 5 and 12 <= temp_media_hoy <= 22:
+                st.error(f"🚨 RIESGO MONILIA: Lluvia en periodo receptivo.")
+                acciones_recomendadas.append("Tratamiento fungicida de protección de fruto.")
+            else:
+                st.success("✅ Presión de monilia baja.")
+
+    with col2:
+        if "Viñedo" in tipo_cultivo:
+            st.markdown("**3. Oídio & Botritis**")
+            if sum(lluvia[:3]) >= 15 and 15 <= temp_media_hoy <= 24:
+                st.error(f"🚨 RIESGO BOTRITIS: Humedad acumulada ({sum(lluvia[:3]):.1f} mm en 72h).")
+                acciones_recomendadas.append("Deshojado basal para ventilar racimos y aplicar antibotritis.")
+            elif 22 <= temp_media_hoy <= 28 and lluvia_hoy == 0:
+                st.warning(f"⚠️ CONDICIÓN ÓPTIMA OÍDIO: Tª media de {temp_media_hoy:.1f} °C.")
+                acciones_recomendadas.append("Mantener coberturas antioídio.")
+            else:
+                st.success("✅ Riesgo fúngico secundario bajo.")
+        elif "Olivar" in tipo_cultivo:
+            st.markdown("**3. Mosca del Olivo (*Bactrocera oleae*)**")
+            if 20 <= temp_media_hoy <= 30 and max_hoy < 35:
+                st.warning(f"⚠️ ACTIVIDAD DE MOSCA: Rango óptimo ({temp_media_hoy:.1f} °C).")
+                acciones_recomendadas.append("Revisar trampas cromotrópicas.")
+            elif max_hoy >= 35:
+                st.success("✅ Parada biológica de mosca (>35 °C).")
+            else:
+                st.success("✅ Sin riesgo de vuelo.")
+        elif "Cereal" in tipo_cultivo:
+            st.markdown("**3. Asurado / Golpe de Secado**")
+            if max_hoy >= 32 and viento_hoy >= 15:
+                st.error(f"🚨 RIESGO ASURADO: Calor ({max_hoy:.1f} °C) y viento ({viento_hoy:.1f} km/h).")
+                acciones_recomendadas.append("Anticipar cosecha en parcelas maduras.")
+            else:
+                st.success("✅ Llenado de grano estable.")
         else:
-            st.success("✅ Llenado de grano estable.")
+            st.markdown("**3. Pulgón y Ácaros**")
+            if 24 <= temp_media_hoy <= 32 and lluvia_hoy == 0:
+                st.warning(f"⚠️ CONDICIÓN PROPICIA ÁCAROS: Ambiente seco.")
+                acciones_recomendadas.append("Monitorear brotes tiernos.")
+            else:
+                st.success("✅ Plagas controladas.")
+
+        st.markdown("**4. Ventana de Tratamiento Fitosanitario**")
+        if viento_hoy > 15:
+            st.error(f"⛔ NO TRATAR: Viento ({viento_hoy:.1f} km/h > 15 km/h).")
+            acciones_recomendadas.append("Suspender pulverización por exceso de viento.")
+        elif lluvia_hoy > 2:
+            st.error(f"⛔ NO TRATAR: Lluvia prevista ({lluvia_hoy:.1f} mm).")
+            acciones_recomendadas.append("Suspender tratamientos por riesgo de lavado.")
+        elif max_hoy > 30:
+            st.warning(f"⚠️ HORARIO RESTRINGIDO: Tª > 30 °C.")
+            acciones_recomendadas.append("Tratar a primera hora de la mañana.")
+        else:
+            st.success("✅ CONDICIONES ÓPTIMAS para pulverizar.")
+
+    if not acciones_recomendadas:
+        acciones_recomendadas.append("Sin intervenciones urgentes requeridas. Labores habituales.")
+
+    st.write("---")
+    st.write("### 📋 Prescripción Técnica para Hoy")
+    for i, act in enumerate(acciones_recomendadas, 1):
+        st.info(f"**Paso {i}:** {act}")
+
+    st.write("---")
+    st.write("### 📅 Previsión a 7 Días y Cuaderno de Explotación")
+    df = pd.DataFrame({
+        "Fecha": fechas,
+        "T. Mínima (°C)": t_min,
+        "T. Máxima (°C)": t_max,
+        "Lluvia (mm)": lluvia,
+        "Viento (km/h)": viento
+    })
+    st.dataframe(df, use_container_width=True)
+    st.line_chart(df.set_index("Fecha")[["T. Mínima (°C)", "T. Máxima (°C)"]])
+
+    df_export = df.copy()
+    df_export["Parcela"] = nombre_parcela
+    df_export["Cultivo"] = tipo_cultivo
+    df_export["Variedad"] = variedad
+    df_export["Superficie_ha"] = superficie_ha
+    df_export["Prescripcion_Tecnica"] = " | ".join(acciones_recomendadas)
+
+    csv_data = df_export.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Descargar Registro para Cuaderno de Campo (CSV)",
+        data=csv_data,
+        file_name=f"cuaderno_{nombre_parcela.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
+        mime="text/csv"
+    )
+
+# ==========================================
+# PESTAÑA 2: CALCULADORA DE CALDO Y DOSIS
+# ==========================================
+with tab_calculadora:
+    st.subheader(f"🧪 Calculadora de Mezcla y Dosificación - {nombre_parcela}")
+    st.caption("Ajusta los parámetros de tu cuba y de la etiqueta del producto fitosanitario o abono foliar.")
+
+    c_p1, c_p2 = st.columns(2)
+
+    with c_p1:
+        st.markdown("#### 🚜 Parámetros de Aplicación y Maquinaria")
+        volumen_cuba = st.number_input("Capacidad de la cuba / atomizador (Litros)", value=1000, step=100, min_value=50)
+        gasto_ha = st.number_input("Volumen de caldo por hectárea (L/ha)", value=400, step=50, min_value=50, help="Gasto habitual: Viña (250-500 L/ha), Frutal/Olivo (600-1000 L/ha), Cereal (150-250 L/ha)")
+        ha_a_tratar = st.number_input("Superficie de la parcela a tratar (Hectáreas)", value=float(superficie_ha), step=0.5, min_value=0.1)
+
+    with c_p2:
+        st.markdown("#### 🏷️ Ficha del Producto Comercial")
+        nombre_prod = st.text_input("Nombre comercial del producto", value="Fungicida Cobre / Sistémico")
+        tipo_dosis = st.radio("Formato de dosis según etiqueta:", ["Concentración (% o gr/cc por 100 L)", "Dosis por Superficie (kg o L por Hectárea)"])
+        
+        if "Concentración" in tipo_dosis:
+            dosis_valor = st.number_input("Dosis recomendada (en gramos o cc por cada 100 L de agua)", value=250.0, step=25.0)
+            st.caption(f"Equivale a una concentración del **{dosis_valor / 1000:.3f}%** en masa/volumen.")
+        else:
+            dosis_valor = st.number_input("Dosis recomendada por hectárea (kg o L / ha)", value=2.0, step=0.5)
+
+        precio_unitario = st.number_input("Precio del producto (€ por kg o Litro)", value=18.5, step=1.0, min_value=0.0)
+
+    st.write("---")
+    st.markdown("### 📊 Resultado de la Preparación de Caldo")
+
+    # Cálculos agronómicos
+    caldo_total_necesario = ha_a_tratar * gasto_ha
+    numero_cubas = caldo_total_necesario / volumen_cuba
+    ha_por_cuba = volumen_cuba / gasto_ha
+
+    if "Concentración" in tipo_dosis:
+        # Dosis por cada 100L
+        prod_por_cuba = (dosis_valor / 100.0) * (volumen_cuba / 1000.0) if dosis_valor > 50 else (dosis_valor / 100.0) * (volumen_cuba / 100.0)
+        # Normalizado: si dosis_valor son gramos/cc por 100L -> (dosis_valor / 100) * volumen_cuba en gramos/cc -> pasamos a kg/L (/ 1000)
+        prod_por_cuba = (dosis_valor * (volumen_cuba / 100.0)) / 1000.0 # en kg o L
+        prod_total_finca = (dosis_valor * (caldo_total_necesario / 100.0)) / 1000.0
     else:
-        st.markdown("**3. Pulgón y Ácaros**")
-        if 24 <= temp_media_hoy <= 32 and lluvia_hoy == 0:
-            st.warning(f"⚠️ CONDICIÓN PROPICIA ÁCAROS: Ambiente seco.")
-            acciones_recomendadas.append("Monitorear brotes tiernos.")
-        else:
-            st.success("✅ Plagas controladas.")
+        # Dosis por Ha
+        prod_por_cuba = dosis_valor * ha_por_cuba
+        prod_total_finca = dosis_valor * ha_a_tratar
 
-    st.markdown("**4. Ventana de Tratamiento**")
-    if viento_hoy > 15:
-        st.error(f"⛔ NO TRATAR: Viento ({viento_hoy:.1f} km/h > 15 km/h).")
-        acciones_recomendadas.append("Suspender pulverización por viento excesivo.")
-    elif lluvia_hoy > 2:
-        st.error(f"⛔ NO TRATAR: Lluvia ({lluvia_hoy:.1f} mm).")
-        acciones_recomendadas.append("Suspender tratamientos por riesgo de lavado.")
-    elif max_hoy > 30:
-        st.warning(f"⚠️ HORARIO RESTRINGIDO: Tª > 30 °C.")
-        acciones_recomendadas.append("Tratar a primera hora de la mañana.")
-    else:
-        st.success("✅ CONDICIONES ÓPTIMAS para pulverización.")
+    coste_total = prod_total_finca * precio_unitario
+    coste_ha = coste_total / ha_a_tratar if ha_a_tratar > 0 else 0
 
-if not acciones_recomendadas:
-    acciones_recomendadas.append("Sin intervenciones urgentes requeridas. Labores habituales.")
+    res1, res2, res3, res4 = st.columns(4)
+    res1.metric("📦 Producto por CUBA LLENA", f"{prod_por_cuba:.2f} kg / L")
+    res2.metric("🚜 Cubas necesarias", f"{numero_cubas:.2f} cubas", f"{ha_por_cuba:.2f} ha/cuba")
+    res3.metric("🧪 Producto total Parcela", f"{prod_total_finca:.2f} kg / L", f"Caldo: {caldo_total_necesario:.0f} L")
+    res4.metric("💰 Coste Tratamiento", f"{coste_total:.2f} €", f"{coste_ha:.2f} €/ha")
 
-st.write("---")
-st.write("### 📋 Prescripción Técnica para Hoy")
-for i, act in enumerate(acciones_recomendadas, 1):
-    st.info(f"**Paso {i}:** {act}")
-
-st.write("---")
-st.write("### 📅 Previsión a 7 Días y Cuaderno de Explotación")
-
-df = pd.DataFrame({
-    "Fecha": fechas,
-    "T. Mínima (°C)": t_min,
-    "T. Máxima (°C)": t_max,
-    "Lluvia (mm)": lluvia,
-    "Viento (km/h)": viento
-})
-
-st.dataframe(df, use_container_width=True)
-st.line_chart(df.set_index("Fecha")[["T. Mínima (°C)", "T. Máxima (°C)"]])
-
-df_export = df.copy()
-df_export["Parcela"] = nombre_parcela
-df_export["Cultivo"] = tipo_cultivo
-df_export["Variedad"] = variedad
-df_export["Suelo"] = suelo
-df_export["Fase_Fenologica"] = fase_fenologica
-df_export["Prescripcion_Tecnica"] = " | ".join(acciones_recomendadas)
-
-csv_data = df_export.to_csv(index=False).encode('utf-8')
-
-st.download_button(
-    label="📥 Descargar Registro para Cuaderno de Campo (CSV)",
-    data=csv_data,
-    file_name=f"cuaderno_{nombre_parcela.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
-    mime="text/csv"
-)
+    st.write("")
+    st.success(f"""
+    **📝 Instrucciones de carga para el tractorista / aplicador:**
+    1. Llenar la cuba de agua hasta la mitad (**{volumen_cuba // 2} litros**) con el agitador en marcha.
+    2. Verter **{prod_por_cuba:.2f} kg o Litros** de **{nombre_prod}**.
+    3. Terminar de llenar con agua hasta los **{volumen_cuba} litros**.
+    4. Cada cuba completa cubre exactamente **{ha_por_cuba:.2f} hectáreas** a un gasto de **{gasto_ha} L/ha**.
+    """)
