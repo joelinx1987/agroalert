@@ -13,28 +13,26 @@ st.title("🌱 AgroAlert Pro - Monitor Integral & Soporte de Tratamiento")
 st.caption("Sistema de soporte a la decisión (DSS) multicultivo y dosificación agronómica")
 
 # --- 1. BASE DE DATOS Y GESTIÓN DE PARCELAS ---
-PARCELAS_DEFAULT = {
-    "🍇 Viñedo": {
-        "Frontón Jaime (Logroño)": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.0},
-        "Finca Valdegón (Logroño)": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5},
-        "Viña El Poyo (Haro)": {"lat": 42.5764, "lon": -2.8465, "variedad": "Graciano", "suelo": "Aluvial", "ha": 4.0}
-    },
-    "🫒 Olivar": {
-        "Finca La Solana (Jaén)": {"lat": 37.7796, "lon": -3.7849, "variedad": "Picual", "suelo": "Arcilloso profundo", "ha": 6.0},
-        "El Soto (Tarragona)": {"lat": 41.1561, "lon": 1.1069, "variedad": "Arbequina", "suelo": "Franco-arenoso", "ha": 3.2}
-    },
-    "🌾 Cereal (Trigo/Cebada)": {
-        "Campiña Alta (Burgos)": {"lat": 42.3439, "lon": -3.6969, "variedad": "Trigo Blando", "suelo": "Franco-arcilloso", "ha": 15.0},
-        "Tierra de Campos (Palencia)": {"lat": 42.0095, "lon": -4.5288, "variedad": "Cebada", "suelo": "Sedimentario", "ha": 22.0}
-    },
-    "🍑 Frutales / Almendro": {
-        "Valle del Cinca (Lleida)": {"lat": 41.6176, "lon": 0.6200, "variedad": "Melocotonero", "suelo": "Aluvial fértil", "ha": 3.8},
-        "Vega Alta (Murcia)": {"lat": 38.2342, "lon": -1.4168, "variedad": "Almendro", "suelo": "Calizo pedregoso", "ha": 5.5}
-    }
-}
-
 if "db_parcelas" not in st.session_state:
-    st.session_state.db_parcelas = PARCELAS_DEFAULT.copy()
+    st.session_state.db_parcelas = {
+        "🍇 Viñedo": {
+            "Frontón Jaime (Logroño)": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.0},
+            "Finca Valdegón (Logroño)": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5},
+            "Viña El Poyo (Haro)": {"lat": 42.5764, "lon": -2.8465, "variedad": "Graciano", "suelo": "Aluvial", "ha": 4.0}
+        },
+        "🫒 Olivar": {
+            "Finca La Solana (Jaén)": {"lat": 37.7796, "lon": -3.7849, "variedad": "Picual", "suelo": "Arcilloso profundo", "ha": 6.0},
+            "El Soto (Tarragona)": {"lat": 41.1561, "lon": 1.1069, "variedad": "Arbequina", "suelo": "Franco-arenoso", "ha": 3.2}
+        },
+        "🌾 Cereal (Trigo/Cebada)": {
+            "Campiña Alta (Burgos)": {"lat": 42.3439, "lon": -3.6969, "variedad": "Trigo Blando", "suelo": "Franco-arcilloso", "ha": 15.0},
+            "Tierra de Campos (Palencia)": {"lat": 42.0095, "lon": -4.5288, "variedad": "Cebada", "suelo": "Sedimentario", "ha": 22.0}
+        },
+        "🍑 Frutales / Almendro": {
+            "Valle del Cinca (Lleida)": {"lat": 41.6176, "lon": 0.6200, "variedad": "Melocotonero", "suelo": "Aluvial fértil", "ha": 3.8},
+            "Vega Alta (Murcia)": {"lat": 38.2342, "lon": -1.4168, "variedad": "Almendro", "suelo": "Calizo pedregoso", "ha": 5.5}
+        }
+    }
 
 st.sidebar.header("📍 1. Cultivo y Parcela")
 
@@ -51,15 +49,18 @@ lista_parcelas = list(fincas_actuales.keys()) + ["➕ Añadir Nueva Parcela"]
 seleccion_parcela = st.sidebar.selectbox("Selecciona Parcela:", lista_parcelas)
 
 if seleccion_parcela == "➕ Añadir Nueva Parcela":
-    with st.sidebar.expander("📝 Formulario Nueva Parcela", expanded=True):
-        nuevo_nombre = st.text_input("Nombre de la parcela", value="Mi Nueva Parcela")
+    st.sidebar.markdown("### 📝 Datos de la Finca")
+    with st.sidebar.form(key="form_nueva_parcela"):
+        nuevo_nombre = st.text_input("Nombre de la parcela", value="Mi Parcela")
         nuevo_lat = st.number_input("Latitud (ej: 42.3659)", value=42.3659, format="%.4f")
         nuevo_lon = st.number_input("Longitud (ej: -2.4235)", value=-2.4235, format="%.4f")
         nuevo_var = st.text_input("Variedad", value="Tempranillo")
         nuevo_suelo = st.selectbox("Tipo de suelo", ["Arcillo-calcáreo", "Aluvial", "Arenoso", "Franco", "Ferroso-arcilloso"])
         nuevo_ha = st.number_input("Superficie (Hectáreas)", value=2.0, min_value=0.1, step=0.5)
-
-        if st.button("💾 Guardar Parcela"):
+        
+        btn_guardar = st.form_submit_button("💾 Guardar y Activar Parcela", use_container_width=True)
+        
+        if btn_guardar:
             if nuevo_nombre.strip():
                 st.session_state.db_parcelas[tipo_cultivo][nuevo_nombre.strip()] = {
                     "lat": nuevo_lat,
@@ -68,10 +69,9 @@ if seleccion_parcela == "➕ Añadir Nueva Parcela":
                     "suelo": nuevo_suelo,
                     "ha": nuevo_ha
                 }
-                st.success(f"¡{nuevo_nombre} guardada!")
+                st.sidebar.success(f"¡{nuevo_nombre} guardada!")
                 st.rerun()
 
-    # Valores provisionales mientras se edita
     nombre_parcela = nuevo_nombre
     lat = nuevo_lat
     lon = nuevo_lon
@@ -86,12 +86,6 @@ else:
     variedad = datos_p.get("variedad", "Tempranillo")
     suelo = datos_p.get("suelo", "Arcillo-calcáreo")
     superficie_ha = datos_p.get("ha", 2.0)
-
-    if seleccion_parcela not in PARCELAS_DEFAULT.get(tipo_cultivo, {}):
-        if st.sidebar.button("🗑️ Eliminar esta Parcela"):
-            del st.session_state.db_parcelas[tipo_cultivo][seleccion_parcela]
-            st.sidebar.warning("Parcela eliminada.")
-            st.rerun()
 
 # Fases fenológicas
 if "Viñedo" in tipo_cultivo:
