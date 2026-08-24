@@ -5,17 +5,18 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import urllib.request
+import urllib.parse
 import json
 import hashlib
 
 st.set_page_config(
-    page_title="AgroAlert Campo | Monitor Diario",
+    page_title="AgroAlert Campo | Monitor Diario & Bot",
     page_icon="🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES DE ALTO CONTRASTE Y LETRA GRANDE (LECTURA AL SOL) ---
+# --- ESTILOS VISUALES DE ALTO CONTRASTE Y LETRA GRANDE ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -29,7 +30,7 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* SEMÁFORO GIGANTE Y DIRECTO */
+    /* SEMÁFOROS */
     .traffic-ok {
         background-color: #dcfce7;
         border: 3px solid #16a34a;
@@ -80,7 +81,6 @@ st.markdown("""
         font-weight: 700;
         color: #475569;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
     }
     .field-card-value {
         font-size: 2.1rem;
@@ -94,7 +94,7 @@ st.markdown("""
         color: #64748b;
     }
 
-    /* RECETA DE LA CUBA DESTACADA */
+    /* RECETA DE LA CUBA */
     .recipe-box {
         background-color: #ecfdf5;
         border: 3px solid #059669;
@@ -103,12 +103,11 @@ st.markdown("""
         margin-top: 15px;
     }
     .recipe-big {
-        font-size: 2.5rem;
+        font-size: 2.4rem;
         font-weight: 900;
         color: #047857;
     }
 
-    /* PESTAÑAS Y BOTONES ACCESIBLES */
     .stTabs [data-baseweb="tab-list"] {
         gap: 12px;
         background-color: #ffffff;
@@ -117,9 +116,9 @@ st.markdown("""
         border: 2px solid #e2e8f0;
     }
     .stTabs [data-baseweb="tab"] {
-        font-size: 1.15rem !important;
+        font-size: 1.1rem !important;
         font-weight: 800 !important;
-        padding: 12px 24px !important;
+        padding: 12px 20px !important;
         border-radius: 12px !important;
     }
     .stTabs [aria-selected="true"] {
@@ -136,7 +135,18 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- AUTENTICACIÓN SIMPLE Y DIRECTA ---
+# --- FUNCIÓN PARA ENVIAR MENSAJES DE TELEGRAM ---
+def enviar_alerta_telegram(bot_token, chat_id, mensaje):
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = urllib.parse.urlencode({"chat_id": chat_id, "text": mensaje, "parse_mode": "HTML"}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={'User-Agent': 'AgroAlert/Bot'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return True, "Mensaje enviado correctamente."
+    except Exception as e:
+        return False, f"Error al enviar: {str(e)}"
+
+# --- AUTENTICACIÓN ---
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
@@ -156,33 +166,28 @@ if "db_privada" not in st.session_state:
                 "Frontón Jaime": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Cascajo / Calcáreo", "ha": 2.0},
                 "Finca Valdegón": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5}
             },
-            "🫒 Olivo": {},
-            "🌾 Cereal": {},
-            "🍑 Frutal": {}
+            "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
         },
         "demo": {
             "🍇 Viña": {
                 "Parcela La Llana": {"lat": 42.4658, "lon": -2.4499, "variedad": "Garnacha", "suelo": "Arcilloso", "ha": 3.0}
             },
-            "🫒 Olivo": {},
-            "🌾 Cereal": {},
-            "🍑 Frutal": {}
+            "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
         }
     }
 
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
-# --- PANTALLA DE ACCESO CLARA ---
 if not st.session_state.usuario_autenticado:
-    col_e1, col_login, col_e2 = st.columns([1, 1.6, 1])
+    c1, col_login, c2 = st.columns([1, 1.6, 1])
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.3rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Campo</h1>
-            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">El aviso diario del campo y cálculo de cubas</p>
+            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">El aviso diario del campo, cálculo de cubas y alertas Telegram</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -206,7 +211,7 @@ if not st.session_state.usuario_autenticado:
                 b_up = st.form_submit_button("CREAR CUENTA GRATIS", use_container_width=True)
                 if b_up and nu.strip() and np.strip():
                     if nu in st.session_state.usuarios_db:
-                        st.error("Ese usuario ya está registrado.")
+                        st.error("Ese usuario ya existe.")
                     else:
                         st.session_state.usuarios_db[nu] = {"pwd": make_hash(np), "nombre": nn}
                         st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
@@ -214,13 +219,12 @@ if not st.session_state.usuario_autenticado:
     st.stop()
 
 # ==============================================================================
-# PANEL PRINCIPAL PARA EL AGRICULTOR
+# PANEL PRINCIPAL
 # ==============================================================================
 user_activo = st.session_state.usuario_autenticado
 nombre_cliente = st.session_state.usuarios_db[user_activo]["nombre"]
 fincas_usuario = st.session_state.db_privada[user_activo]
 
-# BARRA SUPERIOR RÁPIDA DE SELECCIÓN DE PARCELA
 c_top1, c_top2, c_top3 = st.columns([1.5, 1.5, 0.8])
 with c_top1:
     tipo_cultivo = st.selectbox("1️⃣ Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -245,9 +249,8 @@ with c_top3:
         st.session_state.usuario_autenticado = None
         st.rerun()
 
-# --- CONSULTA CLIMÁTICA EN TIEMPO REAL ---
+# --- CONSULTA METEOROLÓGICA ---
 hoy = datetime.now()
-fechas = [(hoy + timedelta(days=i)).strftime("%A %d").capitalize() for i in range(7)]
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
 
 try:
@@ -279,20 +282,21 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # PESTAÑAS PRINCIPALES
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "🚜 ¿PUEDO SULFATAR HOY?",
     "🧪 CUÁNTO ECHAR A LA CUBA",
+    "🔔 BOT DE AVISOS & ALERTAS",
     "➕ MIS FINCAS"
 ])
 
 # ==============================================================================
-# PESTAÑA 1: EL PARTE DIARIO (SEMÁFORO)
+# PESTAÑA 1: SEMÁFORO DIARIO
 # ==============================================================================
 with tab1:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📍 {nombre_parcela} <span style='font-size:1.1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
-    # 1. EL GRAN SEMÁFORO
     if viento_hoy > 15:
+        semaforo_estado = "ROJO"
         st.markdown(f"""
         <div class="traffic-danger">
             <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SE RECOMIENDA SULFATAR</div>
@@ -300,20 +304,23 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
     elif lluvia_hoy > 2.0:
+        semaforo_estado = "ROJO"
         st.markdown(f"""
         <div class="traffic-danger">
             <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SULFATES</div>
-            <div class="traffic-sub" style="color: #b91c1c;">Viene lluvia prevista ({lluvia_hoy:.1f} litros/m²). El agua va a lavar el caldo del tratamiento.</div>
+            <div class="traffic-sub" style="color: #b91c1c;">Viene lluvia prevista ({lluvia_hoy:.1f} litros/m²). El agua va a lavar el producto.</div>
         </div>
         """, unsafe_allow_html=True)
     elif max_hoy >= 32:
+        semaforo_estado = "AMBAR"
         st.markdown(f"""
         <div class="traffic-warning">
             <div class="traffic-title" style="color: #92400e;">⚠️ TRATAR SOLO A PRIMERA HORA DE LA MAÑANA</div>
-            <div class="traffic-sub" style="color: #b45309;">Hará mucho calor en las horas centrales ({max_hoy:.0f} °C). Sulfata entre las 7:00 y las 11:00 para no quemar la hoja.</div>
+            <div class="traffic-sub" style="color: #b45309;">Hará mucho calor ({max_hoy:.0f} °C). Sulfata entre las 7:00 y las 11:00 para no quemar la hoja.</div>
         </div>
         """, unsafe_allow_html=True)
     else:
+        semaforo_estado = "VERDE"
         st.markdown(f"""
         <div class="traffic-ok">
             <div class="traffic-title" style="color: #166534;">✅ DÍA PERFECTO PARA SULFATAR Y TRABAJAR</div>
@@ -321,7 +328,6 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-    # 2. LAS 4 TARJETAS CON LETRA GIGANTE
     c_m1, c_m2, c_m3, c_m4 = st.columns(4)
     with c_m1:
         st.markdown(f"""
@@ -345,62 +351,56 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
     with c_m4:
-        # Estado de riesgo de plaga
         if "Viña" in tipo_cultivo:
             riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
         else:
             riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
         st.markdown(f"""
         <div class="field-card">
-            <div class="field-card-title">🛡️ Estado de Hongos</div>
+            <div class="field-card-title">🛡️ Estado Hongos</div>
             <div class="field-card-value" style="font-size:1.6rem; color: {'#dc2626' if 'ALTO' in riesgo_txt else '#15803d'};">{riesgo_txt}</div>
         </div>
         """, unsafe_allow_html=True)
 
-    # 3. PREVISIÓN SENCILLA PARA LA SEMANA
-    st.markdown("<br><h3 style='font-size: 1.4rem; font-weight: 800;'>📅 Previsión para los próximos días en tu finca:</h3>", unsafe_allow_html=True)
-    
+    st.markdown("<br><h3 style='font-size: 1.4rem; font-weight: 800;'>📅 Previsión Semanal:</h3>", unsafe_allow_html=True)
     df_dias = []
     for i in range(len(fechas_legibles)):
         apto = "✅ Óptimo" if (viento[i] <= 15 and lluvia[i] <= 2.0 and t_max[i] < 32) else ("⛔ No tratar" if (viento[i] > 15 or lluvia[i] > 2.0) else "⚠️ Cuidado")
         df_dias.append({
             "Día": fechas_legibles[i],
             "Tª Mín / Máx": f"{t_min[i]:.0f}°C / {t_max[i]:.0f}°C",
-            "Lluvia Prevista": f"{lluvia[i]:.1f} L",
+            "Lluvia": f"{lluvia[i]:.1f} L",
             "Viento": f"{viento[i]:.0f} km/h",
             "¿Se puede tratar?": apto
         })
     st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# PESTAÑA 2: CALCULADORA DE CUBA ULTRA-CLARA
+# PESTAÑA 2: CALCULADORA DE CUBA
 # ==============================================================================
 with tab2:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>🧪 Calculadora para la Cuba del Tractor</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 1.1rem; color: #475569;'>Te dice los kilos o botes exactos que tienes que echar a la cuba sin hacer cuentas de cabeza.</p>", unsafe_allow_html=True)
-
     c_c1, c_c2 = st.columns(2)
     with c_c1:
         st.markdown("#### 🚜 Tu Maquinaria:")
-        litros_cuba = st.selectbox("Capacidad de tu cuba / atomizador:", [500, 600, 800, 1000, 1500, 2000, 3000], index=3)
-        gasto_caldo = st.number_input("Gasto habitual de caldo por hectárea (Litros/ha):", value=400, step=50)
-        ha_a_sulfatar = st.number_input("Hectáreas que vas a tratar hoy:", value=float(superficie_ha), step=0.5)
+        litros_cuba = st.selectbox("Capacidad cuba:", [500, 600, 800, 1000, 1500, 2000, 3000], index=3)
+        gasto_caldo = st.number_input("Gasto de caldo por hectárea (L/ha):", value=400, step=50)
+        ha_a_sulfatar = st.number_input("Hectáreas a tratar:", value=float(superficie_ha), step=0.5)
 
     with c_c2:
-        st.markdown("#### 🏷️ La Dosis del Producto (lo que pone el bote):")
-        formato_dosis = st.radio("¿Cómo te indica la dosis el técnico o la etiqueta?", [
-            "Por cada 100 Litros de agua (ej: 250 gramos por 100 L)",
-            "Por Hectárea completa (ej: 2 kilos por hectárea)"
+        st.markdown("#### 🏷️ Dosis de la Etiqueta:")
+        formato_dosis = st.radio("Formato de dosis:", [
+            "Por cada 100 Litros de agua (gr o cc / 100 L)",
+            "Por Hectárea completa (kg o L / ha)"
         ])
         
         if "100 Litros" in formato_dosis:
-            dosis_num = st.number_input("Gramos o Centímetros Cúbicos (cc) por cada 100 L:", value=250.0, step=25.0)
+            dosis_num = st.number_input("Gramos o cc por cada 100 L:", value=250.0, step=25.0)
         else:
-            dosis_num = st.number_input("Kilos o Litros de producto por cada Hectárea:", value=2.0, step=0.5)
+            dosis_num = st.number_input("Kilos o Litros por Hectárea:", value=2.0, step=0.5)
 
-        precio_kilo = st.number_input("Precio del producto (€ por Kilo o Litro) [Opcional]:", value=18.0, step=1.0)
+        precio_kilo = st.number_input("Precio producto (€ / kg o L):", value=18.0, step=1.0)
 
-    # CÁLCULOS
     caldo_total_necesario = ha_a_sulfatar * gasto_caldo
     num_cubas_necesarias = caldo_total_necesario / litros_cuba
     ha_por_cuba = litros_cuba / gasto_caldo
@@ -414,38 +414,100 @@ with tab2:
 
     coste_total_euros = kilos_totales_finca * precio_kilo
 
-    # CAJA DE RECETA GIGANTE PARA EL TRACTORISTA
     st.markdown(f"""
     <div class="recipe-box">
         <div style="font-size: 1.15rem; font-weight: 800; color: #065f46; text-transform: uppercase;">📝 RECETA DIRECTA PARA LA CUBA</div>
         <div class="recipe-big">{kilos_por_cuba:.2f} <span style="font-size:1.6rem;">Kilos (o Litros) por cada CUBA LLENA de {litros_cuba} L</span></div>
         <hr style="border: 1px solid #a7f3d0; margin: 16px 0;">
         <div style="font-size: 1.25rem; font-weight: 700; color: #047857;">
-            🚜 Para tus <b>{ha_a_sulfatar} hectáreas</b> necesitas <b>{num_cubas_necesarias:.1f} cubas</b> (Gasto total: <b>{kilos_totales_finca:.2f} kg/L</b> de producto).
+            🚜 Para <b>{ha_a_sulfatar} ha</b> necesitas <b>{num_cubas_necesarias:.1f} cubas</b> (Total: <b>{kilos_totales_finca:.2f} kg/L</b>).
         </div>
         <div style="font-size: 1.05rem; font-weight: 600; color: #065f46; margin-top: 6px;">
-            💰 Coste aproximado del tratamiento: <b>{coste_total_euros:.2f} €</b> ({(coste_total_euros/ha_a_sulfatar if ha_a_sulfatar>0 else 0):.2f} €/ha).
+            💰 Coste: <b>{coste_total_euros:.2f} €</b> ({(coste_total_euros/ha_a_sulfatar if ha_a_sulfatar>0 else 0):.2f} €/ha).
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: MIS FINCAS (SENCILLO Y SIN ENREDOS)
+# PESTAÑA 3: BOT DE AVISOS DIARIOS Y EMERGENCIAS (TELEGRAM)
 # ==============================================================================
 with tab3:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>➕ Añadir una Nueva Parcela</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 1.1rem; color: #475569;'>Rellena los datos de tu viña o parcela para tenerla guardada en tu cuenta.</p>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>🔔 Bot de Avisos al Móvil (Telegram)</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 1.1rem; color: #475569;'>Recibe el <b>Parte Matutino a las 7:00 AM</b> y <b>Alertas Rojas de Helada</b> directo a tu teléfono.</p>", unsafe_allow_html=True)
 
+    # CREDENCIALES CONFIGURADAS POR DEFECTO
+    DEFAULT_BOT_TOKEN = "7954295146:AAE19x37fqQeiIgje7nY3q4hzI8Wh9TRKno"
+    DEFAULT_CHAT_ID = "5473461038"
+
+    col_b1, col_b2 = st.columns(2)
+    with col_b1:
+        st.markdown("#### ⚙️ Configuración del Bot")
+        bot_token_input = st.text_input("Token de Telegram:", value=DEFAULT_BOT_TOKEN)
+        chat_id_input = st.text_input("Tu Chat ID de Telegram:", value=DEFAULT_CHAT_ID)
+        st.success("✅ Bot vinculado correctamente a tu cuenta de Telegram.")
+
+    with col_b2:
+        st.markdown("#### 📲 Ejemplo del Mensaje que recibirás:")
+        st.info(f"""
+        🚜 <b>PARTE MATUTINO AGROALERT - 07:00 AM</b>
+        📍 Parcela: <b>{nombre_parcela}</b>
+        
+        {'✅ CONDICIÓN ÓPTIMA PARA SULFATAR' if semaforo_estado == 'VERDE' else '⛔ PRECAUCIÓN / NO SULFATAR HOY'}
+        🌡️ Tª Hoy: {min_hoy:.0f}°C a {max_hoy:.0f}°C
+        💨 Viento máx: {viento_hoy:.0f} km/h
+        🌧️ Lluvia prevista: {lluvia_hoy:.1f} mm
+        🛡️ Riesgo Hongos: {'Bajo' if lluvia_hoy < 5 else 'Elevado'}
+        """)
+
+    st.write("---")
+    c_btn1, c_btn2 = st.columns(2)
+    with c_btn1:
+        if st.button("📲 ENVIAR PARTE MATUTINO A MI TELEGRAM AHORA", use_container_width=True, type="primary"):
+            txt_parte = f"""🚜 <b>PARTE MATUTINO AGROALERT (07:00 AM)</b>
+📍 Parcela: <b>{nombre_parcela}</b> ({superficie_ha} ha)
+
+{'✅ DÍA PERFECTO PARA SULFATAR Y TRABAJAR' if semaforo_estado == 'VERDE' else ('⚠️ ATENCIÓN: TRATAR SOLO TEMPRANO' if semaforo_estado == 'AMBAR' else '⛔ NO SULFATAR HOY')}
+
+🌡️ <b>Temperaturas:</b> Mín {min_hoy:.0f}°C / Máx {max_hoy:.0f}°C
+💨 <b>Viento máx:</b> {viento_hoy:.0f} km/h
+🌧️ <b>Lluvia:</b> {lluvia_hoy:.1f} litros/m²
+🛡️ <b>Alerta Fitosanitaria:</b> {'Condición segura' if lluvia_hoy < 5 else 'Riesgo fúngico activo por humedad'}
+
+<i>AgroAlert Pro - Monitor Agrícola de Precisión</i>"""
+            ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_parte)
+            if ok:
+                st.success("¡Parte diario enviado a tu Telegram con éxito! Revisa tu móvil.")
+            else:
+                st.error(res_msg)
+
+    with c_btn2:
+        if st.button("🚨 PROBAR ALERTA DE EMERGENCIA (HELADA)", use_container_width=True):
+            txt_emergencia = f"""🚨 <b>¡ALERTA ROJA DE EMERGENCIA POR HELADA!</b>
+📍 Parcela: <b>{nombre_parcela}</b>
+
+⚠️ <b>Riesgo Inminente:</b> Se prevén temperaturas de <b>{min_hoy:.1f}°C</b> en las próximas horas.
+🛡️ <b>Acción recomendada:</b> Activar quemadores/molinos antihelada y suspender labores de deshierbe."""
+            ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_emergencia)
+            if ok:
+                st.warning("¡Alerta de emergencia de helada enviada a tu móvil!")
+            else:
+                st.error(res_msg)
+
+# ==============================================================================
+# PESTAÑA 4: GESTIÓN DE FINCAS
+# ==============================================================================
+with tab4:
+    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>➕ Añadir una Nueva Parcela</h2>", unsafe_allow_html=True)
     with st.form("form_alta_finca"):
         c_f1, c_f2 = st.columns(2)
         with c_f1:
-            nom_finca = st.text_input("Nombre de la finca (ej: Viña El Monte):", value="Viña Nueva")
-            lat_finca = st.number_input("Latitud (ej: 42.3659):", value=42.3659, format="%.4f")
-            lon_finca = st.number_input("Longitud (ej: -2.4235):", value=-2.4235, format="%.4f")
+            nom_finca = st.text_input("Nombre finca:", value="Viña Nueva")
+            lat_finca = st.number_input("Latitud decimal:", value=42.3659, format="%.4f")
+            lon_finca = st.number_input("Longitud decimal:", value=-2.4235, format="%.4f")
         with c_f2:
-            var_finca = st.text_input("Variedad (ej: Tempranillo, Graciano...):", value="Tempranillo")
-            ha_finca = st.number_input("Superficie (Hectáreas):", value=2.0, min_value=0.1, step=0.5)
-            suelo_finca = st.selectbox("Tipo de terreno:", ["Cascajo / Pedregoso", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
+            var_finca = st.text_input("Variedad:", value="Tempranillo")
+            ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
+            suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
 
         btn_guardar_f = st.form_submit_button("💾 GUARDAR ESTA PARCELA EN MI CUENTA", use_container_width=True, type="primary")
 
@@ -453,10 +515,10 @@ with tab3:
             st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
                 "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca
             }
-            st.success(f"¡Parcela '{nom_finca}' guardada! Ya puedes verla en el menú superior.")
+            st.success(f"¡Parcela '{nom_finca}' guardada!")
             st.rerun()
 
-    st.markdown("---")
+    st.write("---")
     st.markdown("### 📋 Tus Parcelas Registradas:")
     tabla_fincas = [
         {"Parcela": k, "Hectáreas": v["ha"], "Variedad": v["variedad"], "Terreno": v["suelo"]}
