@@ -12,43 +12,27 @@ st.set_page_config(page_title="AgroAlert MultiCultivo Pro", page_icon="🌱", la
 st.title("🌱 AgroAlert Pro - Monitor Integral & Soporte de Tratamiento")
 st.caption("Sistema de soporte a la decisión (DSS) multicultivo y dosificación agronómica")
 
-# --- 1. GESTIÓN Y PERSISTENCIA DE PARCELAS ---
-DB_FILE = "fincas.json"
-
-parcelas_base = {
-    "🍇 Viñedo": {
-        "Finca Valdegón (Logroño)": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5},
-        "Viña El Poyo (Haro)": {"lat": 42.5764, "lon": -2.8465, "variedad": "Graciano", "suelo": "Aluvial", "ha": 4.0}
-    },
-    "🫒 Olivar": {
-        "Finca La Solana (Jaén)": {"lat": 37.7796, "lon": -3.7849, "variedad": "Picual", "suelo": "Arcilloso profundo", "ha": 6.0},
-        "El Soto (Tarragona)": {"lat": 41.1561, "lon": 1.1069, "variedad": "Arbequina", "suelo": "Franco-arenoso", "ha": 3.2}
-    },
-    "🌾 Cereal (Trigo/Cebada)": {
-        "Campiña Alta (Burgos)": {"lat": 42.3439, "lon": -3.6969, "variedad": "Trigo Blando", "suelo": "Franco-arcilloso", "ha": 15.0},
-        "Tierra de Campos (Palencia)": {"lat": 42.0095, "lon": -4.5288, "variedad": "Cebada", "suelo": "Sedimentario", "ha": 22.0}
-    },
-    "🍑 Frutales / Almendro": {
-        "Valle del Cinca (Lleida)": {"lat": 41.6176, "lon": 0.6200, "variedad": "Melocotonero", "suelo": "Aluvial fértil", "ha": 3.8},
-        "Vega Alta (Murcia)": {"lat": 38.2342, "lon": -1.4168, "variedad": "Almendro", "suelo": "Calizo pedregoso", "ha": 5.5}
-    }
-}
-
-def cargar_parcelas():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return parcelas_base
-    return parcelas_base
-
-def guardar_parcelas(datos):
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(datos, f, ensure_ascii=False, indent=4)
-
+# --- 1. BASE DE DATOS DE PARCELAS REGISTRADAS ---
 if "db_parcelas" not in st.session_state:
-    st.session_state.db_parcelas = cargar_parcelas()
+    st.session_state.db_parcelas = {
+        "🍇 Viñedo": {
+            "Frontón Jaime (Logroño)": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.0},
+            "Finca Valdegón (Logroño)": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5},
+            "Viña El Poyo (Haro)": {"lat": 42.5764, "lon": -2.8465, "variedad": "Graciano", "suelo": "Aluvial", "ha": 4.0}
+        },
+        "🫒 Olivar": {
+            "Finca La Solana (Jaén)": {"lat": 37.7796, "lon": -3.7849, "variedad": "Picual", "suelo": "Arcilloso profundo", "ha": 6.0},
+            "El Soto (Tarragona)": {"lat": 41.1561, "lon": 1.1069, "variedad": "Arbequina", "suelo": "Franco-arenoso", "ha": 3.2}
+        },
+        "🌾 Cereal (Trigo/Cebada)": {
+            "Campiña Alta (Burgos)": {"lat": 42.3439, "lon": -3.6969, "variedad": "Trigo Blando", "suelo": "Franco-arcilloso", "ha": 15.0},
+            "Tierra de Campos (Palencia)": {"lat": 42.0095, "lon": -4.5288, "variedad": "Cebada", "suelo": "Sedimentario", "ha": 22.0}
+        },
+        "🍑 Frutales / Almendro": {
+            "Valle del Cinca (Lleida)": {"lat": 41.6176, "lon": 0.6200, "variedad": "Melocotonero", "suelo": "Aluvial fértil", "ha": 3.8},
+            "Vega Alta (Murcia)": {"lat": 38.2342, "lon": -1.4168, "variedad": "Almendro", "suelo": "Calizo pedregoso", "ha": 5.5}
+        }
+    }
 
 st.sidebar.header("📍 1. Cultivo y Parcela")
 
@@ -61,38 +45,31 @@ if tipo_cultivo not in st.session_state.db_parcelas:
     st.session_state.db_parcelas[tipo_cultivo] = {}
 
 fincas_actuales = st.session_state.db_parcelas[tipo_cultivo]
-lista_parcelas = list(fincas_actuales.keys()) + ["➕ Añadir y Guardar Nueva Finca"]
+lista_parcelas = list(fincas_actuales.keys()) + ["➕ Añadir Parcela Temporal"]
 seleccion_parcela = st.sidebar.selectbox("Selecciona Parcela:", lista_parcelas)
 
-if seleccion_parcela == "➕ Añadir y Guardar Nueva Finca":
-    nombre_parcela = st.sidebar.text_input("Nombre de la parcela", value="Mi Parcela")
+if seleccion_parcela == "➕ Añadir Parcela Temporal":
+    nombre_parcela = st.sidebar.text_input("Nombre de la parcela", value="Nueva Parcela")
     lat = st.sidebar.number_input("Latitud (ej: 42.3659)", value=42.3659, format="%.4f")
     lon = st.sidebar.number_input("Longitud (ej: -2.4235)", value=-2.4235, format="%.4f")
     variedad = st.sidebar.text_input("Variedad", value="Tempranillo")
     suelo = st.sidebar.selectbox("Tipo de suelo", ["Arcillo-calcáreo", "Aluvial", "Arenoso", "Franco", "Ferroso-arcilloso"])
     superficie_ha = st.sidebar.number_input("Superficie (Hectáreas)", value=2.0, min_value=0.1, step=0.5)
     
-    if st.sidebar.button("💾 Guardar Parcela en la App"):
+    if st.sidebar.button("➕ Añadir a la Sesión Actual"):
         if nombre_parcela.strip():
             st.session_state.db_parcelas[tipo_cultivo][nombre_parcela] = {
                 "lat": lat, "lon": lon, "variedad": variedad, "suelo": suelo, "ha": superficie_ha
             }
-            guardar_parcelas(st.session_state.db_parcelas)
-            st.sidebar.success(f"¡{nombre_parcela} guardada correctamente!")
+            st.sidebar.success(f"¡{nombre_parcela} añadida!")
             st.rerun()
 else:
     nombre_parcela = seleccion_parcela
-    lat = fincas_actuales[seleccion_parcela].get("lat", 42.4658)
-    lon = fincas_actuales[seleccion_parcela].get("lon", -2.4499)
-    variedad = fincas_actuales[seleccion_parcela].get("variedad", "Estándar")
-    suelo = fincas_actuales[seleccion_parcela].get("suelo", "Franco")
-    superficie_ha = fincas_actuales[seleccion_parcela].get("ha", 2.5)
-    
-    if st.sidebar.button("🗑️ Eliminar Parcela"):
-        del st.session_state.db_parcelas[tipo_cultivo][seleccion_parcela]
-        guardar_parcelas(st.session_state.db_parcelas)
-        st.sidebar.warning(f"Parcela eliminada.")
-        st.rerun()
+    lat = fincas_actuales[seleccion_parcela].get("lat", 42.3659)
+    lon = fincas_actuales[seleccion_parcela].get("lon", -2.4235)
+    variedad = fincas_actuales[seleccion_parcela].get("variedad", "Tempranillo")
+    suelo = fincas_actuales[seleccion_parcela].get("suelo", "Arcillo-calcáreo")
+    superficie_ha = fincas_actuales[seleccion_parcela].get("ha", 2.0)
 
 # Fases fenológicas
 if "Viñedo" in tipo_cultivo:
@@ -265,7 +242,7 @@ with tab_alertas:
                 st.warning(f"⚠️ CONDICIÓN ÓPTIMA OÍDIO: Tª media de {temp_media_hoy:.1f} °C.")
                 acciones_recomendadas.append("Mantener coberturas antioídio.")
             else:
-                st.success("✅ Riesgo fúngico secundario bajo.")
+                st.success("✅ Riesgo secundario bajo.")
         elif "Olivar" in tipo_cultivo:
             st.markdown("**3. Mosca del Olivo (*Bactrocera oleae*)**")
             if 20 <= temp_media_hoy <= 30 and max_hoy < 35:
@@ -369,19 +346,14 @@ with tab_calculadora:
     st.write("---")
     st.markdown("### 📊 Resultado de la Preparación de Caldo")
 
-    # Cálculos agronómicos
     caldo_total_necesario = ha_a_tratar * gasto_ha
     numero_cubas = caldo_total_necesario / volumen_cuba
     ha_por_cuba = volumen_cuba / gasto_ha
 
     if "Concentración" in tipo_dosis:
-        # Dosis por cada 100L
-        prod_por_cuba = (dosis_valor / 100.0) * (volumen_cuba / 1000.0) if dosis_valor > 50 else (dosis_valor / 100.0) * (volumen_cuba / 100.0)
-        # Normalizado: si dosis_valor son gramos/cc por 100L -> (dosis_valor / 100) * volumen_cuba en gramos/cc -> pasamos a kg/L (/ 1000)
-        prod_por_cuba = (dosis_valor * (volumen_cuba / 100.0)) / 1000.0 # en kg o L
+        prod_por_cuba = (dosis_valor * (volumen_cuba / 100.0)) / 1000.0
         prod_total_finca = (dosis_valor * (caldo_total_necesario / 100.0)) / 1000.0
     else:
-        # Dosis por Ha
         prod_por_cuba = dosis_valor * ha_por_cuba
         prod_total_finca = dosis_valor * ha_a_tratar
 
@@ -396,9 +368,9 @@ with tab_calculadora:
 
     st.write("")
     st.success(f"""
-    **📝 Instrucciones de carga para el tractorista / aplicador:**
+    **📝 Instrucciones de carga para el aplicador:**
     1. Llenar la cuba de agua hasta la mitad (**{volumen_cuba // 2} litros**) con el agitador en marcha.
     2. Verter **{prod_por_cuba:.2f} kg o Litros** de **{nombre_prod}**.
-    3. Terminar de llenar con agua hasta los **{volumen_cuba} litros**.
-    4. Cada cuba completa cubre exactamente **{ha_por_cuba:.2f} hectáreas** a un gasto de **{gasto_ha} L/ha**.
+    3. Completar con agua hasta los **{volumen_cuba} litros**.
+    4. Cada cuba completa cubre **{ha_por_cuba:.2f} hectáreas** a un gasto de **{gasto_ha} L/ha**.
     """)
