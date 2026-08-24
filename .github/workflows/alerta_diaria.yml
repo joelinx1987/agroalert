@@ -1,0 +1,22 @@
+name: Alerta Matutina AgroAlert
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 03:00 UTC (05:00 AM hora peninsular española)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  enviar_alertas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Ejecutar script de WhatsApp
+        run: python bot_diario.py
