@@ -10,13 +10,13 @@ import json
 import hashlib
 
 st.set_page_config(
-    page_title="AgroAlert Campo | Monitor Diario & Bot",
+    page_title="AgroAlert Campo | Monitor Diario & WhatsApp",
     page_icon="🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES DE ALTO CONTRASTE Y LETRA GRANDE ---
+# --- ESTILOS VISUALES DE ALTO CONTRASTE Y BOTONES WHATSAPP GIGANTES ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -30,7 +30,7 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* SEMÁFOROS */
+    /* SEMÁFOROS GRANDES */
     .traffic-ok {
         background-color: #dcfce7;
         border: 3px solid #16a34a;
@@ -94,6 +94,61 @@ st.markdown("""
         color: #64748b;
     }
 
+    /* BOTONES WHATSAPP PROFESIONALES */
+    .btn-wa-green {
+        display: block;
+        background: linear-gradient(135deg, #25D366, #128C7E);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 18px 20px;
+        font-size: 1.2rem;
+        font-weight: 900;
+        border-radius: 16px;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(37, 211, 102, 0.35);
+        margin-bottom: 14px;
+        transition: transform 0.15s ease;
+    }
+    .btn-wa-green:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-wa-red {
+        display: block;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 18px 20px;
+        font-size: 1.2rem;
+        font-weight: 900;
+        border-radius: 16px;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+        margin-bottom: 14px;
+        transition: transform 0.15s ease;
+    }
+    .btn-wa-red:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-wa-blue {
+        display: block;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 18px 20px;
+        font-size: 1.2rem;
+        font-weight: 900;
+        border-radius: 16px;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+        margin-bottom: 14px;
+        transition: transform 0.15s ease;
+    }
+    .btn-wa-blue:hover {
+        transform: translateY(-2px);
+    }
+
     /* RECETA DE LA CUBA */
     .recipe-box {
         background-color: #ecfdf5;
@@ -125,26 +180,8 @@ st.markdown("""
         background-color: #15803d !important;
         color: #ffffff !important;
     }
-    
-    .stButton>button {
-        font-size: 1.15rem !important;
-        font-weight: 800 !important;
-        padding: 14px !important;
-        border-radius: 14px !important;
-    }
 </style>
 """, unsafe_allow_html=True)
-
-# --- FUNCIÓN PARA ENVIAR MENSAJES DE TELEGRAM ---
-def enviar_alerta_telegram(bot_token, chat_id, mensaje):
-    try:
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        payload = urllib.parse.urlencode({"chat_id": chat_id, "text": mensaje, "parse_mode": "HTML"}).encode("utf-8")
-        req = urllib.request.Request(url, data=payload, headers={'User-Agent': 'AgroAlert/Bot'})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            return True, "Mensaje enviado correctamente."
-    except Exception as e:
-        return False, f"Error al enviar: {str(e)}"
 
 # --- AUTENTICACIÓN ---
 def make_hash(password):
@@ -187,7 +224,7 @@ if not st.session_state.usuario_autenticado:
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.3rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Campo</h1>
-            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">El aviso diario del campo, cálculo de cubas y alertas Telegram</p>
+            <p style="font-size: 1.15rem; color: #475569; font-weight: 600; margin-top: 6px;">El aviso diario del campo, cálculo de cubas y alertas WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -285,7 +322,7 @@ temp_media_hoy = (min_hoy + max_hoy) / 2
 tab1, tab2, tab3, tab4 = st.tabs([
     "🚜 ¿PUEDO SULFATAR HOY?",
     "🧪 CUÁNTO ECHAR A LA CUBA",
-    "🔔 BOT DE AVISOS & ALERTAS",
+    "📲 AVISOS POR WHATSAPP",
     "➕ MIS FINCAS"
 ])
 
@@ -429,75 +466,71 @@ with tab2:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: BOT DE AVISOS DIARIOS Y EMERGENCIAS (TELEGRAM SEGURO)
+# PESTAÑA 3: ENVÍO DIRECTO POR WHATSAPP
 # ==============================================================================
 with tab3:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>🔔 Bot de Avisos al Móvil (Telegram)</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 1.1rem; color: #475569;'>Recibe el <b>Parte Matutino a las 7:00 AM</b> y <b>Alertas Rojas de Helada</b> directo a tu teléfono.</p>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Avisos Directos por WhatsApp</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 1.15rem; color: #475569;'>Toca un botón y se abrirá WhatsApp con el mensaje preparado al 100%.</p>", unsafe_allow_html=True)
 
-    # Comprobamos si existen secretos en Streamlit Cloud o usamos campos de texto
-    token_defecto = st.secrets.get("TELEGRAM_TOKEN", "") if hasattr(st, "secrets") else ""
-    chat_defecto = st.secrets.get("TELEGRAM_CHAT_ID", "5473461038") if hasattr(st, "secrets") else "5473461038"
+    # Campo de teléfono opcional
+    col_tel1, col_tel2 = st.columns([1, 1.5])
+    with col_tel1:
+        tel_destino = st.text_input("📱 Teléfono de destino (Opcional):", placeholder="Ej: 34612345678 (o déjalo en blanco)")
+        st.caption("Si lo dejas en blanco, WhatsApp te dejará elegir a cualquier contacto o grupo.")
 
-    col_b1, col_b2 = st.columns(2)
-    with col_b1:
-        st.markdown("#### ⚙️ Configuración del Bot")
-        bot_token_input = st.text_input("Token de Telegram (de @BotFather):", value=token_defecto, type="password", placeholder="Pega tu token aquí")
-        chat_id_input = st.text_input("Tu Chat ID de Telegram:", value=chat_defecto)
-        st.caption("🔒 El token no se almacena en el código público.")
+    prefix_url = f"https://wa.me/{tel_destino.strip()}?text=" if tel_destino.strip() else "https://wa.me/?text="
 
-    with col_b2:
-        st.markdown("#### 📲 Ejemplo del Mensaje que recibirás:")
-        st.info(f"""
-        🚜 <b>PARTE MATUTINO AGROALERT - 07:00 AM</b>
-        📍 Parcela: <b>{nombre_parcela}</b>
-        
-        {'✅ CONDICIÓN ÓPTIMA PARA SULFATAR' if semaforo_estado == 'VERDE' else '⛔ PRECAUCIÓN / NO SULFATAR HOY'}
-        🌡️ Tª Hoy: {min_hoy:.0f}°C a {max_hoy:.0f}°C
-        💨 Viento máx: {viento_hoy:.0f} km/h
-        🌧️ Lluvia prevista: {lluvia_hoy:.1f} mm
-        🛡️ Riesgo Hongos: {'Bajo' if lluvia_hoy < 5 else 'Elevado'}
-        """)
+    # 1. MENSAJE PARTE DIARIO
+    txt_wa_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
+📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
+
+{ '🟢 *DÍA PERFECTO PARA SULFATAR*' if semaforo_estado == 'VERDE' else ('🟠 *ATENCIÓN: TRATAR SOLO TEMPRANO*' if semaforo_estado == 'AMBAR' else '🔴 *NO SULFATAR HOY (VIENTO/LLUVIA)*') }
+
+🌡️ *Temperaturas:* {min_hoy:.0f}°C a {max_hoy:.0f}°C
+💨 *Viento máx:* {viento_hoy:.0f} km/h
+🌧️ *Lluvia:* {lluvia_hoy:.1f} mm
+🛡️ *Estado fitosanitario:* {riesgo_txt}
+
+_AgroAlert Pro - Monitor de Campo_"""
+
+    # 2. MENSAJE ALERTA HELADA
+    txt_wa_helada = f"""🚨 *¡ALERTA ROJA DE HELADA!*
+📍 *Parcela:* {nombre_parcela}
+
+⚠️ *Riesgo Inminente:* Previsión de temperatura crítica de *{min_hoy:.1f}°C*.
+🛡️ *Acción:* Activar medidas antihelada y proteger brotación."""
+
+    # 3. MENSAJE ORDEN DE TRABAJO AL TRACTORISTA
+    txt_wa_cuba = f"""📋 *ORDEN DE TRABAJO - CUBA DEL TRACTOR*
+📍 *Parcela:* {nombre_parcela} ({ha_a_sulfatar} ha a tratar)
+
+🚜 *Cuba de:* {litros_cuba} Litros
+🧪 *Dosis exacta:* *{kilos_por_cuba:.2f} kg o Litros* por cada CUBA LLENA
+📦 *Cubas necesarias:* {num_cubas_necesarias:.1f} cubas
+⚖️ *Producto total a gastar:* {kilos_totales_finca:.2f} kg/L
+
+_Instrucciones automáticas de AgroAlert_"""
+
+    link_wa_1 = prefix_url + urllib.parse.quote(txt_wa_parte)
+    link_wa_2 = prefix_url + urllib.parse.quote(txt_wa_helada)
+    link_wa_3 = prefix_url + urllib.parse.quote(txt_wa_cuba)
 
     st.write("---")
-    c_btn1, c_btn2 = st.columns(2)
-    with c_btn1:
-        if st.button("📲 ENVIAR PARTE MATUTINO AHORA", use_container_width=True, type="primary"):
-            if not bot_token_input:
-                st.error("Por favor, introduce tu Token de Telegram en la casilla de la izquierda.")
-            else:
-                txt_parte = f"""🚜 <b>PARTE MATUTINO AGROALERT (07:00 AM)</b>
-📍 Parcela: <b>{nombre_parcela}</b> ({superficie_ha} ha)
+    
+    # BOTONES GRANDES PARA CAMPO
+    c_w1, c_w2, c_w3 = st.columns(3)
+    
+    with c_w1:
+        st.markdown(f'<a href="{link_wa_1}" target="_blank" class="btn-wa-green">💬 ENVIAR PARTE MATUTINO</a>', unsafe_allow_html=True)
+        st.caption("Envía el semáforo diario, viento y temperaturas.")
 
-{'✅ DÍA PERFECTO PARA SULFATAR Y TRABAJAR' if semaforo_estado == 'VERDE' else ('⚠️ ATENCIÓN: TRATAR SOLO TEMPRANO' if semaforo_estado == 'AMBAR' else '⛔ NO SULFATAR HOY')}
+    with c_w2:
+        st.markdown(f'<a href="{link_wa_2}" target="_blank" class="btn-wa-red">🚨 ENVIAR ALERTA HELADA</a>', unsafe_allow_html=True)
+        st.caption("Aviso de emergencia por riesgo de bajas temperaturas.")
 
-🌡️ <b>Temperaturas:</b> Mín {min_hoy:.0f}°C / Máx {max_hoy:.0f}°C
-💨 <b>Viento máx:</b> {viento_hoy:.0f} km/h
-🌧️ <b>Lluvia:</b> {lluvia_hoy:.1f} litros/m²
-🛡️ <b>Alerta Fitosanitaria:</b> {'Condición segura' if lluvia_hoy < 5 else 'Riesgo fúngico activo por humedad'}
-
-<i>AgroAlert Pro - Monitor Agrícola de Precisión</i>"""
-                ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_parte)
-                if ok:
-                    st.success("¡Parte diario enviado a tu Telegram con éxito! Revisa tu móvil.")
-                else:
-                    st.error(res_msg)
-
-    with c_btn2:
-        if st.button("🚨 PROBAR ALERTA DE EMERGENCIA (HELADA)", use_container_width=True):
-            if not bot_token_input:
-                st.error("Por favor, introduce tu Token de Telegram en la casilla de la izquierda.")
-            else:
-                txt_emergencia = f"""🚨 <b>¡ALERTA ROJA DE EMERGENCIA POR HELADA!</b>
-📍 Parcela: <b>{nombre_parcela}</b>
-
-⚠️ <b>Riesgo Inminente:</b> Se prevén temperaturas de <b>{min_hoy:.1f}°C</b> en las próximas horas.
-🛡️ <b>Acción recomendada:</b> Activar quemadores/molinos antihelada y suspender labores de deshierbe."""
-                ok, res_msg = enviar_alerta_telegram(bot_token_input, chat_id_input, txt_emergencia)
-                if ok:
-                    st.warning("¡Alerta de emergencia enviada a tu móvil!")
-                else:
-                    st.error(res_msg)
+    with c_w3:
+        st.markdown(f'<a href="{link_wa_3}" target="_blank" class="btn-wa-blue">🚜 ENVIAR RECETA AL TRACTORISTA</a>', unsafe_allow_html=True)
+        st.caption("Instrucciones exactas de mezcla de la cuba.")
 
 # ==============================================================================
 # PESTAÑA 4: GESTIÓN DE FINCAS
