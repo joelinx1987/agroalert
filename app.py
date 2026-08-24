@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES ADAPTADOS A MÓVIL (FILAS Y ALTO CONTRASTE) ---
+# --- ESTILOS VISUALES ADAPTADOS A MÓVIL (FILAS CLARAS CON TEXTO) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -30,21 +30,20 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* MENÚ VERTICAL TIPO APP MÓVIL */
+    /* FILAS VERTICALES DE BOTONES GRANDES */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
-        gap: 8px !important;
+        gap: 10px !important;
     }
     
     div[data-testid="stRadio"] label {
         background: #ffffff !important;
         border: 2px solid #cbd5e1 !important;
         border-radius: 14px !important;
-        padding: 14px 18px !important;
+        padding: 16px 20px !important;
         width: 100% !important;
         cursor: pointer !important;
         box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
-        margin-bottom: 4px !important;
         transition: all 0.15s ease !important;
     }
     
@@ -53,8 +52,8 @@ st.markdown("""
         background-color: #f0fdf4 !important;
     }
 
-    div[data-testid="stRadio"] label span {
-        font-size: 1.1rem !important;
+    div[data-testid="stRadio"] label div p {
+        font-size: 1.15rem !important;
         font-weight: 800 !important;
         color: #0f172a !important;
     }
@@ -95,7 +94,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* TARJETAS */
+    /* TARJETAS METEOROLÓGICAS */
     .field-card {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
@@ -145,7 +144,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- GESTIÓN PERSISTENTE DE ARCHIVOS JSON ---
+# --- PERSISTENCIA JSON ---
 USERS_FILE = "usuarios_db.json"
 FINCAS_FILE = "fincas_db.json"
 
@@ -195,7 +194,7 @@ if "usuarios_db" not in st.session_state:
 if "db_privada" not in st.session_state:
     st.session_state.db_privada = cargar_json(FINCAS_FILE, DEFAULT_FINCAS)
 
-# --- FUNCIÓN DE DISPARO DE WHATSAPP ---
+# --- LLAMADA API WHATSAPP ---
 def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     try:
         num_limpio = telefono.replace(" ", "").replace("-", "")
@@ -349,16 +348,16 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # ==============================================================================
-# NAVEGACIÓN EN FILAS VERTICALES (RESPONSIVE MÓVIL)
+# SECCIONES EN FILAS CON TEXTO CLARO
 # ==============================================================================
-st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-top: 15px; margin-bottom: 6px;'>SECCIONES:</p>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-top: 15px; margin-bottom: 6px;'>SELECCIONA UNA SECCIÓN:</p>", unsafe_allow_html=True)
 seccion_activa = st.radio(
     "Navegación:",
     [
-        "🚜 ¿PUEDO SULFATAR HOY?",
-        "🧪 CUÁNTO ECHAR A LA CUBA",
-        "📲 BOT AUTOMÁTICO WHATSAPP",
-        "🌾 GESTIÓN DE MIS FINCAS"
+        "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
+        "🧪 Calculadora de dosis y cuba",
+        "📲 Bot de alertas por WhatsApp",
+        "🌾 Gestión de mis fincas y parcelas"
     ],
     label_visibility="collapsed"
 )
@@ -368,7 +367,7 @@ st.write("---")
 # ==============================================================================
 # SECCIÓN 1: SEMÁFORO DIARIO
 # ==============================================================================
-if seccion_activa == "🚜 ¿PUEDO SULFATAR HOY?":
+if "Puedo sulfatar hoy" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
     if viento_hoy > 15:
@@ -453,7 +452,7 @@ if seccion_activa == "🚜 ¿PUEDO SULFATAR HOY?":
 # ==============================================================================
 # SECCIÓN 2: CALCULADORA DE CUBA
 # ==============================================================================
-elif seccion_activa == "🧪 CUÁNTO ECHAR A LA CUBA":
+elif "Calculadora de dosis" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🧪 Calculadora para la Cuba</h2>", unsafe_allow_html=True)
     c_c1, c_c2 = st.columns(2)
     with c_c1:
@@ -506,7 +505,7 @@ elif seccion_activa == "🧪 CUÁNTO ECHAR A LA CUBA":
 # ==============================================================================
 # SECCIÓN 3: BOT WHATSAPP
 # ==============================================================================
-elif seccion_activa == "📲 BOT AUTOMÁTICO WHATSAPP":
+elif "Bot de alertas" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
     st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Alertas vinculadas a: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
 
@@ -556,12 +555,12 @@ elif seccion_activa == "📲 BOT AUTOMÁTICO WHATSAPP":
 # ==============================================================================
 # SECCIÓN 4: GESTIÓN DE FINCAS
 # ==============================================================================
-elif seccion_activa == "🌾 GESTIÓN DE MIS FINCAS":
+elif "Gestión de mis fincas" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Fincas</h2>", unsafe_allow_html=True)
     
-    modo_finca = st.radio("Acción en Fincas:", ["✏️ Modificar o Eliminar Finca", "➕ Añadir Nueva Finca"], label_visibility="collapsed")
+    modo_finca = st.radio("Acción en Fincas:", ["✏️ Modificar o Eliminar Finca Existente", "➕ Añadir Nueva Finca"], label_visibility="collapsed")
     
-    if modo_finca == "✏️ Modificar o Eliminar Finca":
+    if "Modificar o Eliminar" in modo_finca:
         fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
         if not fincas_actuales:
             st.info(f"No tienes parcelas registradas en {tipo_cultivo}.")
@@ -629,3 +628,4 @@ elif seccion_activa == "🌾 GESTIÓN DE MIS FINCAS":
     ]
     if tabla_fincas:
         st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
+        
