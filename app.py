@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES BALANCEADOS (PC Y MÓVIL) ---
+# --- ESTILOS VISUALES Y ANIMACIONES DE FONDO CSS DINÁMICAS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -95,24 +95,34 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* TARJETAS METEOROLÓGICAS */
-    .field-card {
+    /* TARJETAS METEOROLÓGICAS CON CONTENEDOR RELATIVO */
+    .field-card-animated {
+        position: relative;
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 16px;
+        border-radius: 16px;
+        padding: 18px 16px;
         text-align: center;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        margin-bottom: 14px;
+        overflow: hidden;
+        z-index: 1;
     }
+    
+    .field-card-content {
+        position: relative;
+        z-index: 3;
+    }
+
     .field-card-title {
         font-size: 0.85rem;
-        font-weight: 700;
+        font-weight: 800;
         color: #475569;
         text-transform: uppercase;
+        letter-spacing: 0.04em;
     }
     .field-card-value {
-        font-size: 1.75rem;
+        font-size: 1.85rem;
         font-weight: 900;
         color: #0f172a;
         margin-top: 4px;
@@ -121,6 +131,84 @@ st.markdown("""
         font-size: 0.95rem;
         font-weight: 600;
         color: #64748b;
+    }
+
+    /* --- ANIMACIONES DE FONDO (KEYFRAMES) --- */
+    
+    /* 1. ANIMACIÓN DE LLUVIA (Gotas cayendo) */
+    .bg-rain-active {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: 
+            radial-gradient(2px 12px at 20px 30px, rgba(59, 130, 246, 0.35), transparent),
+            radial-gradient(2px 14px at 60px 80px, rgba(59, 130, 246, 0.4), transparent),
+            radial-gradient(2px 10px at 120px 40px, rgba(59, 130, 246, 0.3), transparent),
+            radial-gradient(2px 14px at 180px 100px, rgba(59, 130, 246, 0.45), transparent),
+            radial-gradient(2px 12px at 240px 60px, rgba(59, 130, 246, 0.35), transparent);
+        background-size: 260px 140px;
+        animation: rainFall 0.8s linear infinite;
+        z-index: 2;
+        pointer-events: none;
+    }
+    @keyframes rainFall {
+        0% { transform: translateY(-140px) skewX(-10deg); opacity: 0.8; }
+        100% { transform: translateY(140px) skewX(-10deg); opacity: 0.8; }
+    }
+
+    /* 2. ANIMACIÓN DE VIENTO (Ráfagas cruzando) */
+    .bg-wind-active {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(203, 213, 225, 0.35) 45%, 
+            rgba(148, 163, 184, 0.55) 50%, 
+            rgba(203, 213, 225, 0.35) 55%, 
+            transparent 100%);
+        background-size: 300px 100%;
+        animation: windBlow 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        z-index: 2;
+        pointer-events: none;
+    }
+    @keyframes windBlow {
+        0% { transform: translateX(-300px) skewY(-2deg); }
+        100% { transform: translateX(450px) skewY(-2deg); }
+    }
+
+    /* 3. ANIMACIÓN DE TEMPERATURA (Gradiente pulsante) */
+    .bg-temp-pulse {
+        position: absolute;
+        top: -50%; left: -50%; right: -50%; bottom: -50%;
+        background: radial-gradient(circle at center, rgba(251, 146, 60, 0.18) 0%, rgba(254, 215, 170, 0.08) 50%, transparent 75%);
+        animation: tempBreathe 4.5s ease-in-out infinite alternate;
+        z-index: 2;
+        pointer-events: none;
+    }
+    @keyframes tempBreathe {
+        0% { transform: scale(0.85); opacity: 0.5; }
+        100% { transform: scale(1.15); opacity: 0.95; }
+    }
+
+    /* 4. ANIMACIÓN DE HONGOS / ESCUDO (Aura defensiva) */
+    .bg-shield-pulse {
+        position: absolute;
+        top: -50%; left: -50%; right: -50%; bottom: -50%;
+        background: radial-gradient(circle at center, rgba(34, 197, 94, 0.16) 0%, transparent 65%);
+        animation: shieldBreathe 3.5s ease-in-out infinite alternate;
+        z-index: 2;
+        pointer-events: none;
+    }
+    .bg-danger-pulse {
+        position: absolute;
+        top: -50%; left: -50%; right: -50%; bottom: -50%;
+        background: radial-gradient(circle at center, rgba(239, 68, 68, 0.22) 0%, transparent 65%);
+        animation: shieldBreathe 1.5s ease-in-out infinite alternate;
+        z-index: 2;
+        pointer-events: none;
+    }
+    @keyframes shieldBreathe {
+        0% { transform: scale(0.9); opacity: 0.4; }
+        100% { transform: scale(1.1); opacity: 0.85; }
     }
 
     .recipe-box {
@@ -473,10 +561,10 @@ with col_menu:
     seccion_activa = st.radio("Navegación:", opciones_menu, label_visibility="collapsed")
 
 # ==============================================================================
-# CONTENIDO EN PANEL DERECHO
+# CONTENIDO EN PANEL DERECHO CON FONDOS ANIMADOS
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO
+    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS DINÁMICAS
     if "Puedo sulfatar hoy" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
@@ -514,31 +602,55 @@ with col_contenido:
         else:
             riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
 
+        # LÓGICA DE ACTIVACIÓN DE ANIMACIONES EN LAS TARJETAS
+        anim_rain = '<div class="bg-rain-active"></div>' if lluvia_hoy > 0 else ''
+        anim_wind = '<div class="bg-wind-active"></div>' if viento_hoy > 5 else ''
+        anim_temp = '<div class="bg-temp-pulse"></div>'
+        anim_shield = '<div class="bg-danger-pulse"></div>' if ('ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt) else '<div class="bg-shield-pulse"></div>'
+
         c_m1, c_m2 = st.columns(2)
         with c_m1:
+            # 1. TARJETA TEMPERATURA ANIMADA
             st.markdown(f"""
-            <div class="field-card">
-                <div class="field-card-title">🌡️ Tª Hoy</div>
-                <div class="field-card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="field-card-unit">C</span></div>
+            <div class="field-card-animated">
+                {anim_temp}
+                <div class="field-card-content">
+                    <div class="field-card-title">🌡️ Tª Hoy</div>
+                    <div class="field-card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="field-card-unit">C</span></div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
+            
+            # 2. TARJETA VIENTO ANIMADA
             st.markdown(f"""
-            <div class="field-card">
-                <div class="field-card-title">💨 Viento</div>
-                <div class="field-card-value">{viento_hoy:.0f} <span class="field-card-unit">km/h</span></div>
+            <div class="field-card-animated">
+                {anim_wind}
+                <div class="field-card-content">
+                    <div class="field-card-title">💨 Viento</div>
+                    <div class="field-card-value">{viento_hoy:.0f} <span class="field-card-unit">km/h</span></div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
         with c_m2:
+            # 3. TARJETA LLUVIA ANIMADA
             st.markdown(f"""
-            <div class="field-card">
-                <div class="field-card-title">🌧️ Lluvia</div>
-                <div class="field-card-value">{lluvia_hoy:.1f} <span class="field-card-unit">L</span></div>
+            <div class="field-card-animated">
+                {anim_rain}
+                <div class="field-card-content">
+                    <div class="field-card-title">🌧️ Lluvia</div>
+                    <div class="field-card-value">{lluvia_hoy:.1f} <span class="field-card-unit">L</span></div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
+            
+            # 4. TARJETA HONGOS ANIMADA
             st.markdown(f"""
-            <div class="field-card">
-                <div class="field-card-title">🛡️ Hongos</div>
-                <div class="field-card-value" style="font-size:1.45rem; color: {'#dc2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else '#15803d'};">{riesgo_txt}</div>
+            <div class="field-card-animated">
+                {anim_shield}
+                <div class="field-card-content">
+                    <div class="field-card-title">🛡️ Hongos</div>
+                    <div class="field-card-value" style="font-size:1.55rem; color: {'#dc2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else '#15803d'};">{riesgo_txt}</div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1027,7 +1139,7 @@ with col_contenido:
             usuario_a_borrar = st.selectbox("Selecciona el usuario que quieres eliminar:", usuarios_borrables)
             datos_u_borrar = st.session_state.usuarios_db[usuario_a_borrar]
             
-            st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}).")
+            st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}). Sus fincas, labores y cuaderno también se borrarán.")
             
             if st.button(f"❌ CONFIRMAR Y ELIMINAR A '{usuario_a_borrar}'", type="primary"):
                 del st.session_state.usuarios_db[usuario_a_borrar]
@@ -1045,7 +1157,7 @@ with col_contenido:
                     del st.session_state.labores_db[usuario_a_borrar]
                     guardar_json(LABORES_FILE, st.session_state.labores_db)
                     
-                st.success(f"¡Usuario '{usuario_a_borrar}' eliminado!")
+                st.success(f"¡Usuario '{usuario_a_borrar}' y todos sus datos han sido eliminados por completo!")
                 st.rerun()
 
         st.write("---")
