@@ -17,34 +17,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: SISTEMA DE DISEÑO AGRO-MODERN ---
+# --- CSS: SISTEMA GEOMÉTRICO Y RETÍCULA ESTRICTA ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
-    :root {
-        --brand-green: #15803D;
-        --brand-green-light: #16A34A;
-        --brand-green-subtle: #ECFDF5;
-        --slate-900: #0F172A;
-        --slate-700: #334155;
-        --slate-500: #64748B;
-        --slate-200: #E2E8F0;
-        --slate-100: #F1F5F9;
-        --card-bg: #FFFFFF;
-        
-        /* Semáforo Normalizado */
-        --ok-bg: #ECFDF5;
-        --ok-border: #059669;
-        --ok-text: #064E3B;
-        
-        --warn-bg: #FFFBEB;
-        --warn-border: #D97706;
-        --warn-text: #78350F;
-        
-        --danger-bg: #FEF2F2;
-        --danger-border: #DC2626;
-        --danger-text: #7F1D1D;
+    *, *::before, *::after {
+        box-sizing: border-box !important;
     }
 
     html, body, [class*="css"], [class*="st-"] {
@@ -53,66 +32,56 @@ st.markdown("""
 
     .stApp {
         background-color: #F8FAFC;
-        color: var(--slate-900);
+        color: #0F172A;
     }
 
-    /* Cabecera Principal */
+    /* 1. Cabecera Principal */
     .top-badge-container {
         background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-        border-radius: 18px;
+        border-radius: 14px;
         padding: 20px 24px;
         margin-bottom: 20px;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
         color: #FFFFFF;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
         border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
     }
 
-    .brand-title {
-        font-family: 'Fraunces', serif !important;
-        font-size: 1.55rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        margin: 0;
-    }
-
-    /* Navegación Segmented Control (Pills Táctiles) */
+    /* 2. Navegación: Rejilla Cuadriculada Homogénea */
     div[data-testid="stRadio"] > div {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+        gap: 10px !important;
+        width: 100% !important;
     }
 
     div[data-testid="stRadio"] label {
-        background: var(--card-bg) !important;
-        border: 1.5px solid var(--slate-200) !important;
-        border-radius: 12px !important;
-        padding: 12px 16px !important;
-        flex: 1 1 140px !important;
-        min-width: 135px !important;
+        background: #FFFFFF !important;
+        border: 1.5px solid #E2E8F0 !important;
+        border-radius: 14px !important;
+        height: 58px !important;
+        padding: 0 16px !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03) !important;
-        transition: all 0.18s ease-in-out !important;
+        margin: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        text-align: center !important;
+        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02) !important;
+        transition: all 0.15s ease-in-out !important;
     }
 
     div[data-testid="stRadio"] label:hover {
-        border-color: var(--brand-green-light) !important;
-        background: var(--brand-green-subtle) !important;
-        transform: translateY(-2px);
+        border-color: #16A34A !important;
+        background: #F0FDF4 !important;
     }
 
     div[data-testid="stRadio"] label:has(input:checked) {
-        border-color: var(--brand-green) !important;
-        background: var(--brand-green) !important;
-        box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25) !important;
+        border-color: #15803D !important;
+        background: #15803D !important;
+        box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2) !important;
     }
 
     div[data-testid="stRadio"] label:has(input:checked) div p {
@@ -121,58 +90,69 @@ st.markdown("""
     }
 
     div[data-testid="stRadio"] label div p {
-        font-size: 0.95rem !important;
+        font-size: 0.92rem !important;
         font-weight: 700 !important;
-        color: var(--slate-700) !important;
-        text-align: center !important;
+        color: #334155 !important;
         margin: 0 !important;
     }
 
-    /* Banners de Semáforo de Tratamiento */
+    /* 3. Banner Semáforo */
     .traffic-banner {
-        border-radius: 16px;
-        padding: 22px 24px;
-        margin-bottom: 20px;
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
         display: flex;
         flex-direction: column;
         gap: 6px;
         border-left: 6px solid;
-        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     }
 
-    .traffic-green { background: var(--ok-bg); border-left-color: var(--ok-border); color: var(--ok-text); }
-    .traffic-amber { background: var(--warn-bg); border-left-color: var(--warn-border); color: var(--warn-text); }
-    .traffic-red   { background: var(--danger-bg); border-left-color: var(--danger-border); color: var(--danger-text); }
+    .traffic-green { background: #ECFDF5; border-left-color: #059669; color: #064E3B; }
+    .traffic-amber { background: #FFFBEB; border-left-color: #D97706; color: #78350F; }
+    .traffic-red   { background: #FEF2F2; border-left-color: #DC2626; color: #7F1D1D; }
 
     .traffic-title {
-        font-size: 1.35rem;
+        font-size: 1.25rem;
         font-weight: 900;
         letter-spacing: -0.02em;
     }
 
     .traffic-sub {
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
-        opacity: 0.95;
     }
 
-    /* Aforadores / Medidores de Campo */
-    .instrument-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
+    /* 4. Aforadores Simétricos */
+    .instrument-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    @media (max-width: 768px) {
+        .instrument-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
     .instrument {
-        background: var(--card-bg);
-        border: 1px solid var(--slate-200);
-        border-radius: 16px;
+        background: #FFFFFF;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 14px;
         padding: 16px 20px;
-        flex: 1 1 240px;
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
     }
 
     .instrument-head {
         display: flex;
         justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 10px;
+        align-items: center;
     }
 
     .instrument-label {
@@ -180,210 +160,184 @@ st.markdown("""
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: var(--slate-500);
+        color: #64748B;
     }
 
     .instrument-value {
-        font-size: 1.6rem;
+        font-size: 1.4rem;
         font-weight: 900;
-        color: var(--slate-900);
-        letter-spacing: -0.02em;
+        color: #0F172A;
     }
 
     .instrument-value small {
         font-size: 0.85rem;
         font-weight: 700;
-        color: var(--slate-500);
+        color: #64748B;
     }
 
     .instrument-track {
         position: relative;
-        height: 10px;
-        background: var(--slate-100);
+        height: 8px;
+        background: #F1F5F9;
         border-radius: 99px;
-        overflow: visible;
     }
 
     .instrument-fill {
         position: absolute;
         top: 0; left: 0; height: 100%;
         border-radius: 99px;
-        transition: width 0.4s ease;
     }
 
-    .instrument-fill.ok   { background: linear-gradient(90deg, #22C55E, #16A34A); }
-    .instrument-fill.bad  { background: linear-gradient(90deg, #F87171, #DC2626); }
+    .instrument-fill.ok   { background: #16A34A; }
+    .instrument-fill.bad  { background: #DC2626; }
 
     .instrument-threshold {
         position: absolute;
         top: -4px;
         width: 3px;
-        height: 18px;
+        height: 16px;
         background: #0F172A;
         border-radius: 2px;
-        box-shadow: 0 0 4px rgba(0,0,0,0.3);
     }
 
     .instrument-scale {
         display: flex;
         justify-content: space-between;
         font-size: 0.72rem;
-        color: var(--slate-500);
+        color: #64748B;
         font-weight: 700;
-        margin-top: 6px;
     }
 
-    /* Tarjetas Métricas Homogéneas */
+    /* 5. Tarjetas Métricas con Altura Idéntica */
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    @media (max-width: 768px) {
+        .metric-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     .metric-card {
-        background: var(--card-bg);
-        border: 1px solid var(--slate-200);
-        border-radius: 16px;
-        padding: 18px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-        min-height: 115px;
+        background: #FFFFFF;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 16px 20px;
+        height: 100px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        margin-bottom: 12px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
     }
 
     .metric-title {
         font-size: 0.78rem;
         font-weight: 800;
-        color: var(--slate-500);
+        color: #64748B;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
 
     .metric-val {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         font-weight: 900;
-        color: var(--slate-900);
+        color: #0F172A;
         margin-top: 4px;
-        letter-spacing: -0.02em;
     }
 
     .metric-unit {
         font-size: 0.9rem;
         font-weight: 700;
-        color: var(--slate-500);
+        color: #64748B;
     }
 
-    /* Receta de Tratamiento */
+    /* 6. Receta de Tratamiento */
     .recipe-card {
         background: linear-gradient(135deg, #064E3B 0%, #047857 100%);
-        border-radius: 20px;
-        padding: 24px;
+        border-radius: 14px;
+        padding: 22px 24px;
         color: #FFFFFF;
-        box-shadow: 0 12px 28px -6px rgba(4, 120, 87, 0.35);
-        margin-top: 15px;
+        box-shadow: 0 8px 20px -4px rgba(4, 120, 87, 0.3);
+        margin-top: 14px;
     }
 
     .recipe-tag {
         background: rgba(255, 255, 255, 0.18);
-        padding: 6px 14px;
+        padding: 4px 12px;
         border-radius: 9999px;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 800;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         display: inline-block;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .recipe-amount {
-        font-size: 2.3rem;
+        font-size: 2.1rem;
         font-weight: 900;
-        letter-spacing: -0.02em;
         line-height: 1.15;
     }
 
-    /* Leyendas Técnicas */
+    /* 7. Leyendas Técnicas */
     .legend-box {
-        background: var(--card-bg);
-        border: 1px solid var(--slate-200);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 14px;
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+        background: #FFFFFF;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
     }
 
     .legend-title {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 800;
-        color: var(--brand-green);
-        margin-bottom: 8px;
+        color: #15803D;
+        margin-bottom: 6px;
     }
 
     .legend-desc {
-        font-size: 0.95rem;
-        color: var(--slate-700);
-        line-height: 1.6;
+        font-size: 0.92rem;
+        color: #334155;
+        line-height: 1.55;
     }
 
-    /* Botones de Acción Primarios */
+    /* 8. Botones */
     .stButton > button {
         background: linear-gradient(135deg, #16A34A 0%, #15803D 100%) !important;
         color: #FFFFFF !important;
         font-weight: 800 !important;
-        font-size: 1rem !important;
+        font-size: 0.98rem !important;
         border: none !important;
         border-radius: 12px !important;
         padding: 14px 20px !important;
-        box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25) !important;
-        transition: all 0.18s ease !important;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2) !important;
+        transition: all 0.15s ease !important;
     }
 
     .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 16px rgba(22, 163, 74, 0.3) !important;
     }
 
-    /* Botón Secundario / Salir */
     .btn-secondary-custom > button {
         background: transparent !important;
-        color: var(--slate-500) !important;
-        border: 1.5px solid var(--slate-200) !important;
+        color: #64748B !important;
+        border: 1.5px solid #E2E8F0 !important;
         box-shadow: none !important;
         font-weight: 700 !important;
     }
 
     .btn-secondary-custom > button:hover {
-        background: var(--slate-100) !important;
-        color: var(--slate-900) !important;
-        border-color: var(--slate-500) !important;
-        transform: none !important;
-    }
-
-    /* Badges de Tabla de Previsión */
-    .badge-optimo {
-        background-color: #DCFCE7;
-        color: #15803D;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-weight: 800;
-        font-size: 0.85rem;
-        display: inline-block;
-    }
-    .badge-precaucion {
-        background-color: #FEF3C7;
-        color: #B45309;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-weight: 800;
-        font-size: 0.85rem;
-        display: inline-block;
-    }
-    .badge-peligro {
-        background-color: #FEE2E2;
-        color: #B91C1C;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-weight: 800;
-        font-size: 0.85rem;
-        display: inline-block;
+        background: #F1F5F9 !important;
+        color: #0F172A !important;
+        border-color: #94A3B8 !important;
     }
 
     div[data-baseweb="input"], div[data-baseweb="select"], div[data-baseweb="textarea"] {
@@ -391,7 +345,7 @@ st.markdown("""
     }
 
     div[data-testid="stDataFrame"] {
-        border: 1px solid var(--slate-200) !important;
+        border: 1.5px solid #E2E8F0 !important;
         border-radius: 14px !important;
         overflow: hidden !important;
     }
@@ -432,10 +386,10 @@ def guardar_json(archivo, datos):
     except Exception as e:
         st.error(f"Error al guardar: {e}")
 
-def render_google_map(latitud, longitud, zoom=16, height=380):
+def render_google_map(latitud, longitud, zoom=16, height=360):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 18px; overflow: hidden; border: 1.5px solid #E2D6BC; box-shadow: 0 10px 25px -5px rgba(15,23,42,0.08);">
+    <div style="border-radius: 14px; overflow: hidden; border: 1.5px solid #E2E8F0; box-shadow: 0 4px 12px rgba(15,23,42,0.06);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -443,9 +397,9 @@ def render_google_map(latitud, longitud, zoom=16, height=380):
 
 def render_copy_box(texto_a_copiar):
     html_code = f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; margin: 8px 0 12px 0;">
-        <span id="target-text" style="font-style: italic; font-size: 1rem; color: #0F172A; font-weight: 600;">{texto_a_copiar}</span>
-        <button onclick="copiarAlPortapapeles()" style="background: #16A34A; color: #FFFFFF; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0;">
+        <span id="target-text" style="font-style: italic; font-size: 0.95rem; color: #0F172A; font-weight: 600;">{texto_a_copiar}</span>
+        <button onclick="copiarAlPortapapeles()" style="background: #16A34A; color: #FFFFFF; border: none; border-radius: 8px; padding: 7px 14px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
             <span id="btn-label">📋 Copiar texto</span>
         </button>
     </div>
@@ -461,7 +415,7 @@ def render_copy_box(texto_a_copiar):
     }}
     </script>
     """
-    components.html(html_code, height=66)
+    components.html(html_code, height=62)
 
 def instrumento_html(icono, etiqueta, valor, unidad, maximo, umbral, decimales=1):
     valor_clamp = max(0, min(valor, maximo))
@@ -479,7 +433,7 @@ def instrumento_html(icono, etiqueta, valor, unidad, maximo, umbral, decimales=1
             <div class="instrument-threshold" style="left:{umbral_pct:.0f}%;"></div>
         </div>
         <div class="instrument-scale">
-            <span>0</span><span>límite {umbral:g} {unidad}</span><span>{maximo:g}</span>
+            <span>0</span><span>Límite: {umbral:g} {unidad}</span><span>{maximo:g}</span>
         </div>
     </div>
     """
@@ -540,10 +494,10 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 26px;">
-            <div style="font-size: 3.4rem; margin-bottom: 4px;">🌾</div>
-            <h1 class="brand-title" style="font-size: 2.2rem; color: #0F172A;">AgroAlert Pro</h1>
-            <p style="font-size: 1.05rem; color: #64748B; font-weight: 600; margin-top: 4px;">Monitor de campo y avisos por WhatsApp</p>
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 3.2rem; margin-bottom: 4px;">🌾</div>
+            <h1 style="font-size: 2.1rem; font-weight: 900; color: #0F172A; margin: 0;">AgroAlert Pro</h1>
+            <p style="font-size: 1rem; color: #64748B; font-weight: 600; margin-top: 4px;">Monitor de campo y avisos por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -564,13 +518,13 @@ if not st.session_state.usuario_autenticado:
                         st.error("Usuario o contraseña incorrectos.")
         else:
             st.markdown("""
-            <div style="background: #FFFFFF; border: 1.5px solid #16A34A; border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(22,163,74,0.1);">
-                <div style="font-size: 1.05rem; font-weight: 800; color: #15803D; margin-bottom: 8px;">
+            <div style="background: #FFFFFF; border: 1.5px solid #16A34A; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px;">
+                <div style="font-size: 1rem; font-weight: 800; color: #15803D; margin-bottom: 6px;">
                     🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
                 </div>
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.55;">
+                <div style="font-size: 0.92rem; color: #334155; line-height: 1.5;">
                     <b>1.</b> Abre un chat en WhatsApp con el número: 
-                    <span style="background: #FEF3C7; color: #92400E; font-weight: 800; padding: 3px 8px; border-radius: 6px;">+34 623 91 22 04</span><br>
+                    <span style="background: #FEF3C7; color: #92400E; font-weight: 800; padding: 2px 6px; border-radius: 4px;">+34 623 91 22 04</span><br>
                     <b>2.</b> Envía este mensaje exacto:
                 </div>
             </div>
@@ -579,15 +533,12 @@ if not st.session_state.usuario_autenticado:
             render_copy_box("I allow callmebot to send me messages")
 
             st.markdown("""
-            <div style="margin-top: -10px; margin-bottom: 16px;">
+            <div style="margin-top: -8px; margin-bottom: 14px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #16A34A; color: #FFFFFF; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);">
+                    <div style="background-color: #16A34A; color: #FFFFFF; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.92rem;">
                         📲 TOCAR AQUÍ PARA ABRIR WHATSAPP DIRECTO
                     </div>
                 </a>
-                <p style="font-size: 0.88rem; color: #64748B; margin-top: 8px; text-align: center;">
-                    <b>3.</b> Pega el código numérico recibido en la casilla:
-                </p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -643,20 +594,20 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
-# Cabecera de Explotación
+# Cabecera
 st.markdown(f"""
 <div class="top-badge-container">
     <div>
-        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4ADE80; font-weight: 800;">EXPLOTACIÓN AGRÍCOLA</div>
-        <div class="brand-title">{nombre_cliente}</div>
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4ADE80; font-weight: 800;">EXPLOTACIÓN AGRÍCOLA</div>
+        <div style="font-size: 1.45rem; font-weight: 900; margin: 0;">{nombre_cliente}</div>
     </div>
-    <div style="text-align: right;">
-        <span style="background: rgba(34, 197, 94, 0.18); color: #86EFAC; padding: 6px 14px; border-radius: 9999px; font-weight: 800; font-size: 0.85rem;">● SISTEMA CONECTADO</span>
+    <div>
+        <span style="background: rgba(34, 197, 94, 0.18); color: #86EFAC; padding: 5px 12px; border-radius: 9999px; font-weight: 800; font-size: 0.8rem;">● SISTEMA ACTIVO</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Selectores superiores de Finca y Salida
+# Selectores de parcela y salida
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.6])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo activo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -721,9 +672,9 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # ==============================================================================
-# NAVEGACIÓN EN PÍLDORAS (PILL TABS)
+# NAVEGACIÓN EN CUADRÍCULA ESTRICTA
 # ==============================================================================
-st.markdown("<p style='font-size: 0.8rem; font-weight: 800; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 14px; margin-bottom: 8px;'>MÓDULOS DE EXPLOTACIÓN:</p>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 0.78rem; font-weight: 800; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 14px; margin-bottom: 8px;'>MÓDULOS DE EXPLOTACIÓN:</p>", unsafe_allow_html=True)
 
 opciones_menu = [
     "🚦 Semáforo del Día",
@@ -747,7 +698,7 @@ st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
 if "Semáforo del Día" in seccion_activa:
     st.markdown(f"""
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; flex-wrap: wrap; gap: 6px;">
-        <h2 style="font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0;">📍 {nombre_parcela}</h2>
+        <h2 style="font-size: 1.45rem; font-weight: 800; color: #0F172A; margin: 0;">📍 {nombre_parcela}</h2>
         <span style="font-size: 0.95rem; color: #64748B; font-weight: 700;">{superficie_ha} ha | {variedad}</span>
     </div>
     """, unsafe_allow_html=True)
@@ -790,34 +741,30 @@ if "Semáforo del Día" in seccion_activa:
     else:
         riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ BAJO"
 
-    # Instrumentos de campo proporcionales
+    # Instrumentos Simétricos
     st.markdown(f"""
-    <div class="instrument-row">
+    <div class="instrument-grid">
         {instrumento_html("💨", "Viento", viento_hoy, "km/h", 30, 15, decimales=0)}
         {instrumento_html("🌧️", "Lluvia Prevista", lluvia_hoy, "L/m²", 10, 2, decimales=1)}
     </div>
     """, unsafe_allow_html=True)
 
-    c_m1, c_m2 = st.columns(2)
-    with c_m1:
-        st.markdown(f"""
+    # Tarjetas Métricas Simétricas
+    color_r = '#DC2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else ('#D97706' if 'Oídio' in riesgo_txt else '#16A34A')
+    st.markdown(f"""
+    <div class="metric-grid">
         <div class="metric-card">
             <div class="metric-title">🌡️ Rango Térmico de Hoy</div>
             <div class="metric-val">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="metric-unit">C</span></div>
         </div>
-        """, unsafe_allow_html=True)
-    with c_m2:
-        color_r = '#DC2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else ('#D97706' if 'Oídio' in riesgo_txt else '#16A34A')
-        st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">🛡️ Estado Fitosanitario</div>
-            <div class="metric-val" style="font-size:1.45rem; color: {color_r};">{riesgo_txt}</div>
+            <div class="metric-val" style="color: {color_r};">{riesgo_txt}</div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 18px; margin-bottom: 10px;'>📅 Previsión de Tratabilidad (7 Días):</h3>", unsafe_allow_html=True)
-    
-    # Renderizado con formato limpio para la tabla
+    st.markdown("<h3 style='font-size: 1.2rem; font-weight: 800; margin-top: 16px; margin-bottom: 10px;'>📅 Previsión de Tratabilidad (7 Días):</h3>", unsafe_allow_html=True)
     df_dias = []
     for i in range(len(fechas_legibles)):
         apto = "✅ Óptimo" if (viento[i] <= 15 and lluvia[i] <= 2.0 and t_max[i] < 32) else ("⛔ No tratar" if (viento[i] > 15 or lluvia[i] > 2.0) else "⚠️ Precaución")
@@ -874,7 +821,7 @@ elif "Calculadora de Mezcla" in seccion_activa:
         <div class="recipe-tag">Orden de Mezcla Directa</div>
         <div class="recipe-amount">{kilos_por_cuba:.2f} <span style="font-size: 1.3rem; font-weight: 700; opacity: 0.9;">kg o Litros por depósito lleno ({litros_cuba} L)</span></div>
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 16px 0;">
-        <div style="font-size: 1.1rem; font-weight: 700;">
+        <div style="font-size: 1.05rem; font-weight: 700;">
             🚜 Para <b>{ha_a_sulfatar} ha</b> necesitas <b>{num_cubas_necesarias:.1f} depósitos</b> ({kilos_totales_finca:.2f} kg/L totales).
         </div>
         <div style="font-size: 0.95rem; font-weight: 600; opacity: 0.9; margin-top: 6px;">
@@ -1183,7 +1130,7 @@ elif "Mis Fincas" in seccion_activa:
             url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
             st.markdown(f"""
             <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
-                <div style="background-color: #0F172A; color: #FFFFFF; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
+                <div style="background-color: #0F172A; color: #FFFFFF; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.92rem; margin-bottom: 12px;">
                     🚗 ABRIR EN APP DE GOOGLE MAPS (GPS)
                 </div>
             </a>
@@ -1249,7 +1196,7 @@ elif "Mis Fincas" in seccion_activa:
 # ==============================================================================
 elif "Leyenda y Fuentes" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.55rem; font-weight: 800; color: #0F172A; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
-    
+
     st.markdown("""
     <div class="legend-box">
         <div class="legend-title">🛰️ 1. Origen de los Datos Meteorológicos y Coordenadas</div>
