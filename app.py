@@ -132,7 +132,32 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN DE DISPARO DE WHATSAPP ---
+DB_FILE = "usuarios_alertas.json"
+
+def cargar_usuarios_alertas():
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+def guardar_usuario_alerta(nuevo_usuario):
+    usuarios = cargar_usuarios_alertas()
+    # Si ya existe por teléfono, lo actualizamos; si no, lo añadimos
+    actualizado = False
+    for i, u in enumerate(usuarios):
+        if u.get("telefono") == nuevo_usuario.get("telefono"):
+            usuarios[i] = nuevo_usuario
+            actualizado = True
+            break
+    if not actualizado:
+        usuarios.append(nuevo_usuario)
+    
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(usuarios, f, indent=2, ensure_ascii=False)
+
 def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     try:
         num_limpio = telefono.replace(" ", "").replace("-", "")
@@ -152,7 +177,7 @@ def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
-# --- AUTENTICACIÓN Y BASE DE DATOS EN MEMORIA ---
+# --- AUTENTICACIÓN ---
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
@@ -165,30 +190,11 @@ if "usuarios_db" not in st.session_state:
             "pwd": make_hash("admin123"),
             "nombre": "Joel (Mi Explotación)",
             "telefono": "+34626665232",
-            "apikey": "3443251"
-        },
-        "demo": {
-            "pwd": make_hash("demo123"),
-            "nombre": "Agricultor Invitado",
-            "telefono": "+34600000000",
-            "apikey": ""
-        }
-    }
-
-if "db_privada" not in st.session_state:
-    st.session_state.db_privada = {
-        "admin": {
-            "🍇 Viña": {
-                "Frontón Jaime": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Cascajo / Calcáreo", "ha": 2.0},
-                "Finca Valdegón": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "suelo": "Arcillo-calcáreo", "ha": 2.5}
-            },
-            "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
-        },
-        "demo": {
-            "🍇 Viña": {
-                "Parcela La Llana": {"lat": 42.4658, "lon": -2.4499, "variedad": "Garnacha", "suelo": "Arcilloso", "ha": 3.0}
-            },
-            "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
+            "apikey": "3443251",
+            "parcela": "Frontón Jaime",
+            "lat": 42.3659,
+            "lon": -2.4235,
+            "ha": 2.0
         }
     }
 
@@ -223,42 +229,59 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         with tab_up:
-            st.info("💡 **Para recibir alertas:** Envía `I allow callmebot to send me messages` por WhatsApp al `+34 623 91 22 04` para obtener tu APIKey gratuita.")
+            st.info("💡 **Para recibir alertas:** Envía `I allow callmebot to send me messages` por WhatsApp al `+34 623 91 22 04` para obtener tu APIKey.")
             with st.form("form_reg"):
                 nu = st.text_input("Usuario (ej: jgarcia)")
                 nn = st.text_input("Tu Nombre o Explotación (ej: Bodega San Juan)")
                 ntel = st.text_input("📱 Teléfono Móvil (ej: +34612345678)")
-                napi = st.text_input("🔑 APIKey de WhatsApp (de CallMeBot)")
+                napi = st.text_input("🔑 APIKey de WhatsApp")
                 np = st.text_input("Contraseña", type="password")
                 
-                b_up = st.form_submit_button("🚀 CREAR CUENTA Y ACTIVAR BOT WHATSAPP", use_container_width=True, type="primary")
+                st.markdown("##### 📍 Datos de tu Parcela Principal:")
+                nparc = st.text_input("Nombre de la Parcela:", value="Finca Principal")
+                nlat = st.number_input("Latitud:", value=42.3659, format="%.4f")
+                nlon = st.number_input("Longitud:", value=-2.4235, format="%.4f")
+                nha = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
+
+                b_up = st.form_submit_button("🚀 CREAR CUENTA Y ACTIVAR BOT 05:00 AM", use_container_width=True, type="primary")
                 if b_up:
                     if not nu.strip() or not np.strip() or not ntel.strip():
-                        st.error("Por favor, rellena los campos obligatorios.")
+                        st.error("Por favor, completa los campos requeridos.")
                     elif nu in st.session_state.usuarios_db:
                         st.error("Ese usuario ya existe.")
                     else:
-                        st.session_state.usuarios_db[nu] = {
+                        datos_nuevo = {
                             "pwd": make_hash(np),
-                            "nombre": nn,
+                            "nombre": nn.strip(),
                             "telefono": ntel.strip(),
-                            "apikey": napi.strip()
+                            "apikey": napi.strip(),
+                            "parcela": nparc.strip(),
+                            "lat": float(nlat),
+                            "lon": float(nlon),
+                            "ha": float(nha)
                         }
-                        st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
+                        st.session_state.usuarios_db[nu] = datos_nuevo
                         
-                        # Disparo automático del WhatsApp de bienvenida
+                        # Guardado automático en el archivo de alertas para las 5:00 AM
                         if napi.strip():
+                            guardar_usuario_alerta({
+                                "nombre": nn.strip(),
+                                "telefono": ntel.strip(),
+                                "apikey": napi.strip(),
+                                "parcela": nparc.strip(),
+                                "lat": float(nlat),
+                                "lon": float(nlon),
+                                "ha": float(nha)
+                            })
+                            # WhatsApp de bienvenida
                             msg_bienvenida = f"""🚜 *¡BIENVENIDO A AGROALERT!*
-Hola *{nn}*, tu cuenta ha quedado vinculada con éxito.
+Hola *{nn}*, tu parcela *{nparc}* ha quedado monitorizada.
 
-A partir de ahora recibirás aquí:
-✅ Parte matutino antes de sulfatar
-🚨 Alertas rojas por riesgo de helada
-📋 Recetas de mezcla para la cuba del tractor."""
+A partir de mañana a las *05:00 AM* recibirás tu parte diario."""
                             disparar_whatsapp_servidor(ntel.strip(), napi.strip(), msg_bienvenida)
-                        
+
                         st.session_state.usuario_autenticado = nu
-                        st.success("¡Cuenta creada con éxito! Accediendo...")
+                        st.success("¡Cuenta activada con éxito! Accediendo...")
                         st.rerun()
     st.stop()
 
@@ -267,29 +290,20 @@ A partir de ahora recibirás aquí:
 # ==============================================================================
 user_activo = st.session_state.usuario_autenticado
 datos_usuario = st.session_state.usuarios_db[user_activo]
-nombre_cliente = datos_usuario["nombre"]
+nombre_cliente = datos_usuario.get("nombre", user_activo)
 user_telefono = datos_usuario.get("telefono", "+34626665232")
 user_apikey = datos_usuario.get("apikey", "3443251")
-
-fincas_usuario = st.session_state.db_privada[user_activo]
+nombre_parcela = datos_usuario.get("parcela", "Frontón Jaime")
+lat = datos_usuario.get("lat", 42.3659)
+lon = datos_usuario.get("lon", -2.4235)
+superficie_ha = datos_usuario.get("ha", 2.0)
 
 c_top1, c_top2, c_top3 = st.columns([1.5, 1.5, 0.8])
 with c_top1:
     tipo_cultivo = st.selectbox("1️⃣ Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
 
-fincas_del_cultivo = fincas_usuario.get(tipo_cultivo, {})
-nombres_disponibles = list(fincas_del_cultivo.keys())
-
 with c_top2:
-    if not nombres_disponibles:
-        st.selectbox("2️⃣ Parcela:", ["(Sin parcelas en este cultivo)"])
-        nombre_parcela = "Parcela Principal"
-        lat, lon, variedad, suelo, superficie_ha = 42.3659, -2.4235, "Tempranillo", "Franco", 2.0
-    else:
-        seleccion_parcela = st.selectbox("2️⃣ Parcela activa:", nombres_disponibles)
-        nombre_parcela = seleccion_parcela
-        dp = fincas_del_cultivo[seleccion_parcela]
-        lat, lon, variedad, suelo, superficie_ha = dp["lat"], dp["lon"], dp["variedad"], dp["suelo"], dp["ha"]
+    st.selectbox("2️⃣ Parcela activa:", [nombre_parcela])
 
 with c_top3:
     st.write("")
@@ -298,7 +312,6 @@ with c_top3:
         st.rerun()
 
 # --- CONSULTA METEOROLÓGICA ---
-hoy = datetime.now()
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
 
 try:
@@ -330,18 +343,17 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # PESTAÑAS PRINCIPALES
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "🚜 ¿PUEDO SULFATAR HOY?",
     "🧪 CUÁNTO ECHAR A LA CUBA",
-    "📲 BOT AUTOMÁTICO WHATSAPP",
-    "➕ MIS FINCAS"
+    "📲 BOT AUTOMÁTICO WHATSAPP"
 ])
 
 # ==============================================================================
 # PESTAÑA 1: SEMÁFORO DIARIO
 # ==============================================================================
 with tab1:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📍 {nombre_parcela} <span style='font-size:1.1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📍 {nombre_parcela} <span style='font-size:1.1rem; color:#64748b;'>({superficie_ha} ha)</span></h2>", unsafe_allow_html=True)
 
     if viento_hoy > 15:
         semaforo_estado = "ROJO"
@@ -399,10 +411,7 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
     with c_m4:
-        if "Viña" in tipo_cultivo:
-            riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
-        else:
-            riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
+        riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
         st.markdown(f"""
         <div class="field-card">
             <div class="field-card-title">🛡️ Estado Hongos</div>
@@ -477,14 +486,13 @@ with tab2:
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑA 3: BOT WHATSAPP VINCULADO AL USUARIO
+# PESTAÑA 3: BOT WHATSAPP
 # ==============================================================================
 with tab3:
     st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
     st.markdown(f"<p style='font-size: 1.15rem; color: #475569;'>Alertas enviadas automáticamente a <b>{user_telefono}</b> ({nombre_cliente}).</p>", unsafe_allow_html=True)
 
-    # Mensajes
-    msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
+    msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT (05:00 AM)*
 📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
 
 {'🟢 *DÍA PERFECTO PARA SULFATAR*' if semaforo_estado == 'VERDE' else ('🟠 *ATENCIÓN: TRATAR TEMPRANO*' if semaforo_estado == 'AMBAR' else '🔴 *NO SULFATAR HOY*')}
@@ -494,85 +502,14 @@ with tab3:
 🌧️ *Lluvia:* {lluvia_hoy:.1f} mm
 🛡️ *Estado:* {riesgo_txt}"""
 
-    msg_helada = f"""🚨 *¡ALERTA ROJA DE EMERGENCIA POR HELADA!*
-📍 *Parcela:* {nombre_parcela}
-
-⚠️ *Riesgo Inminente:* Previsión de temperatura crítica de *{min_hoy:.1f}°C*.
-🛡️ *Acción:* Activar medidas antihelada inmediatamente."""
-
-    msg_cuba = f"""📋 *ORDEN DE TRATAMIENTO PARA LA CUBA*
-📍 *Parcela:* {nombre_parcela} ({ha_a_sulfatar} ha)
-
-🚜 *Cuba de:* {litros_cuba} Litros
-🧪 *Dosis por cuba llena:* *{kilos_por_cuba:.2f} kg o Litros*
-📦 *Cubas necesarias:* {num_cubas_necesarias:.1f} cubas
-⚖️ *Gasto total finca:* {kilos_totales_finca:.2f} kg/L"""
-
-    c_b1, c_b2, c_b3 = st.columns(3)
-    
+    c_b1, c_b2 = st.columns(2)
     with c_b1:
-        if st.button("📲 DISPARAR PARTE MATUTINO", use_container_width=True, type="primary"):
-            if not user_apikey:
-                st.error("No tienes configurada tu APIKey de WhatsApp. Edítala en tu perfil.")
+        if st.button("📲 PROBAR DISPARO DE PARTE AHORA", use_container_width=True, type="primary"):
+            ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_parte)
+            if ok:
+                st.success(res)
             else:
-                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_parte)
-                if ok:
-                    st.success(res)
-                else:
-                    st.error(res)
-
+                st.error(res)
+    
     with c_b2:
-        if st.button("🚨 DISPARAR ALERTA HELADA", use_container_width=True):
-            if not user_apikey:
-                st.error("No tienes configurada tu APIKey de WhatsApp.")
-            else:
-                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_helada)
-                if ok:
-                    st.warning("¡Alerta de helada enviada a WhatsApp!")
-                else:
-                    st.error(res)
-
-    with c_b3:
-        if st.button("🚜 DISPARAR RECETA AL TRACTORISTA", use_container_width=True):
-            if not user_apikey:
-                st.error("No tienes configurada tu APIKey de WhatsApp.")
-            else:
-                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_cuba)
-                if ok:
-                    st.success("¡Receta de cuba enviada a WhatsApp!")
-                else:
-                    st.error(res)
-
-# ==============================================================================
-# PESTAÑA 4: GESTIÓN DE FINCAS
-# ==============================================================================
-with tab4:
-    st.markdown(f"<h2 style='font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-top: 10px;'>➕ Añadir una Nueva Parcela</h2>", unsafe_allow_html=True)
-    with st.form("form_alta_finca"):
-        c_f1, c_f2 = st.columns(2)
-        with c_f1:
-            nom_finca = st.text_input("Nombre finca:", value="Viña Nueva")
-            lat_finca = st.number_input("Latitud decimal:", value=42.3659, format="%.4f")
-            lon_finca = st.number_input("Longitud decimal:", value=-2.4235, format="%.4f")
-        with c_f2:
-            var_finca = st.text_input("Variedad:", value="Tempranillo")
-            ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
-            suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-
-        btn_guardar_f = st.form_submit_button("💾 GUARDAR ESTA PARCELA EN MI CUENTA", use_container_width=True, type="primary")
-
-        if btn_guardar_f and nom_finca.strip():
-            st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
-                "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca
-            }
-            st.success(f"¡Parcela '{nom_finca}' guardada!")
-            st.rerun()
-
-    st.write("---")
-    st.markdown("### 📋 Tus Parcelas Registradas:")
-    tabla_fincas = [
-        {"Parcela": k, "Hectáreas": v["ha"], "Variedad": v["variedad"], "Terreno": v["suelo"]}
-        for k, v in fincas_usuario.get(tipo_cultivo, {}).items()
-    ]
-    if tabla_fincas:
-        st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
+        st.info("🕒 **Programación Automática:** Tu alerta se enviará sola cada día a las **05:00 AM** con los datos de esta parcela.")
