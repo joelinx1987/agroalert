@@ -63,7 +63,7 @@ st.markdown("""
         border-radius: 18px;
         padding: 20px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
     }
     .traffic-danger {
         background-color: #fee2e2;
@@ -153,6 +153,12 @@ def make_hash(password):
 def check_hash(password, hashed_text):
     return make_hash(password) == hashed_text
 
+def normalizar_telefono(tel):
+    t = tel.replace(" ", "").replace("-", "").replace(".", "")
+    if not t.startswith("+"):
+        t = "+34" + t if not t.startswith("34") else "+" + t
+    return t
+
 def cargar_json(archivo, por_defecto):
     if os.path.exists(archivo):
         try:
@@ -202,10 +208,7 @@ if "labores_db" not in st.session_state:
 # --- API WHATSAPP ---
 def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     try:
-        num_limpio = telefono.replace(" ", "").replace("-", "")
-        if not num_limpio.startswith("+"):
-            num_limpio = "+34" + num_limpio if not num_limpio.startswith("34") else "+" + num_limpio
-            
+        num_limpio = normalizar_telefono(telefono)
         texto_encoded = urllib.parse.quote(mensaje)
         url = f"https://api.callmebot.com/whatsapp.php?phone={num_limpio}&text={texto_encoded}&apikey={apikey.strip()}"
         
@@ -219,7 +222,7 @@ def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
-# --- ACCESO ---
+# --- ACCESO Y REGISTRO BLINDADO ---
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
@@ -237,38 +240,54 @@ if not st.session_state.usuario_autenticado:
 
         modo_acceso = st.radio("Acceso:", ["🔑 Iniciar Sesión", "📝 Registrarme y Activar Bot"], label_visibility="collapsed")
         
+        # Siempre recargar la base de datos de usuarios fresca de disco
+        st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
+        
         if modo_acceso == "🔑 Iniciar Sesión":
             with st.form("form_auth"):
-                u = st.text_input("Usuario", value="admin")
+                u = st.text_input("Usuario", value="admin").strip().lower()
                 p = st.text_input("Contraseña", type="password", value="admin123")
                 b_in = st.form_submit_button("🚜 ENTRAR A MIS PARCELAS", use_container_width=True, type="primary")
                 if b_in:
-                    if u in st.session_state.usuarios_db and check_hash(p, st.session_state.usuarios_db[u]["pwd"]):
-                        st.session_state.usuario_autenticado = u
+                    # Búsqueda insensible a mayúsculas
+                    usuarios_lower = {k.lower(): (k, v) for k, v in st.session_state.usuarios_db.items()}
+                    if u in usuarios_lower and check_hash(p, usuarios_lower[u][1]["pwd"]):
+                        st.session_state.usuario_autenticado = usuarios_lower[u][0]
                         st.rerun()
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
             st.info("💡 Envía `I allow callmebot to send me messages` por WhatsApp al `+34 623 91 22 04` para recibir tu APIKey.")
             with st.form("form_reg"):
-                nu = st.text_input("Usuario")
-                nn = st.text_input("Nombre o Explotación")
-                ntel = st.text_input("📱 Teléfono (+34)")
-                napi = st.text_input("🔑 APIKey WhatsApp")
+                nu = st.text_input("Usuario deseado (ej: jgarcia)").strip()
+                nn = st.text_input("Nombre o Explotación (ej: Bodega San Juan)").strip()
+                ntel = st.text_input("📱 Teléfono Móvil (ej: 612345678)").strip()
+                napi = st.text_input("🔑 APIKey WhatsApp de CallMeBot").strip()
                 np = st.text_input("Contraseña", type="password")
                 
                 b_up = st.form_submit_button("🚀 CREAR CUENTA", use_container_width=True, type="primary")
                 if b_up:
-                    if not nu.strip() or not np.strip() or not ntel.strip():
-                        st.error("Completa los campos obligatorios.")
-                    elif nu in st.session_state.usuarios_db:
-                        st.error("Ese usuario ya existe.")
+                    nu_clean = nu.lower()
+                    tel_clean = normalizar_telefono(ntel) if ntel else ""
+                    
+                    # Validación de campos obligatorios
+                    if not nu_clean or not np.strip() or not ntel:
+                        st.error("Por favor, completa los campos obligatorios (Usuario, Contraseña y Teléfono).")
+                    
+                    # 1. Comprobar si el nombre de usuario ya existe (insensible a mayúsculas)
+                    elif any(k.lower() == nu_clean for k in st.session_state.usuarios_db.keys()):
+                        st.error(f"⛔ El usuario '{nu}' ya está registrado. Por favor, inicia sesión o elige otro nombre de usuario.")
+                    
+                    # 2. Comprobar si el número de teléfono ya está registrado en el sistema
+                    elif any(normalizar_telefono(u_data.get("telefono", "")) == tel_clean for u_data in st.session_state.usuarios_db.values() if u_data.get("telefono")):
+                        st.error(f"⛔ El teléfono '{ntel}' ya tiene una cuenta asociada. Inicia sesión con tu usuario existente.")
+                    
                     else:
                         st.session_state.usuarios_db[nu] = {
                             "pwd": make_hash(np),
-                            "nombre": nn,
-                            "telefono": ntel.strip(),
-                            "apikey": napi.strip()
+                            "nombre": nn if nn else nu,
+                            "telefono": tel_clean,
+                            "apikey": napi
                         }
                         if nu not in st.session_state.db_privada:
                             st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
@@ -276,11 +295,12 @@ if not st.session_state.usuario_autenticado:
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
                         
-                        if napi.strip():
-                            msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu explotación está vinculada."
-                            disparar_whatsapp_servidor(ntel.strip(), napi.strip(), msg)
+                        if napi:
+                            msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu explotación ha quedado registrada y vinculada."
+                            disparar_whatsapp_servidor(tel_clean, napi, msg)
                         
                         st.session_state.usuario_autenticado = nu
+                        st.success("¡Cuenta creada con éxito! Entrando al panel...")
                         st.rerun()
     st.stop()
 
@@ -298,7 +318,6 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
-# Selector superior
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -330,7 +349,7 @@ with c_top3:
         st.session_state.usuario_autenticado = None
         st.rerun()
 
-# --- CONSULTA METEOROLÓGICA ---
+# --- METEOROLOGÍA ---
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
 
 try:
@@ -362,7 +381,7 @@ viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
 # ==============================================================================
-# NAVEGACIÓN EN FILAS
+# SECCIONES
 # ==============================================================================
 st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-top: 10px; margin-bottom: 6px;'>MÓDULOS DE GESTIÓN:</p>", unsafe_allow_html=True)
 seccion_activa = st.radio(
@@ -381,7 +400,7 @@ seccion_activa = st.radio(
 st.write("---")
 
 # ==============================================================================
-# 1. SEMÁFORO DIARIO
+# 1. SEMÁFORO
 # ==============================================================================
 if "Puedo sulfatar hoy" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | Pol. {poligono} Parc. {parcela_cat})</span></h2>", unsafe_allow_html=True)
@@ -466,7 +485,7 @@ if "Puedo sulfatar hoy" in seccion_activa:
     st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 2. CALCULADORA DE CUBA
+# 2. CALCULADORA
 # ==============================================================================
 elif "Calculadora de dosis" in seccion_activa:
     st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🧪 Calculadora de Dosis y Tanque / Cuba</h2>", unsafe_allow_html=True)
