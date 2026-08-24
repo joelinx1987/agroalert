@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES ORIGINALES LIMPIOS ---
+# --- ESTILOS VISUALES BALANCEADOS (PC Y MÓVIL) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -31,20 +31,20 @@ st.markdown("""
         color: #0f172a;
     }
 
-    /* FILAS VERTICALES DE BOTONES GRANDES */
+    /* BOTONES DE SECCIÓN VERTICALES */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 8px !important;
     }
     
     div[data-testid="stRadio"] label {
         background: #ffffff !important;
         border: 2px solid #cbd5e1 !important;
         border-radius: 14px !important;
-        padding: 16px 20px !important;
+        padding: 14px 18px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
         transition: all 0.15s ease !important;
     }
     
@@ -54,7 +54,7 @@ st.markdown("""
     }
 
     div[data-testid="stRadio"] label div p {
-        font-size: 1.15rem !important;
+        font-size: 1rem !important;
         font-weight: 800 !important;
         color: #0f172a !important;
     }
@@ -63,35 +63,35 @@ st.markdown("""
     .traffic-ok {
         background-color: #dcfce7;
         border: 3px solid #16a34a;
-        border-radius: 18px;
-        padding: 22px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12);
     }
     .traffic-danger {
         background-color: #fee2e2;
         border: 3px solid #dc2626;
-        border-radius: 18px;
-        padding: 22px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
     }
     .traffic-warning {
         background-color: #fef3c7;
         border: 3px solid #d97706;
-        border-radius: 18px;
-        padding: 22px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.15);
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
     }
 
     .traffic-title {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
         font-weight: 900;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
     .traffic-sub {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         font-weight: 600;
     }
 
@@ -99,26 +99,26 @@ st.markdown("""
     .field-card {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
-        border-radius: 16px;
+        border-radius: 14px;
         padding: 16px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        margin-bottom: 10px;
     }
     .field-card-title {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 700;
         color: #475569;
         text-transform: uppercase;
     }
     .field-card-value {
-        font-size: 1.9rem;
+        font-size: 1.75rem;
         font-weight: 900;
         color: #0f172a;
         margin-top: 4px;
     }
     .field-card-unit {
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         color: #64748b;
     }
@@ -126,12 +126,12 @@ st.markdown("""
     .recipe-box {
         background-color: #ecfdf5;
         border: 3px solid #059669;
-        border-radius: 18px;
+        border-radius: 16px;
         padding: 20px;
-        margin-top: 15px;
+        margin-top: 14px;
     }
     .recipe-big {
-        font-size: 2.1rem;
+        font-size: 1.95rem;
         font-weight: 900;
         color: #047857;
     }
@@ -139,28 +139,28 @@ st.markdown("""
     .legend-card {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
-        border-radius: 16px;
+        border-radius: 14px;
         padding: 18px 20px;
-        margin-bottom: 14px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     }
     .legend-header {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         font-weight: 800;
         color: #15803d;
         margin-bottom: 6px;
     }
     .legend-body {
-        font-size: 0.98rem;
+        font-size: 0.95rem;
         color: #334155;
         line-height: 1.55;
     }
     
     .stButton>button {
-        font-size: 1.1rem !important;
+        font-size: 1.05rem !important;
         font-weight: 800 !important;
-        padding: 14px !important;
-        border-radius: 14px !important;
+        padding: 12px 18px !important;
+        border-radius: 12px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -202,7 +202,7 @@ def guardar_json(archivo, datos):
 def render_google_map(latitud, longitud, zoom=16, height=360):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 16px; overflow: hidden; border: 2px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+    <div style="border-radius: 14px; overflow: hidden; border: 2px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -447,321 +447,316 @@ lluvia_hoy = lluvia[0]
 viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
-# ==============================================================================
-# SECCIONES EN FILAS ORIGINALES CON TEXTO COMPLETO
-# ==============================================================================
-st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-top: 15px; margin-bottom: 6px;'>SELECCIONA UNA SECCIÓN:</p>", unsafe_allow_html=True)
-
-opciones_menu = [
-    "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
-    "🧪 Calculadora de dosis y depósito / cuba",
-    "📋 Cuaderno de tratamientos fitosanitarios",
-    "🌾 Labores, riegos y cosecha",
-    "📲 Bot de alertas por WhatsApp",
-    "🌾 Gestión de mis fincas y parcelas",
-    "ℹ️ Leyenda técnica y fuentes de datos"
-]
-
-if user_activo == "admin":
-    opciones_menu.append("🛠️ Panel Administrador (Gestionar Usuarios)")
-
-seccion_activa = st.radio("Navegación:", opciones_menu, label_visibility="collapsed")
 st.write("---")
 
 # ==============================================================================
-# SECCIÓN 1: SEMÁFORO DIARIO
+# LAYOUT DE 2 COLUMNAS (PANEL IZQUIERDO MENÚ + PANEL DERECHO CONTENIDO)
 # ==============================================================================
-if "Puedo sulfatar hoy" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
+col_menu, col_contenido = st.columns([1, 2.3], gap="large")
 
-    if viento_hoy > 15:
-        st.markdown(f"""
-        <div class="traffic-danger">
-            <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SE RECOMIENDA SULFATAR</div>
-            <div class="traffic-sub" style="color: #b91c1c;">Viento excesivo ({viento_hoy:.0f} km/h). Vas a perder producto por deriva.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    elif lluvia_hoy > 2.0:
-        st.markdown(f"""
-        <div class="traffic-danger">
-            <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SULFATES</div>
-            <div class="traffic-sub" style="color: #b91c1c;">Lluvia prevista ({lluvia_hoy:.1f} L/m²). Se lavará el tratamiento.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    elif max_hoy >= 32:
-        st.markdown(f"""
-        <div class="traffic-warning">
-            <div class="traffic-title" style="color: #92400e;">⚠️ TRATAR SOLO TEMPRANO</div>
-            <div class="traffic-sub" style="color: #b45309;">Calor fuerte ({max_hoy:.0f} °C). Tratar solo de 7:00 a 11:00.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown(f"""
-        <div class="traffic-ok">
-            <div class="traffic-title" style="color: #166534;">✅ DÍA PERFECTO PARA SULFATAR</div>
-            <div class="traffic-sub" style="color: #15803d;">Viento en calma ({viento_hoy:.0f} km/h), sin lluvia y {max_hoy:.0f} °C.</div>
-        </div>
-        """, unsafe_allow_html=True)
+with col_menu:
+    st.markdown("<p style='font-size: 0.95rem; font-weight: 800; color: #64748b; margin-bottom: 6px;'>SELECCIONA UNA SECCIÓN:</p>", unsafe_allow_html=True)
 
-    if "Viña" in tipo_cultivo:
-        riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
-    else:
-        riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
+    opciones_menu = [
+        "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
+        "🧪 Calculadora de dosis y depósito / cuba",
+        "📋 Cuaderno de tratamientos fitosanitarios",
+        "🌾 Labores, riegos y cosecha",
+        "📲 Bot de alertas por WhatsApp",
+        "🌾 Gestión de mis fincas y parcelas",
+        "ℹ️ Leyenda técnica y fuentes de datos"
+    ]
 
-    c_m1, c_m2 = st.columns(2)
-    with c_m1:
-        st.markdown(f"""
-        <div class="field-card">
-            <div class="field-card-title">🌡️ Tª Hoy</div>
-            <div class="field-card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="field-card-unit">C</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="field-card">
-            <div class="field-card-title">💨 Viento</div>
-            <div class="field-card-value">{viento_hoy:.0f} <span class="field-card-unit">km/h</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-    with c_m2:
-        st.markdown(f"""
-        <div class="field-card">
-            <div class="field-card-title">🌧️ Lluvia</div>
-            <div class="field-card-value">{lluvia_hoy:.1f} <span class="field-card-unit">L</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="field-card">
-            <div class="field-card-title">🛡️ Hongos</div>
-            <div class="field-card-value" style="font-size:1.5rem; color: {'#dc2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else '#15803d'};">{riesgo_txt}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    if user_activo == "admin":
+        opciones_menu.append("🛠️ Panel Administrador (Gestionar Usuarios)")
 
-    st.markdown("<br><h3 style='font-size: 1.3rem; font-weight: 800;'>📅 Previsión Semanal:</h3>", unsafe_allow_html=True)
-    df_dias = []
-    for i in range(len(fechas_legibles)):
-        apto = "✅ Óptimo" if (viento[i] <= 15 and lluvia[i] <= 2.0 and t_max[i] < 32) else ("⛔ No tratar" if (viento[i] > 15 or lluvia[i] > 2.0) else "⚠️ Cuidado")
-        df_dias.append({
-            "Día": fechas_legibles[i],
-            "Tª Min/Max": f"{t_min[i]:.0f}°/{t_max[i]:.0f}°C",
-            "Lluvia": f"{lluvia[i]:.1f} L",
-            "Viento": f"{viento[i]:.0f} km/h",
-            "Estado": apto
-        })
-    st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
+    seccion_activa = st.radio("Navegación:", opciones_menu, label_visibility="collapsed")
 
 # ==============================================================================
-# SECCIÓN 2: CALCULADORA DE CUBA
+# CONTENIDO EN PANEL DERECHO
 # ==============================================================================
-elif "Calculadora de dosis" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🧪 Calculadora para la Cuba / Depósito</h2>", unsafe_allow_html=True)
-    c_c1, c_c2 = st.columns(2)
-    with c_c1:
-        st.markdown("#### 🚜 Maquinaria:")
-        litros_cuba = st.selectbox("Capacidad depósito/cuba (L):", [500, 600, 800, 1000, 1500, 2000, 3000], index=3)
-        gasto_caldo = st.number_input("Gasto caldo (L/ha):", value=400, step=50)
-        ha_a_sulfatar = st.number_input("Hectáreas a tratar:", value=float(superficie_ha), step=0.5)
+with col_contenido:
+    # SECCIÓN 1: SEMÁFORO DIARIO
+    if "Puedo sulfatar hoy" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
-    with c_c2:
-        st.markdown("#### 🏷️ Dosis de Producto:")
-        formato_dosis = st.radio("Tipo de dosis:", [
-            "Por 100 Litros (gr o cc / 100 L)",
-            "Por Hectárea (kg o L / ha)"
-        ])
-        
+        if viento_hoy > 15:
+            st.markdown(f"""
+            <div class="traffic-danger">
+                <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SE RECOMIENDA SULFATAR</div>
+                <div class="traffic-sub" style="color: #b91c1c;">Viento excesivo ({viento_hoy:.0f} km/h). Vas a perder producto por deriva.</div>
+            </div>
+            """, unsafe_allow_html=True)
+        elif lluvia_hoy > 2.0:
+            st.markdown(f"""
+            <div class="traffic-danger">
+                <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SULFATES</div>
+                <div class="traffic-sub" style="color: #b91c1c;">Lluvia prevista ({lluvia_hoy:.1f} L/m²). Se lavará el tratamiento.</div>
+            </div>
+            """, unsafe_allow_html=True)
+        elif max_hoy >= 32:
+            st.markdown(f"""
+            <div class="traffic-warning">
+                <div class="traffic-title" style="color: #92400e;">⚠️ TRATAR SOLO TEMPRANO</div>
+                <div class="traffic-sub" style="color: #b45309;">Calor fuerte ({max_hoy:.0f} °C). Tratar solo de 7:00 a 11:00.</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="traffic-ok">
+                <div class="traffic-title" style="color: #166534;">✅ DÍA PERFECTO PARA SULFATAR</div>
+                <div class="traffic-sub" style="color: #15803d;">Viento en calma ({viento_hoy:.0f} km/h), sin lluvia y {max_hoy:.0f} °C.</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        if "Viña" in tipo_cultivo:
+            riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
+        else:
+            riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
+
+        c_m1, c_m2 = st.columns(2)
+        with c_m1:
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">🌡️ Tª Hoy</div>
+                <div class="field-card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="field-card-unit">C</span></div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">💨 Viento</div>
+                <div class="field-card-value">{viento_hoy:.0f} <span class="field-card-unit">km/h</span></div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c_m2:
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">🌧️ Lluvia</div>
+                <div class="field-card-value">{lluvia_hoy:.1f} <span class="field-card-unit">L</span></div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">🛡️ Hongos</div>
+                <div class="field-card-value" style="font-size:1.45rem; color: {'#dc2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else '#15803d'};">{riesgo_txt}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 15px;'>📅 Previsión Semanal:</h3>", unsafe_allow_html=True)
+        df_dias = []
+        for i in range(len(fechas_legibles)):
+            apto = "✅ Óptimo" if (viento[i] <= 15 and lluvia[i] <= 2.0 and t_max[i] < 32) else ("⛔ No tratar" if (viento[i] > 15 or lluvia[i] > 2.0) else "⚠️ Cuidado")
+            df_dias.append({
+                "Día": fechas_legibles[i],
+                "Tª Min/Max": f"{t_min[i]:.0f}°/{t_max[i]:.0f}°C",
+                "Lluvia": f"{lluvia[i]:.1f} L",
+                "Viento": f"{viento[i]:.0f} km/h",
+                "Estado": apto
+            })
+        st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
+
+    # SECCIÓN 2: CALCULADORA DE CUBA
+    elif "Calculadora de dosis" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🧪 Calculadora para la Cuba / Depósito</h2>", unsafe_allow_html=True)
+        c_c1, c_c2 = st.columns(2)
+        with c_c1:
+            st.markdown("#### 🚜 Maquinaria:")
+            litros_cuba = st.selectbox("Capacidad depósito/cuba (L):", [500, 600, 800, 1000, 1500, 2000, 3000], index=3)
+            gasto_caldo = st.number_input("Gasto caldo (L/ha):", value=400, step=50)
+            ha_a_sulfatar = st.number_input("Hectáreas a tratar:", value=float(superficie_ha), step=0.5)
+
+        with c_c2:
+            st.markdown("#### 🏷️ Dosis de Producto:")
+            formato_dosis = st.radio("Tipo de dosis:", [
+                "Por 100 Litros (gr o cc / 100 L)",
+                "Por Hectárea (kg o L / ha)"
+            ])
+            
+            if "100 Litros" in formato_dosis:
+                dosis_num = st.number_input("Gramos o cc / 100 L:", value=250.0, step=25.0)
+            else:
+                dosis_num = st.number_input("Kilos o Litros / ha:", value=2.0, step=0.5)
+
+            precio_kilo = st.number_input("Precio (€ / kg o L):", value=18.0, step=1.0)
+
+        caldo_total_necesario = ha_a_sulfatar * gasto_caldo
+        num_cubas_necesarias = caldo_total_necesario / litros_cuba if litros_cuba > 0 else 0
+        ha_por_cuba = litros_cuba / gasto_caldo if gasto_caldo > 0 else 0
+
         if "100 Litros" in formato_dosis:
-            dosis_num = st.number_input("Gramos o cc / 100 L:", value=250.0, step=25.0)
+            kilos_por_cuba = (dosis_num * (litros_cuba / 100.0)) / 1000.0
+            kilos_totales_finca = (dosis_num * (caldo_total_necesario / 100.0)) / 1000.0
         else:
-            dosis_num = st.number_input("Kilos o Litros / ha:", value=2.0, step=0.5)
+            kilos_por_cuba = dosis_num * ha_por_cuba
+            kilos_totales_finca = dosis_num * ha_a_sulfatar
 
-        precio_kilo = st.number_input("Precio (€ / kg o L):", value=18.0, step=1.0)
+        coste_total_euros = kilos_totales_finca * precio_kilo
 
-    caldo_total_necesario = ha_a_sulfatar * gasto_caldo
-    num_cubas_necesarias = caldo_total_necesario / litros_cuba if litros_cuba > 0 else 0
-    ha_por_cuba = litros_cuba / gasto_caldo if gasto_caldo > 0 else 0
-
-    if "100 Litros" in formato_dosis:
-        kilos_por_cuba = (dosis_num * (litros_cuba / 100.0)) / 1000.0
-        kilos_totales_finca = (dosis_num * (caldo_total_necesario / 100.0)) / 1000.0
-    else:
-        kilos_por_cuba = dosis_num * ha_por_cuba
-        kilos_totales_finca = dosis_num * ha_a_sulfatar
-
-    coste_total_euros = kilos_totales_finca * precio_kilo
-
-    st.markdown(f"""
-    <div class="recipe-box">
-        <div style="font-size: 1rem; font-weight: 800; color: #065f46; text-transform: uppercase;">📝 RECETA DIRECTA</div>
-        <div class="recipe-big">{kilos_por_cuba:.2f} <span style="font-size:1.3rem;">kg/L por CUBA de {litros_cuba} L</span></div>
-        <hr style="border: 1px solid #a7f3d0; margin: 12px 0;">
-        <div style="font-size: 1.15rem; font-weight: 700; color: #047857;">
-            🚜 {ha_a_sulfatar} ha = {num_cubas_necesarias:.1f} cubas ({kilos_totales_finca:.2f} kg/L totales).
+        st.markdown(f"""
+        <div class="recipe-box">
+            <div style="font-size: 1rem; font-weight: 800; color: #065f46; text-transform: uppercase;">📝 RECETA DIRECTA</div>
+            <div class="recipe-big">{kilos_por_cuba:.2f} <span style="font-size:1.3rem;">kg/L por CUBA de {litros_cuba} L</span></div>
+            <hr style="border: 1px solid #a7f3d0; margin: 12px 0;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #047857;">
+                🚜 {ha_a_sulfatar} ha = {num_cubas_necesarias:.1f} cubas ({kilos_totales_finca:.2f} kg/L totales).
+            </div>
+            <div style="font-size: 1rem; font-weight: 600; color: #065f46; margin-top: 4px;">
+                💰 Coste: {coste_total_euros:.2f} € ({(coste_total_euros/ha_a_sulfatar if ha_a_sulfatar>0 else 0):.2f} €/ha).
+            </div>
         </div>
-        <div style="font-size: 1rem; font-weight: 600; color: #065f46; margin-top: 4px;">
-            💰 Coste: {coste_total_euros:.2f} € ({(coste_total_euros/ha_a_sulfatar if ha_a_sulfatar>0 else 0):.2f} €/ha).
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-# ==============================================================================
-# SECCIÓN 3: CUADERNO DE FITOSANITARIOS
-# ==============================================================================
-elif "Cuaderno de tratamientos" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
-    
-    with st.form("form_fito"):
-        st.markdown("#### ➕ Registrar Tratamiento en Parcela Activa:")
-        c_f1, c_f2 = st.columns(2)
-        with c_f1:
-            fecha_fito = st.date_input("Fecha de aplicación:", date.today())
-            plaga_tratada = st.text_input("Plaga / Hongo / Motivo:", value="Mildiu")
-            producto_fito = st.text_input("Producto Comercial / Materia Activa:", value="Oxicloruro de Cobre 50%")
-            num_mapa = st.text_input("Nº Registro MAPA (Opcional):", value="ES-00123")
-        with c_f2:
-            dosis_fito = st.text_input("Dosis aplicada:", value="2.5 kg/ha")
-            caldo_gastado = st.number_input("Gasto total caldo (Litros):", value=800, step=100)
-            plazo_seg = st.number_input("Plazo de Seguridad (días):", value=14, step=1)
-            aplicador_fito = st.text_input("Aplicador / Carnet:", value=nombre_cliente)
+    # SECCIÓN 3: CUADERNO FITOSANITARIO
+    elif "Cuaderno de tratamientos" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
+        
+        with st.form("form_fito"):
+            st.markdown("#### ➕ Registrar Tratamiento en Parcela Activa:")
+            c_f1, c_f2 = st.columns(2)
+            with c_f1:
+                fecha_fito = st.date_input("Fecha de aplicación:", date.today())
+                plaga_tratada = st.text_input("Plaga / Hongo / Motivo:", value="Mildiu")
+                producto_fito = st.text_input("Producto Comercial / Materia Activa:", value="Oxicloruro de Cobre 50%")
+                num_mapa = st.text_input("Nº Registro MAPA (Opcional):", value="ES-00123")
+            with c_f2:
+                dosis_fito = st.text_input("Dosis aplicada:", value="2.5 kg/ha")
+                caldo_gastado = st.number_input("Gasto total caldo (Litros):", value=800, step=100)
+                plazo_seg = st.number_input("Plazo de Seguridad (días):", value=14, step=1)
+                aplicador_fito = st.text_input("Aplicador / Carnet:", value=nombre_cliente)
 
-        b_guardar_fito = st.form_submit_button("💾 GUARDAR EN EL CUADERNO DE EXPLOTACIÓN", use_container_width=True, type="primary")
+            b_guardar_fito = st.form_submit_button("💾 GUARDAR EN EL CUADERNO DE EXPLOTACIÓN", use_container_width=True, type="primary")
 
-        if b_guardar_fito and producto_fito.strip():
-            if user_activo not in st.session_state.fitos_db:
-                st.session_state.fitos_db[user_activo] = []
-            
-            registro_nuevo = {
-                "Fecha": str(fecha_fito),
-                "Cultivo": tipo_cultivo,
-                "Parcela": nombre_parcela,
-                "Plaga": plaga_tratada,
-                "Producto": producto_fito,
-                "Registro MAPA": num_mapa,
-                "Dosis": dosis_fito,
-                "Caldo (L)": caldo_gastado,
-                "Plazo Seg. (días)": plazo_seg,
-                "Aplicador": aplicador_fito
-            }
-            st.session_state.fitos_db[user_activo].append(registro_nuevo)
-            guardar_json(FITOS_FILE, st.session_state.fitos_db)
-            st.success("¡Tratamiento guardado permanentemente!")
-            st.rerun()
-
-    st.write("---")
-    st.markdown("### 📜 Historial de Tratamientos Realizados:")
-    hist_fitos = st.session_state.fitos_db.get(user_activo, [])
-    if hist_fitos:
-        st.dataframe(pd.DataFrame(hist_fitos), use_container_width=True, hide_index=True)
-    else:
-        st.info("Aún no has registrado ningún tratamiento en tu cuaderno.")
-
-# ==============================================================================
-# SECCIÓN 4: LABORES, RIEGOS Y COSECHA
-# ==============================================================================
-elif "Labores, riegos y cosecha" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Labores de Campo, Riegos y Cosecha</h2>", unsafe_allow_html=True)
-    sub_lab1, sub_lab2 = st.tabs(["🚜 REGISTRAR LABOR / RIEGO", "🍇 REGISTRAR COSECHA / LIQUIDACIÓN"])
-    
-    with sub_lab1:
-        with st.form("form_labor"):
-            c_l1, c_l2 = st.columns(2)
-            with c_l1:
-                fecha_lab = st.date_input("Fecha de labor:", date.today())
-                tipo_labor = st.selectbox("Tipo de labor:", ["Poda", "Pase de grada / Chisel", "Desniete / Espergura", "Abonado de fondo", "Riego", "Tratamiento herbicida"])
-                horas_maq = st.number_input("Horas de tractor:", value=4.0, step=0.5)
-            with c_l2:
-                abono_aporte = st.text_input("Abono / Aporte (si aplica):", value="NPK 15-15-15 (200 kg)")
-                gasoil_litros = st.number_input("Gasoil gastado (L):", value=30.0, step=5.0)
-                coste_mano_obra = st.number_input("Coste mano de obra / Jornales (€):", value=60.0, step=10.0)
-
-            b_guarda_labor = st.form_submit_button("💾 GUARDAR LABOR DE CAMPO", use_container_width=True, type="primary")
-            if b_guarda_labor:
-                if user_activo not in st.session_state.labores_db:
-                    st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
+            if b_guardar_fito and producto_fito.strip():
+                if user_activo not in st.session_state.fitos_db:
+                    st.session_state.fitos_db[user_activo] = []
                 
-                reg_l = {
-                    "Fecha": str(fecha_lab),
+                registro_nuevo = {
+                    "Fecha": str(fecha_fito),
                     "Cultivo": tipo_cultivo,
                     "Parcela": nombre_parcela,
-                    "Labor": tipo_labor,
-                    "Horas Tractor": horas_maq,
-                    "Aporte": abono_aporte,
-                    "Gasoil (L)": gasoil_litros,
-                    "Coste (€)": coste_mano_obra
+                    "Plaga": plaga_tratada,
+                    "Producto": producto_fito,
+                    "Registro MAPA": num_mapa,
+                    "Dosis": dosis_fito,
+                    "Caldo (L)": caldo_gastado,
+                    "Plazo Seg. (días)": plazo_seg,
+                    "Aplicador": aplicador_fito
                 }
-                st.session_state.labores_db[user_activo]["labores"].append(reg_l)
-                guardar_json(LABORES_FILE, st.session_state.labores_db)
-                st.success("¡Labor guardada!")
+                st.session_state.fitos_db[user_activo].append(registro_nuevo)
+                guardar_json(FITOS_FILE, st.session_state.fitos_db)
+                st.success("¡Tratamiento guardado permanentemente!")
                 st.rerun()
 
-    with sub_lab2:
-        with st.form("form_cosecha"):
-            c_cos1, c_cos2 = st.columns(2)
-            with c_cos1:
-                fecha_cos = st.date_input("Fecha recolección / vendimia:", date.today())
-                kilos_totales = st.number_input("Kilos totales recolectados:", value=12000.0, step=500.0)
-                calidad_param = st.text_input("Calidad / Grado Baumé / Humedad:", value="13.8° / Grado 1")
-            with c_cos2:
-                comprador_dest = st.text_input("Destino / Bodega / Cooperativa:", value="Cooperativa Comarcal")
-                precio_kilo_venta = st.number_input("Precio venta liquidado (€/kg):", value=0.65, step=0.05, format="%.3f")
-            
-            ingreso_bruto = kilos_totales * precio_kilo_venta
-            rendimiento_ha = kilos_totales / superficie_ha if superficie_ha > 0 else 0
-            
-            st.info(f"📊 Rendimiento estimado: **{rendimiento_ha:.0f} kg/ha** | Ingreso total: **{ingreso_bruto:.2f} €**")
+        st.markdown("### 📜 Historial de Tratamientos Realizados:")
+        hist_fitos = st.session_state.fitos_db.get(user_activo, [])
+        if hist_fitos:
+            st.dataframe(pd.DataFrame(hist_fitos), use_container_width=True, hide_index=True)
+        else:
+            st.info("Aún no has registrado ningún tratamiento en tu cuaderno.")
 
-            b_guarda_cosecha = st.form_submit_button("💾 GUARDAR REGISTRO DE COSECHA", use_container_width=True, type="primary")
-            if b_guarda_cosecha:
-                if user_activo not in st.session_state.labores_db:
-                    st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
+    # SECCIÓN 4: LABORES Y COSECHA
+    elif "Labores, riegos y cosecha" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Labores de Campo, Riegos y Cosecha</h2>", unsafe_allow_html=True)
+        sub_lab1, sub_lab2 = st.tabs(["🚜 REGISTRAR LABOR / RIEGO", "🍇 REGISTRAR COSECHA / LIQUIDACIÓN"])
+        
+        with sub_lab1:
+            with st.form("form_labor"):
+                c_l1, c_l2 = st.columns(2)
+                with c_l1:
+                    fecha_lab = st.date_input("Fecha de labor:", date.today())
+                    tipo_labor = st.selectbox("Tipo de labor:", ["Poda", "Pase de grada / Chisel", "Desniete / Espergura", "Abonado de fondo", "Riego", "Tratamiento herbicida"])
+                    horas_maq = st.number_input("Horas de tractor:", value=4.0, step=0.5)
+                with c_l2:
+                    abono_aporte = st.text_input("Abono / Aporte (si aplica):", value="NPK 15-15-15 (200 kg)")
+                    gasoil_litros = st.number_input("Gasoil gastado (L):", value=30.0, step=5.0)
+                    coste_mano_obra = st.number_input("Coste mano de obra / Jornales (€):", value=60.0, step=10.0)
+
+                b_guarda_labor = st.form_submit_button("💾 GUARDAR LABOR DE CAMPO", use_container_width=True, type="primary")
+                if b_guarda_labor:
+                    if user_activo not in st.session_state.labores_db:
+                        st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
+                    
+                    reg_l = {
+                        "Fecha": str(fecha_lab),
+                        "Cultivo": tipo_cultivo,
+                        "Parcela": nombre_parcela,
+                        "Labor": tipo_labor,
+                        "Horas Tractor": horas_maq,
+                        "Aporte": abono_aporte,
+                        "Gasoil (L)": gasoil_litros,
+                        "Coste (€)": coste_mano_obra
+                    }
+                    st.session_state.labores_db[user_activo]["labores"].append(reg_l)
+                    guardar_json(LABORES_FILE, st.session_state.labores_db)
+                    st.success("¡Labor guardada!")
+                    st.rerun()
+
+        with sub_lab2:
+            with st.form("form_cosecha"):
+                c_cos1, c_cos2 = st.columns(2)
+                with c_cos1:
+                    fecha_cos = st.date_input("Fecha recolección / vendimia:", date.today())
+                    kilos_totales = st.number_input("Kilos totales recolectados:", value=12000.0, step=500.0)
+                    calidad_param = st.text_input("Calidad / Grado Baumé / Humedad:", value="13.8° / Grado 1")
+                with c_cos2:
+                    comprador_dest = st.text_input("Destino / Bodega / Cooperativa:", value="Cooperativa Comarcal")
+                    precio_kilo_venta = st.number_input("Precio venta liquidado (€/kg):", value=0.65, step=0.05, format="%.3f")
                 
-                reg_c = {
-                    "Fecha": str(fecha_cos),
-                    "Cultivo": tipo_cultivo,
-                    "Parcela": nombre_parcela,
-                    "Kilos": kilos_totales,
-                    "Rdto (kg/ha)": round(rendimiento_ha, 1),
-                    "Calidad": calidad_param,
-                    "Comprador": comprador_dest,
-                    "Precio (€/kg)": precio_kilo_venta,
-                    "Total (€)": round(ingreso_bruto, 2)
-                }
-                st.session_state.labores_db[user_activo]["cosechas"].append(reg_c)
-                guardar_json(LABORES_FILE, st.session_state.labores_db)
-                st.success("¡Cosecha guardada!")
-                st.rerun()
+                ingreso_bruto = kilos_totales * precio_kilo_venta
+                rendimiento_ha = kilos_totales / superficie_ha if superficie_ha > 0 else 0
+                
+                st.info(f"📊 Rendimiento estimado: **{rendimiento_ha:.0f} kg/ha** | Ingreso total: **{ingreso_bruto:.2f} €**")
 
-    st.write("---")
-    st.markdown("### 📋 Histórico de Labores y Cosechas:")
-    datos_lab_all = st.session_state.labores_db.get(user_activo, {"labores": [], "cosechas": []})
-    
-    c_tabl1, c_tabl2 = st.columns(2)
-    with c_tabl1:
-        st.markdown("#### 🚜 Labores registradas:")
-        if datos_lab_all.get("labores"):
-            st.dataframe(pd.DataFrame(datos_lab_all["labores"]), use_container_width=True, hide_index=True)
+                b_guarda_cosecha = st.form_submit_button("💾 GUARDAR REGISTRO DE COSECHA", use_container_width=True, type="primary")
+                if b_guarda_cosecha:
+                    if user_activo not in st.session_state.labores_db:
+                        st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
+                    
+                    reg_c = {
+                        "Fecha": str(fecha_cos),
+                        "Cultivo": tipo_cultivo,
+                        "Parcela": nombre_parcela,
+                        "Kilos": kilos_totales,
+                        "Rdto (kg/ha)": round(rendimiento_ha, 1),
+                        "Calidad": calidad_param,
+                        "Comprador": comprador_dest,
+                        "Precio (€/kg)": precio_kilo_venta,
+                        "Total (€)": round(ingreso_bruto, 2)
+                    }
+                    st.session_state.labores_db[user_activo]["cosechas"].append(reg_c)
+                    guardar_json(LABORES_FILE, st.session_state.labores_db)
+                    st.success("¡Cosecha guardada!")
+                    st.rerun()
+
+        st.markdown("### 📋 Histórico de Labores y Cosechas:")
+        datos_lab_all = st.session_state.labores_db.get(user_activo, {"labores": [], "cosechas": []})
+        c_tabl1, c_tabl2 = st.columns(2)
+        with c_tabl1:
+            st.markdown("#### 🚜 Labores registradas:")
+            if datos_lab_all.get("labores"):
+                st.dataframe(pd.DataFrame(datos_lab_all["labores"]), use_container_width=True, hide_index=True)
+            else:
+                st.caption("Sin labores aún.")
+        with c_tabl2:
+            st.markdown("#### 🍇 Cosechas registradas:")
+            if datos_lab_all.get("cosechas"):
+                st.dataframe(pd.DataFrame(datos_lab_all["cosechas"]), use_container_width=True, hide_index=True)
+            else:
+                st.caption("Sin cosechas aún.")
+
+    # SECCIÓN 5: BOT WHATSAPP
+    elif "Bot de alertas" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Alertas vinculadas a: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
+
+        if "Viña" in tipo_cultivo:
+            riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
         else:
-            st.caption("Sin labores aún.")
-    with c_tabl2:
-        st.markdown("#### 🍇 Cosechas registradas:")
-        if datos_lab_all.get("cosechas"):
-            st.dataframe(pd.DataFrame(datos_lab_all["cosechas"]), use_container_width=True, hide_index=True)
-        else:
-            st.caption("Sin cosechas aún.")
+            riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
 
-# ==============================================================================
-# SECCIÓN 5: BOT WHATSAPP
-# ==============================================================================
-elif "Bot de alertas" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Alertas vinculadas a: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
+        semaforo_estado_txt = "🟢 ÓPTIMO PARA SULFATAR" if (viento_hoy <= 15 and lluvia_hoy <= 2.0 and max_hoy < 32) else "🔴 NO RECOMENDADO SULFATAR"
 
-    if "Viña" in tipo_cultivo:
-        riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
-    else:
-        riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
-
-    semaforo_estado_txt = "🟢 ÓPTIMO PARA SULFATAR" if (viento_hoy <= 15 and lluvia_hoy <= 2.0 and max_hoy < 32) else "🔴 NO RECOMENDADO SULFATAR"
-
-    msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
+        msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
 📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
 
 {semaforo_estado_txt}
@@ -771,301 +766,292 @@ elif "Bot de alertas" in seccion_activa:
 🌧️ *Lluvia:* {lluvia_hoy:.1f} mm
 🛡️ *Estado:* {riesgo_txt}"""
 
-    msg_helada = f"""🚨 *¡ALERTA ROJA POR HELADA!*
+        msg_helada = f"""🚨 *¡ALERTA ROJA POR HELADA!*
 📍 *Parcela:* {nombre_parcela}
 
 ⚠️ *Riesgo Inminente:* Previsión de temperatura crítica de *{min_hoy:.1f}°C*.
 🛡️ *Acción:* Activar medidas antihelada inmediatamente."""
 
-    if st.button("📲 DISPARAR PARTE MATUTINO", use_container_width=True, type="primary"):
-        if not user_apikey:
-            st.error("No tienes configurada tu APIKey de WhatsApp.")
-        else:
-            ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_parte)
-            if ok:
-                st.success(res)
+        if st.button("📲 DISPARAR PARTE MATUTINO", use_container_width=True, type="primary"):
+            if not user_apikey:
+                st.error("No tienes configurada tu APIKey de WhatsApp.")
             else:
-                st.error(res)
+                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_parte)
+                if ok:
+                    st.success(res)
+                else:
+                    st.error(res)
 
-    if st.button("🚨 DISPARAR ALERTA HELADA", use_container_width=True):
-        if not user_apikey:
-            st.error("No tienes configurada tu APIKey de WhatsApp.")
-        else:
-            ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_helada)
-            if ok:
-                st.warning("¡Alerta enviada!")
+        if st.button("🚨 DISPARAR ALERTA HELADA", use_container_width=True):
+            if not user_apikey:
+                st.error("No tienes configurada tu APIKey de WhatsApp.")
             else:
-                st.error(res)
+                ok, res = disparar_whatsapp_servidor(user_telefono, user_apikey, msg_helada)
+                if ok:
+                    st.warning("¡Alerta enviada!")
+                else:
+                    st.error(res)
 
-# ==============================================================================
-# SECCIÓN 6: GESTIÓN DE FINCAS Y SATÉLITE
-# ==============================================================================
-elif "Gestión de mis fincas" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Fincas ({tipo_cultivo})</h2>", unsafe_allow_html=True)
-    
-    fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
-    
-    if not fincas_actuales:
-        st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos para añadir la primera:")
+    # SECCIÓN 6: GESTIÓN DE FINCAS
+    elif "Gestión de mis fincas" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Fincas ({tipo_cultivo})</h2>", unsafe_allow_html=True)
+        fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
         
-        with st.form("form_alta_primera_finca"):
-            nom_finca = st.text_input("Nombre de la Parcela:", value="Mi Parcela 1")
-            c_lat, c_lon = st.columns(2)
-            with c_lat:
-                lat_finca = st.number_input("Latitud decimal:", value=42.4658, format="%.4f")
-            with c_lon:
-                lon_finca = st.number_input("Longitud decimal:", value=-2.4499, format="%.4f")
-            
-            c_var, c_ha = st.columns(2)
-            with c_var:
-                var_finca = st.text_input("Variedad:", value="Tempranillo")
-            with c_ha:
-                ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
-
-            c_pol, c_parc = st.columns(2)
-            with c_pol:
-                pol_finca = st.text_input("Polígono SIGPAC:", value="12")
-            with c_parc:
-                parc_finca = st.text_input("Parcela SIGPAC:", value="104")
-            
-            c_suelo, c_riego = st.columns(2)
-            with c_suelo:
-                suelo_finca = st.selectbox("Tipo de suelo:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-            with c_riego:
-                riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
-
-            btn_crear_primera = st.form_submit_button("💾 CREAR Y GUARDAR ESTA PARCELA", use_container_width=True, type="primary")
-
-            if btn_crear_primera and nom_finca.strip():
-                if user_activo not in st.session_state.db_privada:
-                    st.session_state.db_privada[user_activo] = {}
-                if tipo_cultivo not in st.session_state.db_privada[user_activo]:
-                    st.session_state.db_privada[user_activo][tipo_cultivo] = {}
-
-                st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
-                    "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca,
-                    "poligono": pol_finca, "parcela": parc_finca, "riego": riego_finca
-                }
-                guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                st.success(f"¡Parcela '{nom_finca}' creada y guardada con éxito!")
-                st.rerun()
-
-    else:
-        modo_finca = st.radio("Acción en Fincas:", ["✏️ Modificar o Eliminar Finca Existente", "➕ Añadir Nueva Finca"], label_visibility="collapsed")
-        
-        if "Modificar o Eliminar" in modo_finca:
-            finca_a_editar = st.selectbox("Selecciona la finca a editar:", list(fincas_actuales.keys()))
-            datos_f = fincas_actuales[finca_a_editar]
-            
-            suelos_lista = ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"]
-            suelo_index = suelos_lista.index(datos_f.get("suelo", "Cascajo / Pedregoso")) if datos_f.get("suelo") in suelos_lista else 0
-
-            riegos_lista = ["Secano", "Goteo", "Aspersión", "A pie / Inundación"]
-            riego_index = riegos_lista.index(datos_f.get("riego", "Secano")) if datos_f.get("riego") in riegos_lista else 0
-
-            with st.form("form_editar_finca"):
-                nuevo_nombre = st.text_input("Nombre finca:", value=finca_a_editar)
-                c_elat, c_elon = st.columns(2)
-                with c_elat:
-                    nueva_lat = st.number_input("Latitud:", value=float(datos_f["lat"]), format="%.4f")
-                with c_elon:
-                    nueva_lon = st.number_input("Longitud:", value=float(datos_f["lon"]), format="%.4f")
-                
-                c_evar, c_eha = st.columns(2)
-                with c_evar:
-                    nueva_var = st.text_input("Variedad:", value=datos_f.get("variedad", "Tempranillo"))
-                with c_eha:
-                    nueva_ha = st.number_input("Superficie (ha):", value=float(datos_f["ha"]), min_value=0.1, step=0.5)
-
-                c_epol, c_eparc = st.columns(2)
-                with c_epol:
-                    nuevo_pol = st.text_input("Polígono SIGPAC:", value=datos_f.get("poligono", "-"))
-                with c_eparc:
-                    nuevo_parc = st.text_input("Parcela SIGPAC:", value=datos_f.get("parcela", "-"))
-                
-                c_esuelo, c_eriego = st.columns(2)
-                with c_esuelo:
-                    nuevo_suelo = st.selectbox("Suelo:", suelos_lista, index=suelo_index)
-                with c_eriego:
-                    nuevo_riego = st.selectbox("Riego:", riegos_lista, index=riego_index)
-                
-                c_btn_save, c_btn_del = st.columns(2)
-                with c_btn_save:
-                    guardar_edicion = st.form_submit_button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary")
-                with c_btn_del:
-                    borrar_finca = st.form_submit_button("🗑️ ELIMINAR FINCA", use_container_width=True)
-                
-                if guardar_edicion:
-                    if nuevo_nombre.strip() != finca_a_editar:
-                        del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
-                    st.session_state.db_privada[user_activo][tipo_cultivo][nuevo_nombre.strip()] = {
-                        "lat": nueva_lat, "lon": nueva_lon, "variedad": nueva_var, "suelo": nuevo_suelo, "ha": nueva_ha,
-                        "poligono": nuevo_pol, "parcela": nuevo_parc, "riego": nuevo_riego
-                    }
-                    guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                    st.success("¡Finca actualizada!")
-                    st.rerun()
-                    
-                if borrar_finca:
-                    del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
-                    guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                    st.warning("¡Finca eliminada!")
-                    st.rerun()
-
-            st.markdown(f"#### 🛰️ Vista Satelital de: **{finca_a_editar}**")
-            url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
-            st.markdown(f"""
-            <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
-                <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
-                    🚗 ABRIR EN APP DE GOOGLE MAPS (GPS)
-                </div>
-            </a>
-            """, unsafe_allow_html=True)
-            render_google_map(datos_f["lat"], datos_f["lon"], zoom=16, height=360)
-
-        else:
-            with st.form("form_alta_finca_extra"):
-                nom_finca = st.text_input("Nombre finca:", value="Parcela Nueva")
-                c_alat, c_alon = st.columns(2)
-                with c_alat:
+        if not fincas_actuales:
+            st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos para añadir la primera:")
+            with st.form("form_alta_primera_finca"):
+                nom_finca = st.text_input("Nombre de la Parcela:", value="Mi Parcela 1")
+                c_lat, c_lon = st.columns(2)
+                with c_lat:
                     lat_finca = st.number_input("Latitud decimal:", value=42.4658, format="%.4f")
-                with c_alon:
+                with c_lon:
                     lon_finca = st.number_input("Longitud decimal:", value=-2.4499, format="%.4f")
                 
-                c_avar, c_aha = st.columns(2)
-                with c_avar:
+                c_var, c_ha = st.columns(2)
+                with c_var:
                     var_finca = st.text_input("Variedad:", value="Tempranillo")
-                with c_aha:
+                with c_ha:
                     ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
 
-                c_apol, c_aparc = st.columns(2)
-                with c_apol:
-                    pol_finca = st.text_input("Polígono SIGPAC:", value="14")
-                with c_aparc:
-                    parc_finca = st.text_input("Parcela SIGPAC:", value="205")
-
-                c_asuelo, c_ariego = st.columns(2)
-                with c_asuelo:
-                    suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-                with c_ariego:
+                c_pol, c_parc = st.columns(2)
+                with c_pol:
+                    pol_finca = st.text_input("Polígono SIGPAC:", value="12")
+                with c_parc:
+                    parc_finca = st.text_input("Parcela SIGPAC:", value="104")
+                
+                c_suelo, c_riego = st.columns(2)
+                with c_suelo:
+                    suelo_finca = st.selectbox("Tipo de suelo:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
+                with c_riego:
                     riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
 
-                btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
+                btn_crear_primera = st.form_submit_button("💾 CREAR Y GUARDAR ESTA PARCELA", use_container_width=True, type="primary")
 
-                if btn_guardar_f and nom_finca.strip():
+                if btn_crear_primera and nom_finca.strip():
+                    if user_activo not in st.session_state.db_privada:
+                        st.session_state.db_privada[user_activo] = {}
+                    if tipo_cultivo not in st.session_state.db_privada[user_activo]:
+                        st.session_state.db_privada[user_activo][tipo_cultivo] = {}
+
                     st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
                         "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca,
                         "poligono": pol_finca, "parcela": parc_finca, "riego": riego_finca
                     }
                     guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                    st.success(f"¡Parcela '{nom_finca}' guardada!")
+                    st.success(f"¡Parcela '{nom_finca}' creada y guardada con éxito!")
                     st.rerun()
 
-        st.write("---")
-        st.markdown("### 📋 Resumen de Parcelas:")
-        tabla_fincas = [
-            {
-                "Parcela": k,
-                "Hectáreas": v["ha"],
-                "Variedad": v.get("variedad", "-"),
-                "Polígono": v.get("poligono", "-"),
-                "Parcela SIGPAC": v.get("parcela", "-"),
-                "Riego": v.get("riego", "Secano"),
-                "Terreno": v["suelo"]
-            }
-            for k, v in fincas_usuario.get(tipo_cultivo, {}).items()
-        ]
-        if tabla_fincas:
-            st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
-
-# ==============================================================================
-# SECCIÓN 7: LEYENDA Y FUENTES DE DATOS
-# ==============================================================================
-elif "Leyenda técnica" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="legend-card">
-        <div class="legend-header">🛰️ 1. Origen de los Datos Meteorológicos y Coordenadas</div>
-        <div class="legend-body">
-            • <b>Open-Meteo API & Modelos Numéricos Europeos:</b> La previsión meteorológica se calcula en tiempo real para las coordenadas GPS exactas de cada parcela.<br>
-            • <b>Modelos integrados:</b> Combina los datos de alta precisión de <b>ECMWF</b> (Centro Europeo de Previsión Meteorológica), <b>ICON</b> (Servicio Alemán DWD) y <b>GFS / AEMET</b>.<br>
-            • <b>Google Maps Satellite:</b> Las imágenes aéreas proceden de las capas satelitales oficiales de Google Maps.
-        </div>
-    </div>
-
-    <div class="legend-card">
-        <div class="legend-header">🚦 2. Criterios Agronómicos del Semáforo de Tratamiento</div>
-        <div class="legend-body">
-            Las recomendaciones siguen la normativa del <b>Real Decreto 1311/2012 de Uso Sostenible de Productos Fitosanitarios</b> y la <b>Gestión Integrada de Plagas (GIP)</b>:<br><br>
-            • <b>💨 Viento > 15 km/h (Semáforo Rojo):</b> Límite técnico obligatorio. A partir de 15 km/h se produce deriva del producto hacia parcelas vecinas y pérdida de eficacia.<br>
-            • <b>🌧️ Lluvia prevista > 2.0 L/m² (Semáforo Rojo):</b> Riesgo de lavado. La mayoría de materias activas necesitan entre 2 y 4 horas sin agua para adherirse a la hoja.<br>
-            • <b>🌡️ Temperatura ≥ 32 °C (Semáforo Ámbar):</b> Riesgo de fitotoxicidad y evaporación instantánea de la gota antes de alcanzar la cutícula vegetal.<br>
-            • <b>🟢 Semáforo Verde (Óptimo):</b> Viento &le; 15 km/h, sin lluvia y temperatura suave (&lt; 32 °C). Condiciones idóneas para pulverizar.
-        </div>
-    </div>
-
-    <div class="legend-card">
-        <div class="legend-header">🛡️ 3. Modelos de Alerta Fitosanitaria y Hongos</div>
-        <div class="legend-body">
-            • <b>Mildiu (Viña):</b> Basado en la clásica <i>Regla de los 10</i> (temperatura media &ge; 10 °C coincidente con lluvias &ge; 10 mm en fase de brotación).<br>
-            • <b>Oídio (Viña / Frutal):</b> Alerta activa cuando las temperaturas superan los 26 °C en ambiente seco, rango de máxima esporulación.<br>
-            • <b>Riesgo de Helada:</b> Disparo de alerta roja de emergencia si la previsión mínima desciende a valores críticos (&le; 1 °C).
-        </div>
-    </div>
-
-    <div class="legend-card">
-        <div class="legend-header">🧪 4. Fórmulas de Calibración de la Cuba / Depósito</div>
-        <div class="legend-body">
-            • <b>Caldo total:</b> <code>Superficie (ha) × Gasto caldo (L/ha)</code><br>
-            • <b>Dosis concentrada:</b> <code>(Dosis / 100 L) × (Capacidad Depósito / 100)</code><br>
-            • <b>Dosis por hectárea:</b> <code>Dosis/ha × (Capacidad Depósito / Gasto caldo por ha)</code>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ==============================================================================
-# SECCIÓN 8: PANEL ADMINISTRADOR
-# ==============================================================================
-elif "Panel Administrador" in seccion_activa and user_activo == "admin":
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
-    
-    st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
-    todos_los_usuarios = list(st.session_state.usuarios_db.keys())
-    usuarios_borrables = [u for u in todos_los_usuarios if u != "admin"]
-    
-    if not usuarios_borrables:
-        st.info("No hay otros usuarios registrados en el sistema.")
-    else:
-        st.markdown("#### 🗑️ Eliminar una cuenta de usuario:")
-        usuario_a_borrar = st.selectbox("Selecciona el usuario que quieres eliminar:", usuarios_borrables)
-        datos_u_borrar = st.session_state.usuarios_db[usuario_a_borrar]
-        
-        st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}). Sus fincas, labores y cuaderno también se borrarán.")
-        
-        if st.button(f"❌ CONFIRMAR Y ELIMINAR A '{usuario_a_borrar}'", type="primary"):
-            del st.session_state.usuarios_db[usuario_a_borrar]
-            guardar_json(USERS_FILE, st.session_state.usuarios_db)
+        else:
+            modo_finca = st.radio("Acción en Fincas:", ["✏️ Modificar o Eliminar Finca Existente", "➕ Añadir Nueva Finca"], label_visibility="collapsed")
             
-            if usuario_a_borrar in st.session_state.db_privada:
-                del st.session_state.db_privada[usuario_a_borrar]
-                guardar_json(FINCAS_FILE, st.session_state.db_privada)
+            if "Modificar o Eliminar" in modo_finca:
+                finca_a_editar = st.selectbox("Selecciona la finca a editar:", list(fincas_actuales.keys()))
+                datos_f = fincas_actuales[finca_a_editar]
                 
-            if usuario_a_borrar in st.session_state.fitos_db:
-                del st.session_state.fitos_db[usuario_a_borrar]
-                guardar_json(FITOS_FILE, st.session_state.fitos_db)
-                
-            if usuario_a_borrar in st.session_state.labores_db:
-                del st.session_state.labores_db[usuario_a_borrar]
-                guardar_json(LABORES_FILE, st.session_state.labores_db)
-                
-            st.success(f"¡Usuario '{usuario_a_borrar}' y todos sus datos han sido eliminados por completo!")
-            st.rerun()
+                suelos_lista = ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"]
+                suelo_index = suelos_lista.index(datos_f.get("suelo", "Cascajo / Pedregoso")) if datos_f.get("suelo") in suelos_lista else 0
 
-    st.write("---")
-    st.markdown("### 👥 Todos los Usuarios Registrados:")
-    resumen_users = [
-        {"Usuario": k, "Nombre / Explotación": v.get("nombre", ""), "Teléfono": v.get("telefono", ""), "Tiene APIKey": "✅ Sí" if v.get("apikey") else "❌ No"}
-        for k, v in st.session_state.usuarios_db.items()
-    ]
-    st.dataframe(pd.DataFrame(resumen_users), use_container_width=True, hide_index=True)
+                riegos_lista = ["Secano", "Goteo", "Aspersión", "A pie / Inundación"]
+                riego_index = riegos_lista.index(datos_f.get("riego", "Secano")) if datos_f.get("riego") in riegos_lista else 0
+
+                with st.form("form_editar_finca"):
+                    nuevo_nombre = st.text_input("Nombre finca:", value=finca_a_editar)
+                    c_elat, c_elon = st.columns(2)
+                    with c_elat:
+                        nueva_lat = st.number_input("Latitud:", value=float(datos_f["lat"]), format="%.4f")
+                    with c_elon:
+                        nueva_lon = st.number_input("Longitud:", value=float(datos_f["lon"]), format="%.4f")
+                    
+                    c_evar, c_eha = st.columns(2)
+                    with c_evar:
+                        nueva_var = st.text_input("Variedad:", value=datos_f.get("variedad", "Tempranillo"))
+                    with c_eha:
+                        nueva_ha = st.number_input("Superficie (ha):", value=float(datos_f["ha"]), min_value=0.1, step=0.5)
+
+                    c_epol, c_eparc = st.columns(2)
+                    with c_epol:
+                        nuevo_pol = st.text_input("Polígono SIGPAC:", value=datos_f.get("poligono", "-"))
+                    with c_eparc:
+                        nuevo_parc = st.text_input("Parcela SIGPAC:", value=datos_f.get("parcela", "-"))
+                    
+                    c_esuelo, c_eriego = st.columns(2)
+                    with c_esuelo:
+                        nuevo_suelo = st.selectbox("Suelo:", suelos_lista, index=suelo_index)
+                    with c_eriego:
+                        nuevo_riego = st.selectbox("Riego:", riegos_lista, index=riego_index)
+                    
+                    c_btn_save, c_btn_del = st.columns(2)
+                    with c_btn_save:
+                        guardar_edicion = st.form_submit_button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary")
+                    with c_btn_del:
+                        borrar_finca = st.form_submit_button("🗑️ ELIMINAR FINCA", use_container_width=True)
+                    
+                    if guardar_edicion:
+                        if nuevo_nombre.strip() != finca_a_editar:
+                            del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
+                        st.session_state.db_privada[user_activo][tipo_cultivo][nuevo_nombre.strip()] = {
+                            "lat": nueva_lat, "lon": nueva_lon, "variedad": nueva_var, "suelo": nuevo_suelo, "ha": nueva_ha,
+                            "poligono": nuevo_pol, "parcela": nuevo_parc, "riego": nuevo_riego
+                        }
+                        guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                        st.success("¡Finca actualizada!")
+                        st.rerun()
+                        
+                    if borrar_finca:
+                        del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
+                        guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                        st.warning("¡Finca eliminada!")
+                        st.rerun()
+
+                st.markdown(f"#### 🛰️ Vista Satelital de: **{finca_a_editar}**")
+                url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
+                st.markdown(f"""
+                <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
+                    <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
+                        🚗 ABRIR EN APP DE GOOGLE MAPS (GPS)
+                    </div>
+                </a>
+                """, unsafe_allow_html=True)
+                render_google_map(datos_f["lat"], datos_f["lon"], zoom=16, height=360)
+
+            else:
+                with st.form("form_alta_finca_extra"):
+                    nom_finca = st.text_input("Nombre finca:", value="Parcela Nueva")
+                    c_alat, c_alon = st.columns(2)
+                    with c_alat:
+                        lat_finca = st.number_input("Latitud decimal:", value=42.4658, format="%.4f")
+                    with c_alon:
+                        lon_finca = st.number_input("Longitud decimal:", value=-2.4499, format="%.4f")
+                    
+                    c_avar, c_aha = st.columns(2)
+                    with c_avar:
+                        var_finca = st.text_input("Variedad:", value="Tempranillo")
+                    with c_aha:
+                        ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
+
+                    c_apol, c_aparc = st.columns(2)
+                    with c_apol:
+                        pol_finca = st.text_input("Polígono SIGPAC:", value="14")
+                    with c_aparc:
+                        parc_finca = st.text_input("Parcela SIGPAC:", value="205")
+
+                    c_asuelo, c_ariego = st.columns(2)
+                    with c_asuelo:
+                        suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
+                    with c_ariego:
+                        riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
+
+                    btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
+
+                    if btn_guardar_f and nom_finca.strip():
+                        st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
+                            "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca,
+                            "poligono": pol_finca, "parcela": parc_finca, "riego": riego_finca
+                        }
+                        guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                        st.success(f"¡Parcela '{nom_finca}' guardada!")
+                        st.rerun()
+
+            st.markdown("### 📋 Resumen de Parcelas:")
+            tabla_fincas = [
+                {
+                    "Parcela": k,
+                    "Hectáreas": v["ha"],
+                    "Variedad": v.get("variedad", "-"),
+                    "Polígono": v.get("poligono", "-"),
+                    "Parcela SIGPAC": v.get("parcela", "-"),
+                    "Riego": v.get("riego", "Secano"),
+                    "Terreno": v["suelo"]
+                }
+                for k, v in fincas_usuario.get(tipo_cultivo, {}).items()
+            ]
+            if tabla_fincas:
+                st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
+
+    # SECCIÓN 7: LEYENDA Y FUENTES
+    elif "Leyenda técnica" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="legend-card">
+            <div class="legend-header">🛰️ 1. Origen de los Datos Meteorológicos y Coordenadas</div>
+            <div class="legend-body">
+                • <b>Open-Meteo API & Modelos Numéricos Europeos:</b> La previsión meteorológica se calcula en tiempo real para las coordenadas GPS exactas de cada parcela.<br>
+                • <b>Modelos integrados:</b> Combina los datos de alta precisión de <b>ECMWF</b> (Centro Europeo de Previsión Meteorológica), <b>ICON</b> (Servicio Alemán DWD) y <b>GFS / AEMET</b>.<br>
+                • <b>Google Maps Satellite:</b> Las imágenes aéreas proceden de las capas satelitales oficiales de Google Maps.
+            </div>
+        </div>
+
+        <div class="legend-card">
+            <div class="legend-header">🚦 2. Criterios Agronómicos del Semáforo de Tratamiento</div>
+            <div class="legend-body">
+                Las recomendaciones siguen la normativa del <b>Real Decreto 1311/2012 de Uso Sostenible de Productos Fitosanitarios</b> y la <b>Gestión Integrada de Plagas (GIP)</b>:<br><br>
+                • <b>💨 Viento > 15 km/h (Semáforo Rojo):</b> Límite técnico obligatorio para evitar deriva foliar.<br>
+                • <b>🌧️ Lluvia prevista > 2.0 L/m² (Semáforo Rojo):</b> Riesgo de lavado.<br>
+                • <b>🌡️ Temperatura ≥ 32 °C (Semáforo Ámbar):</b> Riesgo de fitotoxicidad.<br>
+                • <b>🟢 Semáforo Verde (Óptimo):</b> Viento &le; 15 km/h, sin lluvia y temperatura suave.
+            </div>
+        </div>
+
+        <div class="legend-card">
+            <div class="legend-header">🛡️ 3. Modelos de Alerta Fitosanitaria y Hongos</div>
+            <div class="legend-body">
+                • <b>Mildiu (Viña):</b> Regla de los 10 (temperatura media &ge; 10 °C y lluvias &ge; 10 mm).<br>
+                • <b>Oídio:</b> Alerta activa cuando las temperaturas superan los 26 °C en ambiente seco.<br>
+                • <b>Riesgo de Helada:</b> Alerta roja si la mínima desciende a &le; 1 °C.
+            </div>
+        </div>
+
+        <div class="legend-card">
+            <div class="legend-header">🧪 4. Fórmulas de Calibración de la Cuba / Depósito</div>
+            <div class="legend-body">
+                • <b>Caldo total:</b> <code>Superficie (ha) × Gasto caldo (L/ha)</code><br>
+                • <b>Dosis concentrada:</b> <code>(Dosis / 100 L) × (Capacidad Depósito / 100)</code><br>
+                • <b>Dosis por hectárea:</b> <code>Dosis/ha × (Capacidad Depósito / Gasto caldo por ha)</code>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # SECCIÓN 8: PANEL ADMINISTRADOR
+    elif "Panel Administrador" in seccion_activa and user_activo == "admin":
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
+        
+        st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
+        todos_los_usuarios = list(st.session_state.usuarios_db.keys())
+        usuarios_borrables = [u for u in todos_los_usuarios if u != "admin"]
+        
+        if not usuarios_borrables:
+            st.info("No hay otros usuarios registrados en el sistema.")
+        else:
+            st.markdown("#### 🗑️ Eliminar una cuenta de usuario:")
+            usuario_a_borrar = st.selectbox("Selecciona el usuario que quieres eliminar:", usuarios_borrables)
+            datos_u_borrar = st.session_state.usuarios_db[usuario_a_borrar]
+            
+            st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}).")
+            
+            if st.button(f"❌ CONFIRMAR Y ELIMINAR A '{usuario_a_borrar}'", type="primary"):
+                del st.session_state.usuarios_db[usuario_a_borrar]
+                guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                
+                if usuario_a_borrar in st.session_state.db_privada:
+                    del st.session_state.db_privada[usuario_a_borrar]
+                    guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    
+                if usuario_a_borrar in st.session_state.fitos_db:
+                    del st.session_state.fitos_db[usuario_a_borrar]
+                    guardar_json(FITOS_FILE, st.session_state.fitos_db)
+                    
+                if usuario_a_borrar in st.session_state.labores_db:
+                    del st.session_state.labores_db[usuario_a_borrar]
+                    guardar_json(LABORES_FILE, st.session_state.labores_db)
+                    
+                st.success(f"¡Usuario '{usuario_a_borrar}' eliminado!")
+                st.rerun()
+
+        st.write("---")
+        st.markdown("### 👥 Todos los Usuarios Registrados:")
+        resumen_users = [
+            {"Usuario": k, "Nombre / Explotación": v.get("nombre", ""), "Teléfono": v.get("telefono", ""), "Tiene APIKey": "✅ Sí" if v.get("apikey") else "❌ No"}
+            for k, v in st.session_state.usuarios_db.items()
+        ]
+        st.dataframe(pd.DataFrame(resumen_users), use_container_width=True, hide_index=True)
