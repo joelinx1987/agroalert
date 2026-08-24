@@ -11,137 +11,339 @@ import json
 import hashlib
 
 st.set_page_config(
-    page_title="AgroAlert Pro | Smart Farming Suite",
-    page_icon="🌱",
+    page_title="AgroAlert Pro | Cuaderno de Campo Inteligente",
+    page_icon="🌾",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS PROFESIONAL AGTECH ---
+# --- CSS: SISTEMA DE DISEÑO "CUADERNO DE CAMPO" ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    :root {
+        --bg: #F6F1E4;
+        --bg-card: #FFFDF8;
+        --ink: #241F17;
+        --ink-soft: #6E6350;
+        --border: #E2D6BC;
+        --green-deep: #2C4A2A;
+        --green: #4B7A3E;
+        --green-soft: #E7EEDE;
+        --gold: #C1932C;
+        --gold-soft: #F5E9C4;
+        --amber: #B5720A;
+        --amber-deep: #8F5A06;
+        --red: #A83228;
+        --red-deep: #82241C;
+    }
 
     html, body, [class*="css"], [class*="st-"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-    
+
+    h1, h2, h3 { font-family: 'Fraunces', serif !important; }
+
     .stApp {
-        background-color: #f8fafc;
-        color: #0f172a;
+        background-color: var(--bg);
+        color: var(--ink);
+        background-image: radial-gradient(circle at 1px 1px, rgba(36,31,23,0.05) 1px, transparent 0);
+        background-size: 22px 22px;
     }
-    
+
+    /* Cabecera de la explotación */
     .top-badge-container {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        background: linear-gradient(135deg, var(--green-deep) 0%, #1F3A1D 100%);
         border-radius: 20px;
-        padding: 20px 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
-        color: #ffffff;
+        padding: 22px 26px;
+        margin-bottom: 22px;
+        box-shadow: 0 12px 28px -8px rgba(44, 74, 42, 0.35);
+        color: #FBF7EA;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
         border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
+    /* Navegación en mosaico */
     div[data-testid="stRadio"] > div {
         display: flex !important;
-        flex-direction: column !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
         gap: 10px !important;
     }
-    
+
     div[data-testid="stRadio"] label {
-        background: #ffffff !important;
-        border: 1.5px solid #e2e8f0 !important;
-        border-radius: 16px !important;
-        padding: 16px 20px !important;
-        width: 100% !important;
+        background: var(--bg-card) !important;
+        border: 1.5px solid var(--border) !important;
+        border-radius: 14px !important;
+        padding: 15px 12px !important;
+        flex: 1 1 155px !important;
+        min-width: 145px !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02) !important;
-        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 6px rgba(36, 31, 23, 0.05) !important;
+        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-    
+
     div[data-testid="stRadio"] label:hover {
-        border-color: #10b981 !important;
-        background: #f0fdf4 !important;
+        border-color: var(--green) !important;
+        background: var(--green-soft) !important;
         transform: translateY(-2px);
+        box-shadow: 0 8px 16px -4px rgba(75, 122, 62, 0.18) !important;
+    }
+
+    div[data-testid="stRadio"] label:has(input:checked) {
+        border-color: var(--green) !important;
+        background: var(--green-soft) !important;
+        box-shadow: 0 4px 12px rgba(75, 122, 62, 0.2) !important;
     }
 
     div[data-testid="stRadio"] label div p {
-        font-size: 1.05rem !important;
+        font-size: 0.98rem !important;
         font-weight: 700 !important;
-        color: #1e293b !important;
+        color: var(--ink) !important;
+        letter-spacing: -0.01em !important;
+        text-align: center !important;
     }
 
+    /* Aviso de semáforo */
     .traffic-banner {
-        border-radius: 20px;
-        padding: 24px;
-        margin-bottom: 24px;
+        border-radius: 18px;
+        padding: 24px 26px;
+        margin-bottom: 22px;
         display: flex;
         flex-direction: column;
         gap: 6px;
-        border-left: 8px solid;
+        color: #FFFDF8;
+        box-shadow: 0 14px 28px -10px rgba(36, 31, 23, 0.3);
     }
-    
-    .traffic-green { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left-color: #059669; color: #064e3b; }
-    .traffic-amber { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left-color: #d97706; color: #78350f; }
-    .traffic-red { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left-color: #dc2626; color: #7f1d1d; }
 
-    .traffic-title { font-size: 1.45rem; font-weight: 900; }
-    .traffic-sub { font-size: 1.05rem; font-weight: 600; opacity: 0.95; }
+    .traffic-green { background: linear-gradient(135deg, #3E6B37 0%, var(--green-deep) 100%); }
+    .traffic-amber { background: linear-gradient(135deg, var(--amber) 0%, var(--amber-deep) 100%); }
+    .traffic-red   { background: linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%); }
 
+    .traffic-title {
+        font-family: 'Fraunces', serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+    }
+
+    .traffic-sub {
+        font-size: 1.02rem;
+        font-weight: 500;
+        opacity: 0.95;
+    }
+
+    /* Instrumentos tipo aforador de campo */
+    .instrument-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+
+    .instrument {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px 18px;
+        flex: 1 1 240px;
+        box-shadow: 0 4px 10px rgba(36, 31, 23, 0.04);
+    }
+
+    .instrument-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+    }
+
+    .instrument-label {
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ink-soft);
+    }
+
+    .instrument-value {
+        font-family: 'Fraunces', serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--ink);
+    }
+
+    .instrument-value small {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--ink-soft);
+    }
+
+    .instrument-track {
+        position: relative;
+        height: 12px;
+        background: #EDE6D3;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+    }
+
+    .instrument-fill {
+        position: absolute;
+        top: 0; left: 0; height: 100%;
+        border-radius: 99px;
+    }
+
+    .instrument-fill.ok   { background: linear-gradient(90deg, #5B8C4C, var(--green-deep)); }
+    .instrument-fill.warn { background: linear-gradient(90deg, #D89A2E, var(--amber-deep)); }
+    .instrument-fill.bad  { background: linear-gradient(90deg, #C1483C, var(--red-deep)); }
+
+    .instrument-threshold {
+        position: absolute;
+        top: -4px;
+        width: 2px;
+        height: 20px;
+        background: var(--ink);
+        opacity: 0.5;
+    }
+
+    .instrument-scale {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.7rem;
+        color: var(--ink-soft);
+        font-weight: 600;
+        margin-top: 6px;
+    }
+
+    /* Tarjetas métricas */
     .metric-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 18px;
-        padding: 20px 18px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 16px;
         text-align: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        margin-bottom: 14px;
+        box-shadow: 0 4px 10px rgba(36, 31, 23, 0.04);
+        margin-bottom: 12px;
+        transition: transform 0.2s ease;
     }
-    
-    .metric-title { font-size: 0.85rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
-    .metric-val { font-size: 2.1rem; font-weight: 900; color: #0f172a; margin-top: 6px; }
-    .metric-unit { font-size: 1rem; font-weight: 700; color: #94a3b8; }
 
+    .metric-card:hover { transform: translateY(-3px); }
+
+    .metric-title {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: var(--ink-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .metric-val {
+        font-family: 'Fraunces', serif;
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: var(--ink);
+        margin-top: 6px;
+        letter-spacing: -0.01em;
+    }
+
+    .metric-unit {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--ink-soft);
+    }
+
+    /* Receta de tratamiento */
     .recipe-card {
-        background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+        background: linear-gradient(135deg, var(--green-deep) 0%, #1F3A1D 100%);
         border-radius: 22px;
         padding: 26px;
-        color: #ffffff;
+        color: #FBF7EA;
+        box-shadow: 0 16px 30px -8px rgba(44, 74, 42, 0.35);
         margin-top: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    
+
     .recipe-tag {
-        background: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.16);
         padding: 6px 14px;
         border-radius: 9999px;
         font-size: 0.85rem;
         font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
         display: inline-block;
         margin-bottom: 14px;
     }
-    
-    .recipe-amount { font-size: 2.5rem; font-weight: 900; line-height: 1.1; }
 
+    .recipe-amount {
+        font-family: 'Fraunces', serif;
+        font-size: 2.4rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        line-height: 1.15;
+    }
+
+    /* Tarjetas de leyenda */
+    .legend-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 10px rgba(36, 31, 23, 0.04);
+    }
+
+    .legend-title {
+        font-family: 'Fraunces', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--green-deep);
+        margin-bottom: 8px;
+    }
+
+    .legend-desc {
+        font-size: 0.95rem;
+        color: var(--ink);
+        line-height: 1.55;
+    }
+
+    /* Guía de Registro */
     .guide-card {
-        background: #ffffff;
-        border: 2px solid #22c55e;
+        background: var(--bg-card);
+        border: 2px solid var(--green);
         border-radius: 18px;
         padding: 20px 22px;
         margin-bottom: 22px;
-        box-shadow: 0 8px 20px -4px rgba(34, 197, 94, 0.15);
+        box-shadow: 0 8px 20px -4px rgba(75, 122, 62, 0.15);
     }
 
+    /* Botones */
     .stButton > button {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-        color: #ffffff !important;
+        background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%) !important;
+        color: #FBF7EA !important;
         font-weight: 800 !important;
-        font-size: 1.05rem !important;
+        font-size: 1.03rem !important;
         border: none !important;
+        border-radius: 13px !important;
+        padding: 15px 20px !important;
+        box-shadow: 0 6px 16px rgba(44, 74, 42, 0.22) !important;
+        transition: all 0.18s ease !important;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 20px rgba(44, 74, 42, 0.3) !important;
+    }
+
+    div[data-baseweb="input"], div[data-baseweb="select"], div[data-baseweb="textarea"] {
+        border-radius: 12px !important;
+    }
+
+    div[data-testid="stDataFrame"] {
+        border: 1px solid var(--border) !important;
         border-radius: 14px !important;
-        padding: 14px 20px !important;
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25) !important;
+        overflow: hidden !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -183,7 +385,7 @@ def guardar_json(archivo, datos):
 def render_google_map(latitud, longitud, zoom=16, height=380):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 20px; overflow: hidden; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);">
+    <div style="border-radius: 20px; overflow: hidden; border: 2px solid #E2D6BC; box-shadow: 0 10px 25px -5px rgba(36,31,23,0.15);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -191,9 +393,9 @@ def render_google_map(latitud, longitud, zoom=16, height=380):
 
 def render_copy_box(texto_a_copiar):
     html_code = f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0;">
-        <span id="target-text" style="font-style: italic; font-size: 1rem; color: #0f172a; font-weight: 600;">{texto_a_copiar}</span>
-        <button onclick="copiarAlPortapapeles()" style="background: #10b981; color: #ffffff; border: none; border-radius: 8px; padding: 6px 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFDF8; border: 1.5px solid #E2D6BC; border-radius: 12px; padding: 12px 14px; margin: 8px 0 12px 0;">
+        <span id="target-text" style="font-style: italic; font-size: 1rem; color: #241F17; font-weight: 600;">{texto_a_copiar}</span>
+        <button onclick="copiarAlPortapapeles()" style="background: #4B7A3E; color: #FFFDF8; border: none; border-radius: 8px; padding: 7px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">
             <span id="btn-label">📋 Copiar texto</span>
         </button>
     </div>
@@ -209,7 +411,28 @@ def render_copy_box(texto_a_copiar):
     }}
     </script>
     """
-    components.html(html_code, height=62)
+    components.html(html_code, height=66)
+
+def instrumento_html(icono, etiqueta, valor, unidad, maximo, umbral, decimales=1):
+    valor_clamp = max(0, min(valor, maximo))
+    pct = (valor_clamp / maximo) * 100 if maximo > 0 else 0
+    umbral_pct = (umbral / maximo) * 100 if maximo > 0 else 0
+    estado = "bad" if valor > umbral else "ok"
+    return f"""
+    <div class="instrument">
+        <div class="instrument-head">
+            <span class="instrument-label">{icono} {etiqueta}</span>
+            <span class="instrument-value">{valor:.{decimales}f}<small> {unidad}</small></span>
+        </div>
+        <div class="instrument-track">
+            <div class="instrument-fill {estado}" style="width:{pct:.0f}%;"></div>
+            <div class="instrument-threshold" style="left:{umbral_pct:.0f}%;"></div>
+        </div>
+        <div class="instrument-scale">
+            <span>0</span><span>límite {umbral:g}</span><span>{maximo:g}</span>
+        </div>
+    </div>
+    """
 
 DEFAULT_USERS = {
     "admin": {
@@ -247,7 +470,7 @@ def disparar_whatsapp_servidor(telefono, apikey, mensaje):
         num_limpio = normalizar_telefono(telefono)
         texto_encoded = urllib.parse.quote(mensaje)
         url = f"https://api.callmebot.com/whatsapp.php?phone={num_limpio}&text={texto_encoded}&apikey={apikey.strip()}"
-        
+
         req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
         with urllib.request.urlopen(req, timeout=10) as resp:
             res_body = resp.read().decode('utf-8', errors='ignore')
@@ -267,16 +490,16 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <div style="font-size: 3.6rem; margin-bottom: 6px;">🌱</div>
-            <h1 style="font-size: 2.3rem; font-weight: 900; color: #0f172a; margin: 0;">AgroAlert Pro</h1>
-            <p style="font-size: 1.1rem; color: #64748b; font-weight: 600; margin-top: 4px;">Suite Agrícola y Bot de Avisos por WhatsApp</p>
+        <div style="text-align: center; margin-bottom: 26px;">
+            <div style="font-size: 3.6rem; margin-bottom: 4px; filter: drop-shadow(0 8px 16px rgba(44,74,42,0.25));">🌾</div>
+            <h1 style="font-family:'Fraunces', serif; font-size: 2.3rem; font-weight: 800; color: var(--ink); margin: 0; letter-spacing: -0.02em;">AgroAlert Pro</h1>
+            <p style="font-size: 1.05rem; color: var(--ink-soft); font-weight: 600; margin-top: 6px;">Tu cuaderno de campo y avisos por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
         modo_acceso = st.radio("Acceso:", ["🔑 Iniciar Sesión", "📝 Registrar Explotación y Activar Bot"], label_visibility="collapsed")
         st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
-        
+
         if "Iniciar Sesión" in modo_acceso:
             with st.form("form_auth"):
                 u = st.text_input("Usuario", value="admin").strip().lower()
@@ -290,15 +513,15 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
-            # TARJETA CON INSTRUCCIONES CLARAS, NÚMERO Y BOTÓN DE COPIADO
+            # GUÍA PASO A PASO CON NÚMERO Y COPIADO
             st.markdown("""
             <div class="guide-card">
-                <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 8px;">
+                <div style="font-size: 1.1rem; font-weight: 900; color: var(--green-deep); margin-bottom: 8px;">
                     🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
                 </div>
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.55;">
-                    <b>1.</b> Abre un chat en WhatsApp con el número oficial del bot: 
-                    <span style="background: #e2e8f0; color: #0f172a; font-weight: 800; padding: 2px 8px; border-radius: 6px;">+34 623 91 22 04</span><br>
+                <div style="font-size: 0.95rem; color: var(--ink); line-height: 1.55;">
+                    <b>1.</b> Abre un chat en WhatsApp con el número del bot: 
+                    <span style="background: var(--gold-soft); color: var(--ink); font-weight: 800; padding: 3px 8px; border-radius: 6px;">+34 623 91 22 04</span><br>
                     <b>2.</b> Envía este mensaje exacto:
                 </div>
             </div>
@@ -309,30 +532,30 @@ if not st.session_state.usuario_autenticado:
             st.markdown("""
             <div style="margin-top: -10px; margin-bottom: 16px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #22c55e; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);">
+                    <div style="background-color: var(--green); color: #FFFDF8; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(75, 122, 62, 0.3);">
                         📲 TOCAR AQUÍ PARA ABRIR WHATSAPP AUTOMÁTICAMENTE
                     </div>
                 </a>
-                <p style="font-size: 0.88rem; color: #64748b; margin-top: 8px; text-align: center;">
-                    <b>3.</b> El bot te contestará con tu número de <b>apikey</b>. Pégalo a continuación:
+                <p style="font-size: 0.88rem; color: var(--ink-soft); margin-top: 8px; text-align: center;">
+                    <b>3.</b> El bot te responderá con tu número de <b>apikey</b>. Pégalo en el formulario:
                 </p>
             </div>
             """, unsafe_allow_html=True)
 
             with st.form("form_reg"):
                 nu = st.text_input("Usuario (ej: jgarcia)").strip()
-                nn = st.text_input("Nombre de Explotación (ej: Bodega San Juan)").strip()
-                ntel = st.text_input("📱 Teléfono Móvil (ej: +34 612 34 56 78)").strip()
-                napi = st.text_input("🔑 APIKey WhatsApp (el código numérico que te respondió el bot)").strip()
+                nn = st.text_input("Nombre de Explotación / Finca").strip()
+                ntel = st.text_input("📱 Teléfono Móvil (+34)").strip()
+                napi = st.text_input("🔑 APIKey WhatsApp (código recibido del bot)").strip()
                 np = st.text_input("Contraseña", type="password")
-                
+
                 b_up = st.form_submit_button("🚀 CREAR CUENTA Y ENTRAR", use_container_width=True)
                 if b_up:
                     nu_clean = nu.lower()
                     tel_clean = normalizar_telefono(ntel) if ntel else ""
-                    
+
                     if not nu_clean or not np.strip() or not ntel or not napi:
-                        st.error("Por favor, rellena todos los campos incluyendo la APIKey de WhatsApp.")
+                        st.error("Rellena todos los campos incluyendo la APIKey de WhatsApp.")
                     elif any(k.lower() == nu_clean for k in st.session_state.usuarios_db.keys()):
                         st.error(f"El usuario '{nu}' ya existe.")
                     elif any(normalizar_telefono(u_data.get("telefono", "")) == tel_clean for u_data in st.session_state.usuarios_db.values() if u_data.get("telefono")):
@@ -346,13 +569,13 @@ if not st.session_state.usuario_autenticado:
                         }
                         if nu not in st.session_state.db_privada:
                             st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
-                        
+
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                        
+
                         msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu explotación ha sido activada y vinculada a este móvil."
                         disparar_whatsapp_servidor(tel_clean, napi, msg)
-                        
+
                         st.session_state.usuario_autenticado = nu
                         st.rerun()
     st.stop()
@@ -371,18 +594,20 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
+# Cabecera de Explotación
 st.markdown(f"""
 <div class="top-badge-container">
     <div>
-        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: #10b981; font-weight: 800;">EXPLOTACIÓN AGRÍCOLA</div>
-        <div style="font-size: 1.5rem; font-weight: 900; letter-spacing: -0.02em;">{nombre_cliente}</div>
+        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: #B8D9A8; font-weight: 800;">EXPLOTACIÓN AGRÍCOLA</div>
+        <div style="font-family:'Fraunces', serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em;">{nombre_cliente}</div>
     </div>
     <div style="text-align: right;">
-        <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 6px 14px; border-radius: 9999px; font-weight: 800; font-size: 0.85rem;">● SISTEMA CONECTADO</span>
+        <span style="background: rgba(199, 154, 44, 0.22); color: #F0D998; padding: 6px 14px; border-radius: 9999px; font-weight: 800; font-size: 0.85rem;">● SISTEMA CONECTADO</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
+# Selectores superiores
 c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo activo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
@@ -414,7 +639,7 @@ with c_top3:
         st.session_state.usuario_autenticado = None
         st.rerun()
 
-# --- METEOROLOGÍA ---
+# --- CONSULTA METEOROLÓGICA ---
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
 
 try:
@@ -445,32 +670,35 @@ lluvia_hoy = lluvia[0]
 viento_hoy = viento[0]
 temp_media_hoy = (min_hoy + max_hoy) / 2
 
-# --- MENÚ TÁCTIL ---
-st.markdown("<p style='font-size: 0.85rem; font-weight: 800; color: #94a3b8; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 15px; margin-bottom: 8px;'>MÓDULOS ACTIVOS:</p>", unsafe_allow_html=True)
+# ==============================================================================
+# NAVEGACIÓN EN MOSAICO
+# ==============================================================================
+st.markdown("<p style='font-size: 0.85rem; font-weight: 800; color: var(--ink-soft); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 15px; margin-bottom: 8px;'>MÓDULOS ACTIVOS:</p>", unsafe_allow_html=True)
 
 opciones_menu = [
-    "🚜 Semáforo y Previsión de Tratamiento",
-    "🧪 Calculadora de Mezcla y Depósito",
-    "📋 Cuaderno Oficial de Fitosanitarios",
-    "🌾 Control de Labores y Rendimientos",
-    "📲 Centro de Alertas y WhatsApp Bot",
-    "🗺️ Gestión de Fincas y Visor Satelital"
+    "🚦 Semáforo del Día",
+    "🧪 Calculadora de Mezcla",
+    "📋 Cuaderno de Campo",
+    "🌾 Labores y Cosecha",
+    "📲 Alertas WhatsApp",
+    "🗺️ Mis Fincas",
+    "ℹ️ Leyenda y Fuentes de Datos"
 ]
 
 if user_activo == "admin":
-    opciones_menu.append("🛠️ Panel de Control Administrador")
+    opciones_menu.append("🛠️ Administración")
 
 seccion_activa = st.radio("Navegación:", opciones_menu, label_visibility="collapsed")
 st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# 1. SEMÁFORO
+# 1. SEMÁFORO Y TIEMPO
 # ==============================================================================
-if "Semáforo y Previsión" in seccion_activa:
+if "Semáforo del Día" in seccion_activa:
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
-        <h2 style="font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0;">📍 {nombre_parcela}</h2>
-        <span style="font-size: 1rem; color: #64748b; font-weight: 700;">{superficie_ha} ha | {variedad}</span>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 6px;">
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0;">📍 {nombre_parcela}</h2>
+        <span style="font-size: 1rem; color: var(--ink-soft); font-weight: 700;">{superficie_ha} ha | {variedad}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -512,30 +740,23 @@ if "Semáforo y Previsión" in seccion_activa:
     else:
         riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ BAJO"
 
-    c_m1, c_m2, c_m3, c_m4 = st.columns(4)
+    st.markdown(f"""
+    <div class="instrument-row">
+        {instrumento_html("💨", "Viento", viento_hoy, "km/h", 30, 15, decimales=0)}
+        {instrumento_html("🌧️", "Lluvia", lluvia_hoy, "L/m²", 10, 2, decimales=1)}
+    </div>
+    """, unsafe_allow_html=True)
+
+    c_m1, c_m2 = st.columns(2)
     with c_m1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">🌡️ Tª Hoy</div>
+            <div class="metric-title">🌡️ Temperatura de Hoy</div>
             <div class="metric-val">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="metric-unit">C</span></div>
         </div>
         """, unsafe_allow_html=True)
     with c_m2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">💨 Viento</div>
-            <div class="metric-val">{viento_hoy:.0f} <span class="metric-unit">km/h</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-    with c_m3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">🌧️ Lluvia</div>
-            <div class="metric-val">{lluvia_hoy:.1f} <span class="metric-unit">L</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-    with c_m4:
-        color_r = '#dc2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else ('#d97706' if 'Oídio' in riesgo_txt else '#059669')
+        color_r = '#A83228' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else ('#B5720A' if 'Oídio' in riesgo_txt else '#3E6B37')
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">🛡️ Riesgo Fitosanitario</div>
@@ -557,10 +778,10 @@ if "Semáforo y Previsión" in seccion_activa:
     st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 2. CALCULADORA
+# 2. CALCULADORA DE DEPÓSITO
 # ==============================================================================
 elif "Calculadora de Mezcla" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0 0 15px 0;'>🧪 Dosificación y Calibración de Depósito</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>🧪 Dosificación y Calibración de Depósito</h2>", unsafe_allow_html=True)
     c_c1, c_c2 = st.columns(2)
     with c_c1:
         st.markdown("#### 🚜 Maquinaria:")
@@ -574,7 +795,7 @@ elif "Calculadora de Mezcla" in seccion_activa:
             "Por 100 Litros de agua (gr o cc / 100 L)",
             "Por Hectárea completa (kg o L / ha)"
         ])
-        
+
         if "100 Litros" in formato_dosis:
             dosis_num = st.number_input("Gramos o cc por cada 100 L:", value=250.0, step=25.0)
         else:
@@ -612,9 +833,9 @@ elif "Calculadora de Mezcla" in seccion_activa:
 # ==============================================================================
 # 3. CUADERNO DE FITOSANITARIOS
 # ==============================================================================
-elif "Cuaderno Oficial" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
-    
+elif "Cuaderno de Campo" in seccion_activa:
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
+
     with st.form("form_fito"):
         st.markdown("#### ➕ Registrar Aplicación:")
         c_f1, c_f2 = st.columns(2)
@@ -634,7 +855,7 @@ elif "Cuaderno Oficial" in seccion_activa:
         if b_guardar_fito and producto_fito.strip():
             if user_activo not in st.session_state.fitos_db:
                 st.session_state.fitos_db[user_activo] = []
-            
+
             reg = {
                 "Fecha": str(fecha_fito),
                 "Cultivo": tipo_cultivo,
@@ -662,10 +883,10 @@ elif "Cuaderno Oficial" in seccion_activa:
 # ==============================================================================
 # 4. LABORES Y RENDIMIENTOS
 # ==============================================================================
-elif "Control de Labores" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0 0 15px 0;'>🌾 Labores y Liquidaciones de Cosecha</h2>", unsafe_allow_html=True)
+elif "Labores y Cosecha" in seccion_activa:
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>🌾 Labores y Liquidaciones de Cosecha</h2>", unsafe_allow_html=True)
     sub_lab1, sub_lab2 = st.tabs(["🚜 REGISTRAR LABOR / RIEGO", "🍇 REGISTRAR COSECHA / VENTA"])
-    
+
     with sub_lab1:
         with st.form("form_labor"):
             c_l1, c_l2 = st.columns(2)
@@ -682,7 +903,7 @@ elif "Control de Labores" in seccion_activa:
             if b_guarda_labor:
                 if user_activo not in st.session_state.labores_db:
                     st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
-                
+
                 reg_l = {
                     "Fecha": str(fecha_lab), "Cultivo": tipo_cultivo, "Parcela": nombre_parcela,
                     "Labor": tipo_labor, "Horas": horas_maq, "Aporte": abono_aporte, "Gasoil (L)": gasoil_litros, "Coste (€)": coste_mano_obra
@@ -702,17 +923,17 @@ elif "Control de Labores" in seccion_activa:
             with c_cos2:
                 comprador_dest = st.text_input("Comprador / Bodega:", value="Cooperativa")
                 precio_kilo_venta = st.number_input("Precio (€/kg):", value=0.65, step=0.05, format="%.3f")
-            
+
             ingreso_bruto = kilos_totales * precio_kilo_venta
             rendimiento_ha = kilos_totales / superficie_ha if superficie_ha > 0 else 0
-            
+
             st.info(f"📊 Rendimiento: **{rendimiento_ha:.0f} kg/ha** | Liquidación total: **{ingreso_bruto:.2f} €**")
 
             b_guarda_cosecha = st.form_submit_button("💾 GUARDAR COSECHA", use_container_width=True)
             if b_guarda_cosecha:
                 if user_activo not in st.session_state.labores_db:
                     st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
-                
+
                 reg_c = {
                     "Fecha": str(fecha_cos), "Cultivo": tipo_cultivo, "Parcela": nombre_parcela,
                     "Kilos": kilos_totales, "kg/ha": round(rendimiento_ha, 1), "Calidad": calidad_param,
@@ -742,9 +963,9 @@ elif "Control de Labores" in seccion_activa:
 # ==============================================================================
 # 5. BOT WHATSAPP
 # ==============================================================================
-elif "Centro de Alertas" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0 0 15px 0;'>📲 Centro de Disparos WhatsApp</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size: 1.05rem; color: #64748b;'>Teléfono receptor: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
+elif "Alertas WhatsApp" in seccion_activa:
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>📲 Centro de Disparos WhatsApp</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 1.05rem; color: var(--ink-soft);'>Teléfono receptor: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
 
     if "Viña" in tipo_cultivo:
         riesgo_txt = "🚨 ALTO (Mildiu)" if (lluvia_hoy >= 8 and temp_media_hoy >= 10) else ("⚠️ Oídio" if max_hoy > 26 else "✅ LIMPIO")
@@ -794,11 +1015,11 @@ elif "Centro de Alertas" in seccion_activa:
 # ==============================================================================
 # 6. GESTIÓN DE FINCAS Y SATÉLITE
 # ==============================================================================
-elif "Gestión de Fincas" in seccion_activa:
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #0f172a; margin: 0 0 15px 0;'>🗺️ Gestión Catastral y Satélite ({tipo_cultivo})</h2>", unsafe_allow_html=True)
-    
+elif "Mis Fincas" in seccion_activa:
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>🗺️ Gestión Catastral y Satélite ({tipo_cultivo})</h2>", unsafe_allow_html=True)
+
     fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
-    
+
     if not fincas_actuales:
         st.info(f"👉 No tienes ninguna finca en **{tipo_cultivo}**. Rellena los datos para crear la primera:")
         with st.form("form_alta_primera_finca"):
@@ -808,13 +1029,13 @@ elif "Gestión de Fincas" in seccion_activa:
                 lat_finca = st.number_input("Latitud decimal:", value=42.4658, format="%.4f")
             with c_lon:
                 lon_finca = st.number_input("Longitud decimal:", value=-2.4499, format="%.4f")
-            
+
             c_var, c_ha = st.columns(2)
             with c_var:
                 var_finca = st.text_input("Variedad:", value="Tempranillo")
             with c_ha:
                 ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
-            
+
             c_pol, c_parc = st.columns(2)
             with c_pol:
                 pol_finca = st.text_input("Polígono SIGPAC:", value="12")
@@ -845,14 +1066,14 @@ elif "Gestión de Fincas" in seccion_activa:
 
     else:
         modo_finca = st.radio("Acción:", ["✏️ Modificar o Ver Satélite", "➕ Añadir Nueva Parcela"], label_visibility="collapsed")
-        
+
         if "Modificar" in modo_finca:
             finca_a_editar = st.selectbox("Selecciona la finca a editar / ver satélite:", list(fincas_actuales.keys()))
             datos_f = fincas_actuales[finca_a_editar]
-            
+
             suelos_lista = ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"]
             suelo_index = suelos_lista.index(datos_f.get("suelo", "Cascajo / Pedregoso")) if datos_f.get("suelo") in suelos_lista else 0
-            
+
             riegos_lista = ["Secano", "Goteo", "Aspersión", "A pie / Inundación"]
             riego_index = riegos_lista.index(datos_f.get("riego", "Secano")) if datos_f.get("riego") in riegos_lista else 0
 
@@ -863,13 +1084,13 @@ elif "Gestión de Fincas" in seccion_activa:
                     nueva_lat = st.number_input("Latitud:", value=float(datos_f["lat"]), format="%.4f")
                 with c_elon:
                     nueva_lon = st.number_input("Longitud:", value=float(datos_f["lon"]), format="%.4f")
-                
+
                 c_evar, c_eha = st.columns(2)
                 with c_evar:
                     nueva_var = st.text_input("Variedad:", value=datos_f.get("variedad", "Tempranillo"))
                 with c_eha:
                     nueva_ha = st.number_input("Superficie (ha):", value=float(datos_f["ha"]), min_value=0.1, step=0.5)
-                
+
                 c_epol, c_eparc = st.columns(2)
                 with c_epol:
                     nuevo_pol = st.text_input("Polígono SIGPAC:", value=datos_f.get("poligono", "-"))
@@ -881,13 +1102,13 @@ elif "Gestión de Fincas" in seccion_activa:
                     nuevo_suelo = st.selectbox("Suelo:", suelos_lista, index=suelo_index)
                 with c_eriego:
                     nuevo_riego = st.selectbox("Riego:", riegos_lista, index=riego_index)
-                
+
                 c_btn_save, c_btn_del = st.columns(2)
                 with c_btn_save:
                     guardar_edicion = st.form_submit_button("💾 GUARDAR CAMBIOS", use_container_width=True)
                 with c_btn_del:
                     borrar_finca = st.form_submit_button("🗑️ ELIMINAR FINCA", use_container_width=True)
-                
+
                 if guardar_edicion:
                     if nuevo_nombre.strip() != finca_a_editar:
                         del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
@@ -898,7 +1119,7 @@ elif "Gestión de Fincas" in seccion_activa:
                     guardar_json(FINCAS_FILE, st.session_state.db_privada)
                     st.success("¡Finca actualizada!")
                     st.rerun()
-                    
+
                 if borrar_finca:
                     del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
                     guardar_json(FINCAS_FILE, st.session_state.db_privada)
@@ -909,7 +1130,7 @@ elif "Gestión de Fincas" in seccion_activa:
             url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
             st.markdown(f"""
             <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
-                <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 10px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
+                <div style="background-color: var(--green-deep); color: #FBF7EA; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
                     🚗 ABRIR EN APP DE GOOGLE MAPS (GPS)
                 </div>
             </a>
@@ -924,13 +1145,13 @@ elif "Gestión de Fincas" in seccion_activa:
                     lat_finca = st.number_input("Latitud decimal:", value=42.4658, format="%.4f")
                 with c_alon:
                     lon_finca = st.number_input("Longitud decimal:", value=-2.4499, format="%.4f")
-                
+
                 c_avar, c_aha = st.columns(2)
                 with c_avar:
                     var_finca = st.text_input("Variedad:", value="Tempranillo")
                 with c_aha:
                     ha_finca = st.number_input("Superficie (ha):", value=2.0, min_value=0.1, step=0.5)
-                
+
                 c_apol, c_aparc = st.columns(2)
                 with c_apol:
                     pol_finca = st.text_input("Polígono SIGPAC:", value="14")
@@ -971,40 +1192,86 @@ elif "Gestión de Fincas" in seccion_activa:
             st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# 7. PANEL ADMINISTRADOR
+# 7. LEYENDA Y FUENTES DE DATOS (NUEVA SECCIÓN)
 # ==============================================================================
-elif "Panel de Control Administrador" in seccion_activa and user_activo == "admin":
-    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
+elif "Leyenda y Fuentes" in seccion_activa:
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--ink); margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
     
+    st.markdown("""
+    <div class="legend-box">
+        <div class="legend-title">🛰️ 1. Origen de los Datos Meteorológicos y Coordenadas</div>
+        <div class="legend-desc">
+            • <b>Open-Meteo API & Modelos Numéricos Europeos:</b> La previsión meteorológica se calcula en tiempo real para las coordenadas GPS exactas (latitud y longitud) de cada parcela.<br>
+            • <b>Modelos integrados:</b> Combina los datos de alta precisión de <b>ECMWF</b> (Centro Europeo de Previsión Meteorológica), <b>ICON</b> (Servicio Alemán DWD) y <b>GFS / AEMET</b>.<br>
+            • <b>Google Maps Satellite:</b> Las imágenes aéreas y la navegación proceden de las capas satelitales oficiales de Google Maps Platform.
+        </div>
+    </div>
+
+    <div class="legend-box">
+        <div class="legend-title">🚦 2. Criterios Agronómicos del Semáforo de Tratamiento</div>
+        <div class="legend-desc">
+            Las recomendaciones siguen la normativa del <b>Real Decreto 1311/2012 de Uso Sostenible de Productos Fitosanitarios</b> y la <b>Gestión Integrada de Plagas (GIP)</b>:<br><br>
+            • <b>💨 Viento > 15 km/h (Semáforo Rojo):</b> Límite técnico obligatorio. A partir de 15 km/h se produce deriva del producto, contaminando lindes y perdiendo eficacia.<br>
+            • <b>🌧️ Lluvia prevista > 2.0 L/m² (Semáforo Rojo):</b> Riesgo de lavado. La mayoría de materias activas necesitan entre 2 y 4 horas sin agua para adherirse a la hoja.<br>
+            • <b>🌡️ Temperatura ≥ 32 °C (Semáforo Ámbar):</b> Riesgo de fitotoxicidad y evaporación instantánea de la gota antes de alcanzar la cutícula vegetal.<br>
+            • <b>🟢 Semáforo Verde (Óptimo):</b> Viento &le; 15 km/h, sin lluvia y temperatura suave (&lt; 32 °C). Condiciones idóneas para pulverizar.
+        </div>
+    </div>
+
+    <div class="legend-box">
+        <div class="legend-title">🛡️ 3. Modelos de Alerta Fitosanitaria y Hongos</div>
+        <div class="legend-desc">
+            • <b>Mildiu (Viña):</b> Basado en la clásica <i>Regla de los 10</i> (temperatura media &ge; 10 °C coincidente con lluvias &ge; 10 mm en fase de brotación).<br>
+            • <b>Oídio (Viña / Frutal):</b> Alerta activa cuando las temperaturas superan los 26 °C en ambiente seco, rango de máxima esporulación.<br>
+            • <b>Riesgo de Helada:</b> Disparo de alerta roja de emergencia si la previsión mínima desciende a valores críticos (&le; 1 °C).
+        </div>
+    </div>
+
+    <div class="legend-box">
+        <div class="legend-title">🧪 4. Fórmulas de Calibración de la Cuba / Depósito</div>
+        <div class="legend-desc">
+            • <b>Caldo total:</b> <code>Superficie (ha) × Gasto caldo (L/ha)</code><br>
+            • <b>Dosis concentrada:</b> <code>(Dosis / 100 L) × (Capacidad Depósito / 100)</code><br>
+            • <b>Dosis por hectárea:</b> <code>Dosis/ha × (Capacidad Depósito / Gasto caldo por ha)</code>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==============================================================================
+# 8. PANEL ADMINISTRADOR
+# ==============================================================================
+elif "Administración" in seccion_activa and user_activo == "admin":
+    st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 800; color: var(--red-deep); margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
+
     st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
     todos_los_usuarios = list(st.session_state.usuarios_db.keys())
     usuarios_borrables = [u for u in todos_los_usuarios if u != "admin"]
-    
+
     if not usuarios_borrables:
         st.info("No hay otros usuarios registrados en el sistema.")
     else:
         st.markdown("#### 🗑️ Eliminar una cuenta de usuario:")
         usuario_a_borrar = st.selectbox("Selecciona el usuario que quieres eliminar:", usuarios_borrables)
         datos_u_borrar = st.session_state.usuarios_db[usuario_a_borrar]
-        
+
         st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}).")
-        
+
         if st.button(f"❌ CONFIRMAR Y ELIMINAR A '{usuario_a_borrar}'", type="primary"):
             del st.session_state.usuarios_db[usuario_a_borrar]
             guardar_json(USERS_FILE, st.session_state.usuarios_db)
-            
+
             if usuario_a_borrar in st.session_state.db_privada:
                 del st.session_state.db_privada[usuario_a_borrar]
                 guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                
+
             if usuario_a_borrar in st.session_state.fitos_db:
                 del st.session_state.fitos_db[usuario_a_borrar]
                 guardar_json(FITOS_FILE, st.session_state.fitos_db)
-                
+
             if usuario_a_borrar in st.session_state.labores_db:
                 del st.session_state.labores_db[usuario_a_borrar]
                 guardar_json(LABORES_FILE, st.session_state.labores_db)
-                
+
             st.success(f"¡Usuario '{usuario_a_borrar}' eliminado!")
             st.rerun()
 
