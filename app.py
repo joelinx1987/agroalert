@@ -413,7 +413,6 @@ with col_contenido:
         
         stock_usuario = st.session_state.almacen_db.get(user, {})
         
-        # Pestañas internas para Ver Stock o Editar/Añadir
         tab_ver, tab_editar = st.tabs(["📊 Ver Inventario Actual", "✏️ Modificar / Añadir Stock"])
         
         with tab_ver:
