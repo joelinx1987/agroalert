@@ -79,7 +79,7 @@ DEFAULT_FINCAS = {
 
 if "usuarios_db" not in st.session_state:
     st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
-# Asegurar siempre que admin1987 esté presente y con clave directa
+# Forzamos siempre tu acceso directo para que no de fallo:
 st.session_state.usuarios_db["admin1987"] = DEFAULT_USERS["admin1987"]
 
 if "db_privada" not in st.session_state:
@@ -165,8 +165,13 @@ if not st.session_state.usuario_autenticado:
                 
                 st.markdown("---")
                 st.markdown("##### 📍 Datos de tu parcela principal")
-                nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
-                superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
+                c_rp1, c_rp2 = st.columns(2)
+                with c_rp1:
+                    nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
+                    superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
+                with c_rp2:
+                    lat_inicial = st.number_input("Latitud (aprox)", value=42.4658, format="%.6f")
+                    lon_inicial = st.number_input("Longitud (aprox)", value=-2.4499, format="%.6f")
 
                 registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
                 if registrarse:
@@ -186,7 +191,7 @@ if not st.session_state.usuario_autenticado:
                         if nuevo_user not in st.session_state.db_privada:
                             st.session_state.db_privada[nuevo_user] = {}
                         st.session_state.db_privada[nuevo_user][nombre_parcela] = {
-                            "lat": 42.4658, "lon": -2.4499, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
+                            "lat": lat_inicial, "lon": lon_inicial, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
                         }
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
 
@@ -210,8 +215,12 @@ with c_h2:
 st.write("---")
 
 nombres_fincas = list(fincas_usuario.keys())
-parcela_activa = st.selectbox("📍 SELECCIONA TU PARCELA:", nombres_fincas)
-datos_parcela = fincas_usuario[parcela_activa]
+if nombres_fincas:
+    parcela_activa = st.selectbox("📍 SELECCIONA TU PARCELA:", nombres_fincas)
+    datos_parcela = fincas_usuario[parcela_activa]
+else:
+    parcela_activa = "Sin Finca"
+    datos_parcela = {"lat": 42.46, "lon": -2.44, "ha": 0}
 
 meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.46), datos_parcela.get("lon", -2.44))
 viento_hoy = meteo_actual["viento"]
@@ -255,7 +264,7 @@ elif "Calculadora de Cuba" in menu:
             gasto_por_ha = st.number_input("Litros de caldo que gastas por hectárea:", value=400, step=50)
         with c_c2:
             dosis_ha = st.number_input("Dosis recomendada por hectárea (kg o L):", value=2.5, step=0.5)
-            ha_finca = st.number_input("Hectáreas que vas a tratar:", value=float(datos_parcela["ha"]), step=0.5)
+            ha_finca = st.number_input("Hectáreas que vas a tratar:", value=float(datos_parcela.get("ha", 1.0)), step=0.5)
         calcular = st.form_submit_button("🧮 CALCULÁMELO", use_container_width=True, type="primary")
         if calcular:
             ha_por_cuba = litros_cuba / gasto_por_ha if gasto_por_ha > 0 else 0
@@ -297,25 +306,81 @@ elif "Avisos Automáticos" in menu:
     st.markdown("### 📲 Aviso Diario en tu Telegram a las 4:45")
     st.write("Recibirás un aviso automático diario en Telegram con los datos meteorológicos de tu parcela activa.")
     st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
-    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 4:45*\n📍 *Parcela:* {parcela_activa} ({datos_parcela['ha']} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy:.1f} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy:.1f} mm."
+    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 4:45*\n📍 *Parcela:* {parcela_activa} ({datos_parcela.get('ha', 0)} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy:.1f} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy:.1f} mm."
     if st.button("📲 PROBAR ENVÍO A TELEGRAM AHORA", use_container_width=True, type="primary"):
         ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba)
         if ok: st.success(res)
         else: st.error(res)
 
 elif "Gestión de Fincas" in menu:
-    st.markdown("### ⚙️ Añade o edita tus fincas y parcelas")
-    st.write("Configura el nombre y superficie de tus parcelas para que el asistente calcule todo correctamente.")
+    st.markdown("### ⚙️ Gestión de Fincas y Parcelas")
+    st.write("Configura tus parcelas para tener todo bajo control. Guarda la ubicación exacta en el mapa para que el cálculo meteorológico sea preciso al milímetro.")
+    
+    # 1. MOSTRAR EL MAPA VISUAL Y LOS DATOS DE LAS FINCAS EXISTENTES
+    if fincas_usuario:
+        st.markdown("#### 🗺️ Mapa de tus parcelas actuales")
+        
+        # Preparamos los datos para el mapa de Streamlit
+        df_mapa_datos = []
+        for nombre, datos in fincas_usuario.items():
+            if "lat" in datos y "lon" in datos:
+                df_mapa_datos.append({"Finca": nombre, "lat": float(datos["lat"]), "lon": float(datos["lon"])})
+                
+        if df_mapa_datos:
+            df_mapa = pd.DataFrame(df_mapa_datos)
+            st.map(df_mapa, zoom=11, use_container_width=True)
+            
+        # Tabla resumen con la info detallada (Polígono, parcela, variedad...)
+        st.markdown("#### 📋 Resumen de datos")
+        datos_tabla = []
+        for nombre, d in fincas_usuario.items():
+            datos_tabla.append({
+                "Nombre": nombre,
+                "Superficie (ha)": d.get("ha", 0),
+                "Variedad": d.get("variedad", "N/A"),
+                "Polígono": d.get("poligono", "N/A"),
+                "Parcela": d.get("parcela", "N/A")
+            })
+        st.dataframe(pd.DataFrame(datos_tabla), use_container_width=True, hide_index=True)
+        st.markdown("---")
+
+    # 2. FORMULARIO COMPLETO PARA AÑADIR NUEVA FINCA
+    st.markdown("#### ➕ Añade una nueva parcela")
     with st.form("form_nueva_finca"):
-        nombre_nueva = st.text_input("Nombre de la nueva finca/parcela (ej: Viñedo Alto)")
-        ha_nueva = st.number_input("Superficie en hectáreas", value=1.0, step=0.5)
-        guardar_parcela = st.form_submit_button("➕ AÑADIR NUEVA FINCA", use_container_width=True, type="primary")
+        c_f1, c_f2 = st.columns(2)
+        with c_f1:
+            nombre_nueva = st.text_input("Nombre de la nueva finca (ej: Viñedo Alto)")
+            variedad_nueva = st.text_input("Variedad o cultivo (ej: Tempranillo)", value="Tempranillo")
+            ha_nueva = st.number_input("Superficie en hectáreas", value=1.0, step=0.5)
+        with c_f2:
+            st.write("Ubicación exacta para Meteorología:")
+            c_coord1, c_coord2 = st.columns(2)
+            with c_coord1:
+                lat_nueva = st.number_input("Latitud (Google Maps)", value=42.4658, format="%.6f")
+            with c_coord2:
+                lon_nueva = st.number_input("Longitud (Google Maps)", value=-2.4499, format="%.6f")
+                
+            st.write("Datos Catastrales:")
+            c_cat1, c_cat2 = st.columns(2)
+            with c_cat1:
+                pol_nuevo = st.text_input("Polígono", value="12")
+            with c_cat2:
+                parc_nueva = st.text_input("Parcela", value="104")
+
+        guardar_parcela = st.form_submit_button("💾 GUARDAR NUEVA FINCA", use_container_width=True, type="primary")
+        
         if guardar_parcela and nombre_nueva:
             if user not in st.session_state.db_privada:
                 st.session_state.db_privada[user] = {}
+                
             st.session_state.db_privada[user][nombre_nueva] = {
-                "lat": 42.4658, "lon": -2.4499, "variedad": "General", "ha": ha_nueva, "poligono": "1", "parcela": "1"
+                "lat": lat_nueva, 
+                "lon": lon_nueva, 
+                "variedad": variedad_nueva, 
+                "ha": ha_nueva, 
+                "poligono": pol_nuevo, 
+                "parcela": parc_nueva
             }
             guardar_json(FINCAS_FILE, st.session_state.db_privada)
-            st.success(f"¡Finca '{nombre_nueva}' añadida con éxito!")
+            st.success(f"¡Finca '{nombre_nueva}' añadida con éxito y geolocalizada en el mapa!")
             st.rerun()
