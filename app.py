@@ -160,13 +160,16 @@ def guardar_json(archivo, datos):
     except Exception:
         pass
 
+# --- TOKEN OFICIAL CONFIGURADO ---
+TOKEN_BOT_OFICIAL = "8996289527:AAHHSP4FIr8ct-tvFgHbel7dnKzkQXEwR6I"
+
 DEFAULT_USERS = {
     "admin1987": {
         "pwd": "admin1987", 
         "nombre": "Joel (La Rioja)", 
         "email": "joel@agroalert.es",
         "telegram_id": "5473461038", 
-        "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs",
+        "telegram_token": TOKEN_BOT_OFICIAL,
         "hora_aviso": "04:45"
     }
 }
@@ -304,7 +307,7 @@ if not st.session_state.usuario_autenticado:
                 <div class="guia-caja">
                     <b>🌾 ¿Cómo conectar los avisos a tu móvil paso a paso?</b> (Opcional)<br><br>
                     1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
-                    2️⃣ Busca arriba en la lupa nuestro bot oficial: <b>@ActualizacionAgroAlert_bot</b><br>
+                    2️⃣ Busca arriba en la lupa nuestro bot oficial: <b>@TuAgroAlert_bot</b><br>
                     3️⃣ Escríbele cualquier mensaje (por ejemplo: <i>Hola</i>).<br>
                     4️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo abajo si deseas recibir avisos diarios!
                 </div>
@@ -316,8 +319,6 @@ if not st.session_state.usuario_autenticado:
                     nuevo_pwd = st.text_input("Contraseña", type="password")
                     nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
                     nuevo_chat_id = st.text_input("Tu Código de Telegram (Opcional)")
-                    
-                    nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
                     
                     st.markdown("---")
                     st.markdown("##### 📍 Datos de tu parcela principal")
@@ -341,7 +342,7 @@ if not st.session_state.usuario_autenticado:
                                 "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
                                 "email": nuevo_email if nuevo_email else "",
                                 "telegram_id": nuevo_chat_id.strip() if nuevo_chat_id else "No configurado",
-                                "telegram_token": nuevo_token,
+                                "telegram_token": TOKEN_BOT_OFICIAL,
                                 "hora_aviso": "04:45"
                             }
                             guardar_json(USERS_FILE, st.session_state.usuarios_db)
@@ -385,7 +386,7 @@ if not st.session_state.usuario_autenticado:
 user = st.session_state.usuario_autenticado
 info_user = st.session_state.usuarios_db.get(user, {})
 fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat": 42.46, "lon": -2.44, "ha": 2.0}})
-telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
+telegram_token = info_user.get("telegram_token", TOKEN_BOT_OFICIAL)
 telegram_id = info_user.get("telegram_id", "No configurado")
 hora_aviso_usuario = info_user.get("hora_aviso", "04:45")
 
@@ -667,11 +668,10 @@ with col_contenido:
         st.info(f"🤖 Chat ID de Telegram configurado: **{telegram_id}**")
         
         with st.form("form_hora_aviso"):
-            # Convertimos la hora guardada (string 'HH:MM') a objeto time para el selector
             h_parts = hora_aviso_usuario.split(":")
             t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(4, 45)
             
-            nueva_hora_sel = st.st_time_input = st.time_input("⏰ Hora preferida para recibir el aviso diario:", value=t_default)
+            nueva_hora_sel = st.time_input("⏰ Hora preferida para recibir el aviso diario:", value=t_default)
             guardar_hora = st.form_submit_button("💾 GUARDAR HORA DE AVISO", use_container_width=True, type="primary")
             
             if guardar_hora:
