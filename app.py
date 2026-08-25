@@ -3,6 +3,7 @@ import json
 import hashlib
 import urllib.request
 import urllib.parse
+from urllib.parse import quote
 from datetime import date, timedelta
 import pandas as pd
 import streamlit as st
@@ -246,39 +247,61 @@ elif menu=="🌾 Parcelas":
     # --------------------------------------------------------
     with tab_ver:
         if fincas:
-            # Guarda qué finca debe centrar el mapa.
-            if "finca_mapa_activa" not in st.session_state or st.session_state.finca_mapa_activa not in fincas:
+            # La finca seleccionada se guarda en la URL.
+            # Al hacer clic en cualquier tarjeta, la página se recarga
+            # y el mapa se centra automáticamente en esa finca.
+            finca_url = st.query_params.get("finca", "")
+            if isinstance(finca_url, list):
+                finca_url = finca_url[0] if finca_url else ""
+
+            if finca_url in fincas:
+                st.session_state.finca_mapa_activa = finca_url
+            elif "finca_mapa_activa" not in st.session_state or st.session_state.finca_mapa_activa not in fincas:
                 st.session_state.finca_mapa_activa = next(iter(fincas))
+
+            finca_mapa = st.session_state.finca_mapa_activa
 
             cs=st.columns(min(3,max(1,len(fincas))))
             for c,(name,d) in zip(cs,fincas.items()):
+                activa = name == finca_mapa
+                borde = "#176b45" if activa else "#e4ebe6"
+                fondo = "#f0f8f3" if activa else "#ffffff"
+                sombra = "0 10px 28px rgba(23,107,69,.12)" if activa else "0 5px 20px rgba(20,50,35,.045)"
+                nombre_url = quote(name, safe="")
+
                 with c:
                     st.markdown(
-                        f"<div class='card'>"
-                        f"<div style='font-size:1.7rem'>🌱</div>"
-                        f"<h3>{name}</h3>"
-                        f"<div class='value'>{d.get('ha',0)} ha</div>"
-                        f"<div class='sub'>{d.get('variedad','Cultivo')}</div>"
-                        f"<hr>"
-                        f"<div class='sub'>📍 {d.get('lat',0):.5f}, {d.get('lon',0):.5f}</div>"
-                        f"<div class='sub'>Polígono {d.get('poligono','—')} · Parcela {d.get('parcela','—')}</div>"
-                        f"</div>",
+                        f"""
+                        <a href="?finca={nombre_url}" target="_self"
+                           style="text-decoration:none;color:inherit;display:block;">
+                            <div class="card" style="
+                                border:2px solid {borde};
+                                background:{fondo};
+                                box-shadow:{sombra};
+                                cursor:pointer;
+                                transition:all .18s ease;
+                            ">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+                                    <div style="font-size:1.7rem;">🌱</div>
+                                    {"<span style='background:#176b45;color:white;border-radius:999px;padding:5px 9px;font-size:.72rem;font-weight:700;'>SELECCIONADA</span>" if activa else ""}
+                                </div>
+                                <h3 style="margin-top:12px;">{name}</h3>
+                                <div class="value">{d.get('ha',0)} ha</div>
+                                <div class="sub">{d.get('variedad','Cultivo')}</div>
+                                <hr>
+                                <div class="sub">📍 {d.get('lat',0):.5f}, {d.get('lon',0):.5f}</div>
+                                <div class="sub">Polígono {d.get('poligono','—')} · Parcela {d.get('parcela','—')}</div>
+                                <div style="margin-top:14px;color:#176b45;font-size:.8rem;font-weight:700;">
+                                    📍 Pulsa para centrar el mapa
+                                </div>
+                            </div>
+                        </a>
+                        """,
                         unsafe_allow_html=True
                     )
 
-                    # Al pulsar la finca, el mapa se centra directamente en ella.
-                    if st.button(
-                        f"📍 Ver {name} en el mapa",
-                        key=f"mapa_{name}",
-                        use_container_width=True,
-                        type="primary" if st.session_state.finca_mapa_activa == name else "secondary"
-                    ):
-                        st.session_state.finca_mapa_activa = name
-                        st.rerun()
-
             st.markdown("<div class='section'>Mapa de explotación</div>",unsafe_allow_html=True)
 
-            finca_mapa = st.session_state.finca_mapa_activa
             datos_mapa = fincas[finca_mapa]
             lat_centro = float(datos_mapa.get("lat",42.4658))
             lon_centro = float(datos_mapa.get("lon",-2.4499))
@@ -292,7 +315,7 @@ elif menu=="🌾 Parcelas":
                 unsafe_allow_html=True
             )
 
-            # Muestra todas las fincas, pero centra y acerca el mapa a la seleccionada.
+            # El mapa se centra directamente en la finca pulsada.
             md=pd.DataFrame([
                 {"lat":d.get("lat"),"lon":d.get("lon")}
                 for d in fincas.values()
