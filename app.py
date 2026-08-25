@@ -226,8 +226,13 @@ def disparar_telegram(token, chat_id, mensaje):
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
+# --- CONTROL DE SESIÓN PERSISTENTE POR URL (EVITA CIERRE CON F5) ---
 if "usuario_autenticado" not in st.session_state:
-    st.session_state.usuario_autenticado = None
+    query_params = st.query_params
+    if "user" in query_params and query_params["user"] in st.session_state.usuarios_db:
+        st.session_state.usuario_autenticado = query_params["user"]
+    else:
+        st.session_state.usuario_autenticado = None
 
 if not st.session_state.usuario_autenticado:
     c1, col_login, c2 = st.columns([1, 2.2, 1])
@@ -253,6 +258,7 @@ if not st.session_state.usuario_autenticado:
                 if entrar:
                     if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == pwd:
                         st.session_state.usuario_autenticado = usuario
+                        st.query_params["user"] = usuario
                         st.rerun()
                     else:
                         st.error("Usuario o contraseña incorrectos.")
@@ -334,6 +340,7 @@ with col_head_der:
     st.markdown("<div style='display: flex; justify-content: flex-end; margin-top: 25px;'>", unsafe_allow_html=True)
     if st.button("🚪 Salir", use_container_width=False):
         st.session_state.usuario_autenticado = None
+        st.query_params.clear()
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
