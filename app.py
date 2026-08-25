@@ -78,12 +78,12 @@ DEFAULT_FINCAS = {
     }
 }
 
-if "usuarios_db" not in st.session_state:
-    st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
-if "db_privada" not in st.session_state:
-    st.session_state.db_privada = cargar_json(FINCAS_FILE, DEFAULT_FINCAS)
-if "fitos_db" not in st.session_state:
-    st.session_state.fitos_db = cargar_json(FITOS_FILE, {})
+if entrar:
+                if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == pwd:
+                    st.session_state.usuario_autenticado = usuario
+                    st.rerun()
+                else:
+                    st.error("Usuario o contraseña incorrectos.")
 
 def disparar_telegram(token, chat_id, mensaje):
     try:
