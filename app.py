@@ -195,7 +195,6 @@ def consultar_meteo_openmeteo(lat, lon):
             current = data.get("current", {})
             hourly = data.get("hourly", {})
             
-            # Extraer próximas 6 horas de previsión
             horas_prevision = []
             if "time" in hourly:
                 t_list = hourly["time"][:6]
@@ -322,7 +321,6 @@ col_head_izq, col_head_centro, col_head_der = st.columns([1.2, 2.2, 1])
 with col_head_izq:
     st.markdown(f"<h4 style='margin-top: 10px; color: #1e293b;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h4>", unsafe_allow_html=True)
     nombres_fincas = list(fincas_usuario.keys())
-    # Selector rápido de finca integrado en la cabecera
     parcela_activa = st.selectbox("📍 Parcela activa:", nombres_fincas, label_visibility="visible")
     datos_parcela = fincas_usuario.get(parcela_activa, {"lat": 42.46, "lon": -2.44, "ha": 1.0})
 
@@ -383,7 +381,6 @@ with col_contenido:
         with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
         with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
 
-        # MEJORA 1: Previsión Horaria (Próximas horas)
         if horaria_24h:
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("#### ⏱️ Evolución y Previsión Horaria en Parcela:")
@@ -411,38 +408,50 @@ with col_contenido:
                 st.markdown(f'<div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 16px; padding: 20px; margin-top: 15px; color: #065f46;"><h3 style="margin:0; color:#047857;">📌 RESULTADO:</h3><p style="font-size: 1.3rem; font-weight: 800; margin: 10px 0;">👉 Echa <b>{producto_por_cuba:.2f} kg/L</b> por cuba de {litros_cuba} L.</p><p style="font-size: 1rem; margin: 0;">🚜 Total para {ha_finca} ha: <b>{total_cubas:.1f} cubas</b> ({total_producto:.2f} kg/L totales).</p></div>', unsafe_allow_html=True)
 
     elif "Almacén de Fitosanitarios" in menu:
-        st.markdown("### 📦 Control de Stock en Almacén")
-        st.write("Gestiona el inventario disponible de tus productos fitosanitarios para anticiparte a las compras.")
+        st.markdown("### 📦 Control y Edición de Stock en Almacén")
+        st.write("Consulta el inventario actual y actualiza o edita las cantidades exactas (kg o L) de cada producto.")
         
-        # Mostrar stock actual
         stock_usuario = st.session_state.almacen_db.get(user, {})
-        if stock_usuario:
-            tabla_stock = []
-            for cod, info in stock_usuario.items():
-                tabla_stock.append({
-                    "Nº Registro MAPA": cod,
-                    "Producto": info["nombre"],
-                    "Stock Disponible (kg / L)": info["stock_kg_l"]
-                })
-            st.dataframe(pd.DataFrame(tabla_stock), use_container_width=True, hide_index=True)
-        else:
-            st.info("No tienes productos registrados en el almacén.")
+        
+        # Pestañas internas para Ver Stock o Editar/Añadir
+        tab_ver, tab_editar = st.tabs(["📊 Ver Inventario Actual", "✏️ Modificar / Añadir Stock"])
+        
+        with tab_ver:
+            if stock_usuario:
+                tabla_stock = []
+                for cod, info in stock_usuario.items():
+                    tabla_stock.append({
+                        "Nº Registro MAPA": cod,
+                        "Producto": info["nombre"],
+                        "Stock Disponible (kg / L)": info["stock_kg_l"]
+                    })
+                st.dataframe(pd.DataFrame(tabla_stock), use_container_width=True, hide_index=True)
+            else:
+                st.info("No tienes productos registrados en el almacén.")
 
-        st.markdown("#### ➕ Añadir producto o reponer stock")
-        with st.form("form_almacen"):
-            mapa_sel = st.selectbox("Selecciona producto fitosanitario:", list(CATALOGO_MAPA.keys()), format_func=lambda x: f"{x} - {CATALOGO_MAPA[x]['producto']}")
-            cantidad_anadir = st.number_input("Cantidad a sumar al stock (kg o L):", value=10.0, step=5.0)
-            guardar_stock = st.form_submit_button("💾 ACTUALIZAR STOCK", use_container_width=True, type="primary")
-            if guardar_stock:
-                if user not in st.session_state.almacen_db:
-                    st.session_state.almacen_db[user] = {}
-                nombre_prod = CATALOGO_MAPA[mapa_sel]["producto"]
-                actual = st.session_state.almacen_db[user].get(mapa_sel, {}).get("stock_kg_l", 0.0)
-                nuevo_total = actual + cantidad_anadir
-                st.session_state.almacen_db[user][mapa_sel] = {"nombre": nombre_prod, "stock_kg_l": nuevo_total}
-                guardar_json(ALMACEN_FILE, st.session_state.almacen_db)
-                st.success(f"¡Stock actualizado! Nuevo total de {nombre_prod}: {nuevo_total} kg/L.")
-                st.rerun()
+        with tab_editar:
+            st.markdown("#### ✏️ Edita o actualiza las cantidades de tu almacén")
+            with st.form("form_editar_almacen"):
+                if stock_usuario:
+                    opciones_stock = list(stock_usuario.keys())
+                    mapa_editar = st.selectbox("Elige producto a editar:", opciones_stock, format_func=lambda x: f"{x} - {stock_usuario[x]['nombre']} (Actual: {stock_usuario[x]['stock_kg_l']} kg/L)")
+                    stock_actual_obj = stock_usuario[mapa_editar]["stock_kg_l"]
+                else:
+                    mapa_editar = st.selectbox("Elige producto fitosanitario:", list(CATALOGO_MAPA.keys()), format_func=lambda x: f"{x} - {CATALOGO_MAPA[x]['producto']}")
+                    stock_actual_obj = 0.0
+
+                nuevo_stock_total = st.number_input("Establecer cantidad exacta en almacén (kg o L):", value=float(stock_actual_obj), step=1.0)
+                guardar_edicion_stock = st.form_submit_button("💾 GUARDAR NUEVO STOCK", use_container_width=True, type="primary")
+                
+                if guardar_edicion_stock:
+                    if user not in st.session_state.almacen_db:
+                        st.session_state.almacen_db[user] = {}
+                    
+                    nombre_prod = CATALOGO_MAPA.get(mapa_editar, {}).get("producto", "Producto Fitosanitario")
+                    st.session_state.almacen_db[user][mapa_editar] = {"nombre": nombre_prod, "stock_kg_l": nuevo_stock_total}
+                    guardar_json(ALMACEN_FILE, st.session_state.almacen_db)
+                    st.success(f"¡Stock actualizado correctamente! Nuevo inventario de {nombre_prod}: {nuevo_stock_total} kg/L.")
+                    st.rerun()
 
     elif "Cuaderno de Campo" in menu:
         st.markdown("### 📋 Tu Cuaderno de Explotación (Normativa PAC)")
@@ -468,7 +477,7 @@ with col_contenido:
                 })
                 guardar_json(FITOS_FILE, st.session_state.fitos_db)
                 
-                # MEJORA 3: Descuento automático en Almacén
+                # Descuento automático en Almacén
                 if user in st.session_state.almacen_db and reg_mapa in st.session_state.almacen_db[user]:
                     stock_actual = st.session_state.almacen_db[user][reg_mapa]["stock_kg_l"]
                     st.session_state.almacen_db[user][reg_mapa]["stock_kg_l"] = max(0.0, stock_actual - dosis_aplicada)
