@@ -33,7 +33,7 @@ st.markdown("""
     .semaforo-ok { background: #dcfce7; border: 3px solid #22c55e; border-radius: 20px; padding: 24px; text-align: center; color: #064e3b; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
     .semaforo-bad { background: #fee2e2; border: 3px solid #ef4444; border-radius: 20px; padding: 24px; text-align: center; color: #7f1d1d; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15); }
     .stButton>button { font-size: 1.1rem !important; font-weight: 800 !important; padding: 14px 20px !important; border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important; }
-    .guia-caja { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 16px; margin-bottom: 15px; color: #065f46; font-size: 1rem; }
+    .guia-caja { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 16px; margin-bottom: 15px; color: #065f46; font-size: 1rem; line-height: 1.5; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,10 +124,11 @@ if not st.session_state.usuario_autenticado:
         with tab_registro:
             st.markdown("""
             <div class="guia-caja">
-                <b>🌾 ¿Cómo conectar los avisos a tu Telegram en 3 pasos?</b><br><br>
-                1️⃣ Abre Telegram en tu móvil y busca el bot: <b>@ActualizacionAgroAlert_bot</b><br>
-                2️⃣ Pulsa en el botón inferior que dice <b>INICIAR</b>.<br>
-                3️⃣ El bot te contestará saludándote y dándote tu <b>Número de Identificación (Chat ID)</b>. Escribe ese número aquí abajo junto a tus datos.
+                <b>🌾 ¿Cómo saber tu número de Telegram fácilmente?</b><br><br>
+                1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
+                2️⃣ Busca arriba en la lupa el contacto oficial gratuito: <b>@userinfobot</b><br>
+                3️⃣ Entra y escríbele cualquier cosa (por ejemplo: <i>Hola</i>).<br>
+                4️⃣ El bot te contestará al instante con tus datos. El número que aparece al lado de <b>Id</b> (por ejemplo, <i>5473461038</i>) es tu código. ¡Cópialo y pégalo aquí abajo!
             </div>
             """, unsafe_allow_html=True)
 
@@ -135,7 +136,7 @@ if not st.session_state.usuario_autenticado:
                 nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
                 nuevo_pwd = st.text_input("Contraseña", type="password")
                 nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                nuevo_chat_id = st.text_input("Tu Número de Telegram (Chat ID que te dio el bot)")
+                nuevo_chat_id = st.text_input("Tu Código de Telegram (Ej: 5473461038)")
                 
                 nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
                 
