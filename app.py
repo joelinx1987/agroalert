@@ -790,53 +790,92 @@ with col_contenido:
         else:
             st.info("Aún no hay tratamientos oficiales registrados.")
 
-    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON MINIATURA PROPORCIONADA Y ELEGANTE)
+    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON OPCIÓN DE MODIFICAR Y ELIMINAR)
     elif "Geofotos y Focos" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📸 Registro de Geofotos y Focos de Plaga</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color: #64748b;'>Sube o haz una foto de campo con geolocalización GPS automática para justificar inspecciones o controles.</p>", unsafe_allow_html=True)
-
-        with st.form("form_geofoto"):
-            desc_incidencia = st.text_input("Descripción del síntoma / plaga (ej: Foco de Mildiu en zona norte):", value="Mancha aislada en hoja")
-            sev_incidencia = st.selectbox("Severidad:", ["🟢 Leve / Preventivo", "🟡 Moderado", "🔴 Severo / Urgente"])
-            
-            foto_subida = st.file_uploader("📷 Adjuntar Fotografía (Cámara o Archivo):", type=["jpg", "jpeg", "png"])
-
-            c_g1, c_g2 = st.columns(2)
-            with c_g1:
-                lat_geo = st.number_input("Latitud GPS:", value=float(lat), format="%.4f")
-            with c_g2:
-                lon_geo = st.number_input("Longitud GPS:", value=float(lon), format="%.4f")
-            
-            b_guarda_geo = st.form_submit_button("📸 GUARDAR GEOFOTO Y COORDENADAS", use_container_width=True, type="primary")
-            if b_guarda_geo:
-                nombre_archivo_foto = "Sin imagen"
-                if foto_subida is not None:
-                    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    nombre_archivo_foto = f"{timestamp_str}_{foto_subida.name}"
-                    ruta_guardado = os.path.join(UPLOADS_DIR, nombre_archivo_foto)
-                    with open(ruta_guardado, "wb") as f:
-                        f.write(foto_subida.getbuffer())
-
-                if explotacion_seleccionada not in st.session_state.plagas_db:
-                    st.session_state.plagas_db[explotacion_seleccionada] = []
-                
-                reg_g = {
-                    "Fecha": str(date.today()),
-                    "Parcela": nombre_parcela,
-                    "Incidencia": desc_incidencia,
-                    "Severidad": sev_incidencia,
-                    "GPS": f"{lat_geo}, {lon_geo}",
-                    "Foto": nombre_archivo_foto
-                }
-                st.session_state.plagas_db[explotacion_seleccionada].append(reg_g)
-                guardar_json(PLAGAS_FILE, st.session_state.plagas_db)
-                st.success("¡Geofoto e incidencia geolocalizada registradas correctamente!")
-                st.rerun()
-
-        st.markdown("### 🗺️ Incidencias Registradas en Campo:")
+        
+        modo_geo = st.radio("Acción Geofotos:", ["➕ Registrar Nueva Geofoto", "✏️ Modificar o Eliminar Geofoto Existente"], horizontal=True, label_visibility="collapsed")
+        
         hist_plagas = st.session_state.plagas_db.get(explotacion_seleccionada, [])
-        if hist_plagas:
-            for p in hist_plagas:
+
+        if "Registrar Nueva" in modo_geo:
+            st.markdown("<p style='color: #64748b;'>Sube o haz una foto de campo con geolocalización GPS automática para justificar inspecciones o controles.</p>", unsafe_allow_html=True)
+            with st.form("form_geofoto"):
+                desc_incidencia = st.text_input("Descripción del síntoma / plaga (ej: Foco de Mildiu en zona norte):", value="Mancha aislada en hoja")
+                sev_incidencia = st.selectbox("Severidad:", ["🟢 Leve / Preventivo", "🟡 Moderado", "🔴 Severo / Urgente"])
+                
+                foto_subida = st.file_uploader("📷 Adjuntar Fotografía (Cámara o Archivo):", type=["jpg", "jpeg", "png"])
+
+                c_g1, c_g2 = st.columns(2)
+                with c_g1:
+                    lat_geo = st.number_input("Latitud GPS:", value=float(lat), format="%.4f")
+                with c_g2:
+                    lon_geo = st.number_input("Longitud GPS:", value=float(lon), format="%.4f")
+                
+                b_guarda_geo = st.form_submit_button("📸 GUARDAR GEOFOTO Y COORDENADAS", use_container_width=True, type="primary")
+                if b_guarda_geo:
+                    nombre_archivo_foto = "Sin imagen"
+                    if foto_subida is not None:
+                        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        nombre_archivo_foto = f"{timestamp_str}_{foto_subida.name}"
+                        ruta_guardado = os.path.join(UPLOADS_DIR, nombre_archivo_foto)
+                        with open(ruta_guardado, "wb") as f:
+                            f.write(foto_subida.getbuffer())
+
+                    if explotacion_seleccionada not in st.session_state.plagas_db:
+                        st.session_state.plagas_db[explotacion_seleccionada] = []
+                    
+                    reg_g = {
+                        "Fecha": str(date.today()),
+                        "Parcela": nombre_parcela,
+                        "Incidencia": desc_incidencia,
+                        "Severidad": sev_incidencia,
+                        "GPS": f"{lat_geo}, {lon_geo}",
+                        "Foto": nombre_archivo_foto
+                    }
+                    st.session_state.plagas_db[explotacion_seleccionada].append(reg_g)
+                    guardar_json(PLAGAS_FILE, st.session_state.plagas_db)
+                    st.success("¡Geofoto e incidencia geolocalizada registradas correctamente!")
+                    st.rerun()
+        else:
+            if not hist_plagas:
+                st.info("No hay geofotos registradas para modificar o eliminar.")
+            else:
+                opciones_geos = [f"{i['Fecha']} - {i['Parcela']} ({i['Incidencia'][:30]}...)" for i in hist_plagas]
+                idx_sel = st.selectbox("Selecciona la geofoto a editar o borrar:", range(len(hist_plagas)), format_func=lambda x: opciones_geos[x])
+                
+                geo_seleccionada = hist_plagas[idx_sel]
+                
+                severidades_lista = ["🟢 Leve / Preventivo", "🟡 Moderado", "🔴 Severo / Urgente"]
+                sev_idx = severidades_lista.index(geo_seleccionada.get("Severidad", "🟢 Leve / Preventivo")) if geo_seleccionada.get("Severidad") in severidades_lista else 0
+
+                with st.form("form_editar_geo"):
+                    nuevo_desc = st.text_input("Descripción de la incidencia:", value=geo_seleccionada.get("Incidencia", ""))
+                    nueva_sev = st.selectbox("Severidad:", severidades_lista, index=sev_idx)
+                    
+                    c_bt1, c_bt2 = st.columns(2)
+                    with c_bt1:
+                        btn_act_geo = st.form_submit_button("💾 ACTUALIZAR GEOFOTO", use_container_width=True, type="primary")
+                    with c_bt2:
+                        btn_del_geo = st.form_submit_button("🗑️ ELIMINAR GEOFOTO", use_container_width=True)
+
+                    if btn_act_geo:
+                        st.session_state.plagas_db[explotacion_seleccionada][idx_sel]["Incidencia"] = nuevo_desc
+                        st.session_state.plagas_db[explotacion_seleccionada][idx_sel]["Severidad"] = nueva_sev
+                        guardar_json(PLAGAS_FILE, st.session_state.plagas_db)
+                        st.success("¡Geofoto actualizada correctamente!")
+                        st.rerun()
+
+                    if btn_del_geo:
+                        del st.session_state.plagas_db[explotacion_seleccionada][idx_sel]
+                        guardar_json(PLAGAS_FILE, st.session_state.plagas_db)
+                        st.warning("¡Geofoto eliminada!")
+                        st.rerun()
+
+        st.markdown("<br><h3>🗺️ Incidencias Registradas en Campo:</h3>", unsafe_allow_html=True)
+        hist_plagas_actual = st.session_state.plagas_db.get(explotacion_seleccionada, [])
+        if hist_plagas_actual:
+            for p in hist_plagas_actual:
                 c_p1, c_p2 = st.columns([1.6, 1])
                 with c_p1:
                     st.markdown(f"""
@@ -850,7 +889,6 @@ with col_contenido:
                     if p.get('Foto') and p['Foto'] != "Sin imagen":
                         path_img = os.path.join(UPLOADS_DIR, p['Foto'])
                         if os.path.exists(path_img):
-                            # Imagen controlada a un ancho equilibrado de 220 píxeles manteniendo proporción
                             st.image(path_img, caption="Evidencia de campo", width=220)
                         else:
                             st.caption("Imagen no disponible localmente")
