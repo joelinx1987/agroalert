@@ -307,7 +307,6 @@ elif "Avisos Automáticos" in menu:
     st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
     
     if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
-        # Generar mensaje que recorre TODAS las fincas del usuario
         msg_partes = [f"🚜 *AGROALERT - PARTE DE TODAS TUS FINCAS*"]
         for nombre_f, d_finca in fincas_usuario.items():
             m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
@@ -431,8 +430,7 @@ elif "Gestión de Fincas" in menu:
                 
             st.session_state.db_privada[user][nombre_nueva] = {
                 "lat": lat_nueva, 
-                "lon": lon_numpy := lon_nueva, # o lon_nueva directamente
-                "lon": lon_nueva,
+                "lon": lon_nueva, 
                 "variedad": variedad_nueva, 
                 "ha": ha_nueva, 
                 "poligono": pol_nuevo, 
