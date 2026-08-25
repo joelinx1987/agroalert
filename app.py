@@ -269,8 +269,8 @@ if not st.session_state.usuario_autenticado:
 
         with tab_entrar:
             with st.form("form_login"):
-                usuario = st.text_input("Usuario", value="admin1987").strip().lower()
-                pwd = st.text_input("Contraseña", type="password", value="admin1987")
+                usuario = st.text_input("Usuario").strip().lower()
+                pwd = st.text_input("Contraseña", type="password")
                 entrar = st.form_submit_button("🚜 ENTRAR A MI EXPLOTACIÓN", use_container_width=True, type="primary")
                 if entrar:
                     if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == pwd:
