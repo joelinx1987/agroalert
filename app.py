@@ -199,12 +199,32 @@ def consultar_meteo_openmeteo(lat, lon):
             
             horas_prevision = []
             if "time" in hourly:
-                t_list = hourly["time"][:6]
-                w_list = hourly["wind_speed_10m"][:6]
-                p_list = hourly["precipitation"][:6]
-                for t, w, p in zip(t_list, w_list, p_list):
-                    hora_str = t.split("T")[-1]
-                    horas_prevision.append({"hora": hora_str, "viento": w, "lluvia": p})
+                t_list = hourly["time"]
+                w_list = hourly["wind_speed_10m"]
+                p_list = hourly["precipitation"]
+                
+                # Buscamos la hora actual exacta para filtrar las siguientes 24 horas
+                ahora_str = datetime.now().strftime("%Y-%m-%dT%H:00")
+                idx_inicio = 0
+                for i, t in enumerate(t_list):
+                    if t >= ahora_str:
+                        idx_inicio = i
+                        break
+                
+                # Tomamos exactamente las siguientes 24 horas
+                t_24h = t_list[idx_inicio : idx_inicio + 24]
+                w_24h = w_list[idx_inicio : idx_inicio + 24]
+                p_24h = p_list[idx_inicio : idx_inicio + 24]
+                
+                for t, w, p in zip(t_24h, w_24h, p_24h):
+                    # Formateamos la fecha y hora para que sea clara (ej. "26/08 09:00")
+                    dt_obj = datetime.fromisoformat(t)
+                    fecha_hora_str = dt_obj.strftime("%d/%m %H:00")
+                    horas_prevision.append({
+                        "Fecha y Hora": fecha_hora_str, 
+                        "Viento (km/h)": round(w, 1), 
+                        "Lluvia (mm)": round(p, 1)
+                    })
 
             return {
                 "temp": current.get("temperature_2m", 22.0),
@@ -399,9 +419,8 @@ with col_contenido:
 
         if horaria_24h:
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("#### ⏱️ Evolución y Previsión Horaria en Parcela:")
+            st.markdown("#### ⏱️ Evolución y Previsión Horaria (Próximas 24 Horas):")
             df_horaria = pd.DataFrame(horaria_24h)
-            df_horaria.columns = ["Hora", "Viento (km/h)", "Lluvia (mm)"]
             st.dataframe(df_horaria, use_container_width=True, hide_index=True)
 
     elif "Avisos Predictivos de Plagas" in menu:
