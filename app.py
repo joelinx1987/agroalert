@@ -161,15 +161,11 @@ def guardar_json(archivo, datos):
     except Exception:
         pass
 
-TOKEN_BOT_OFICIAL = "8996289527:AAHHSP4FIr8ct-tvFgHbel7dnKzkQXEwR6I"
-
 DEFAULT_USERS = {
     "admin1987": {
         "pwd": "admin1987", 
         "nombre": "Joel (La Rioja)", 
         "email": "joel@agroalert.es",
-        "telegram_id": "5473461038", 
-        "telegram_token": TOKEN_BOT_OFICIAL,
         "hora_aviso": "04:45"
     }
 }
@@ -247,16 +243,6 @@ def consultar_meteo_openmeteo(lat, lon):
     except Exception:
         return {"temp": 22.0, "humedad": 50.0, "lluvia": 0.0, "viento": 8.0, "horaria": []}
 
-def disparar_telegram(token, chat_id, mensaje):
-    try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        data = urllib.parse.urlencode({'chat_id': chat_id, 'text': mensaje, 'parse_mode': 'Markdown'}).encode('utf-8')
-        req = urllib.request.Request(url, data=data, headers={'User-Agent': 'AgroAlert/1.0'})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return True, "¡Mensaje enviado con éxito a tu Telegram!"
-    except Exception as e:
-        return False, f"Error al enviar: {str(e)}"
-
 # --- CONTROL DE SESIÓN PERSISTENTE POR URL ---
 if "usuario_autenticado" not in st.session_state:
     query_params = st.query_params
@@ -303,22 +289,11 @@ if not st.session_state.usuario_autenticado:
                     st.rerun()
 
             with tab_registro:
-                st.markdown("""
-                <div class="guia-caja">
-                    <b>📱 ¿Cómo obtener tu código de Telegram (Chat ID)?</b><br><br>
-                    1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil u ordenador.<br>
-                    2️⃣ Busca en la lupa superior nuestro bot oficial: <b>@TuAgroAlert_bot</b><br>
-                    3️⃣ Entra en el chat y pulsa en <b>"Iniciar"</b> (o envíale un mensaje como <i>Hola</i>).<br>
-                    4️⃣ El bot te responderá al instante con tu número de identificación (Chat ID). ¡Cópialo y pégalo abajo!
-                </div>
-                """, unsafe_allow_html=True)
-
                 with st.form("form_registro_nuevo"):
                     nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
                     nuevo_email = st.text_input("Correo electrónico").strip()
                     nuevo_pwd = st.text_input("Contraseña", type="password")
                     nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                    nuevo_chat_id = st.text_input("Tu Código de Telegram (Chat ID Opcional)")
                     
                     st.markdown("---")
                     st.markdown("##### 📍 Datos de tu parcela principal")
@@ -341,8 +316,6 @@ if not st.session_state.usuario_autenticado:
                                 "pwd": nuevo_pwd,
                                 "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
                                 "email": nuevo_email if nuevo_email else "",
-                                "telegram_id": nuevo_chat_id.strip() if nuevo_chat_id else "No configurado",
-                                "telegram_token": TOKEN_BOT_OFICIAL,
                                 "hora_aviso": "04:45"
                             }
                             guardar_json(USERS_FILE, st.session_state.usuarios_db)
@@ -386,19 +359,15 @@ if not st.session_state.usuario_autenticado:
 user = st.session_state.usuario_autenticado
 info_user = st.session_state.usuarios_db.get(user, {})
 fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat": 42.46, "lon": -2.44, "ha": 2.0}})
-telegram_token = info_user.get("telegram_token", TOKEN_BOT_OFICIAL)
-telegram_id = info_user.get("telegram_id", "No configurado")
 hora_aviso_usuario = info_user.get("hora_aviso", "04:45")
 
 # --- COMPONENTE DE NOTIFICACIONES PUSH NATIVAS DEL NAVEGADOR ---
 components.html(f"""
 <script>
-    // Solicitar permiso de notificaciones al navegador al cargar
     if (Notification && Notification.permission !== "granted") {{
         Notification.requestPermission();
     }}
 
-    // Comprobar la hora cada 30 segundos
     setInterval(function() {{
         const ahora = new Date();
         const horas = String(ahora.getHours()).padStart(2, '0');
@@ -408,7 +377,6 @@ components.html(f"""
         const horaConfigurada = "{hora_aviso_usuario}";
 
         if (horaActualStr === horaConfigurada) {{
-            // Evitar que salten varias veces en el mismo minuto guardando un flag en sessionStorage
             const ultimaNoti = sessionStorage.getItem("ultima_notif");
             if (ultimaNoti !== horaActualStr) {{
                 sessionStorage.setItem("ultima_notif", horaActualStr);
@@ -470,21 +438,19 @@ with col_menu:
 
     menu = st.radio("Menú:", lista_menu, label_visibility="collapsed")
 
-    # --- BOTONES DE COMPARTIR (WHATSAPP Y TELEGRAM) EN EL MENÚ ---
+    # --- BOTONES DE COMPARTIR EN EL MENÚ ---
     st.markdown("<br><hr>", unsafe_allow_html=True)
     st.markdown("##### 📢 ¡Comparte AgroAlert!")
     st.write("Comparte esta herramienta gratuita con otros agricultores:")
     
-    texto_compartir = urllib.parse.quote("¡Échale un vistazo a AgroAlert! Una app gratuita para agricultores que te avisa del tiempo para sulfatar, controla el Cuaderno PAC y manda avisos por Telegram. Pruébala aquí:")
+    texto_compartir = urllib.parse.quote("¡Échale un vistazo al asistente agrícola AgroAlert! Previsión para sulfatar, cuaderno de campo y alertas en pantalla.")
     url_app = "https://share.streamlit.io"
     
     link_whatsapp = f"https://api.whatsapp.com/send?text={texto_compartir}%20{url_app}"
-    link_telegram = f"https://t.me/share/url?url={url_app}&text={texto_compartir}"
 
     st.markdown(f"""
         <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <a href="{link_whatsapp}" target="_blank" style="flex: 1; background-color: #25d366; color: white; padding: 10px 12px; border-radius: 10px; text-align: center; text-decoration: none; font-weight: 700; font-size: 0.9rem;">💬 WhatsApp</a>
-            <a href="{link_telegram}" target="_blank" style="flex: 1; background-color: #0088cc; color: white; padding: 10px 12px; border-radius: 10px; text-align: center; text-decoration: none; font-weight: 700; font-size: 0.9rem;">✈️ Telegram</a>
+            <a href="{link_whatsapp}" target="_blank" style="flex: 1; background-color: #25d366; color: white; padding: 10px 12px; border-radius: 10px; text-align: center; text-decoration: none; font-weight: 700; font-size: 0.9rem;">💬 Compartir por WhatsApp</a>
         </div>
     """, unsafe_allow_html=True)
 
@@ -589,13 +555,6 @@ with col_contenido:
         ).add_to(m_comarca)
         
         st_folium(m_comarca, width=700, height=450)
-        
-        st.markdown(f"""
-        * **Centro de análisis:** Parcela **{parcela_activa}** (Lat: {lat_f}, Lon: {lon_f})
-        * **Radio operativo:** 50 km analizados en tiempo real.
-        * **Temperatura media comarcal:** `{temp_comarca}°C` | **Humedad relativa comarcal:** `{humedad_comarca}%`.
-        * **Diagnóstico fitosanitario zonal:** Las condiciones higrométricas dentro del radio de 50 km indican la conveniencia de revisar linderos y mantener la estrategia de tratamientos preventivos en toda la comarca agrícola.
-        """)
 
     elif "Calculadora de Fitosanitarios" in menu:
         st.markdown("### 🧪 Calculadora de Fitosanitarios")
@@ -698,14 +657,13 @@ with col_contenido:
             st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
 
     elif "Avisos Automáticos y Programación" in menu:
-        st.markdown(f"### 📲 Configuración de Avisos Diarios y Notificaciones")
-        st.write("Elige la hora exacta a la que deseas recibir el aviso flotante en tu dispositivo y el parte en Telegram.")
-        st.info(f"🤖 Chat ID de Telegram configurado: **{telegram_id}**")
+        st.markdown(f"### 📲 Configuración de Avisos y Notificaciones en Pantalla")
+        st.write("Elige la hora exacta a la que deseas que salte el aviso visual en la pantalla de tu dispositivo.")
         
         st.markdown("""
         <div class="guia-caja">
-            <b>🔔 Sobre las Notificaciones Visuales en Pantalla:</b><br>
-            Al entrar a esta aplicación por primera vez, tu navegador te pedirá permiso para <b>mostrar notificaciones</b>. Acepta para que, al llegar la hora configurada, te salte el aviso visual automáticamente en la pantalla de tu móvil u ordenador.
+            <b>🔔 Sobre las Notificaciones en Pantalla:</b><br>
+            Acepta el permiso cuando tu navegador te lo solicite. Al llegar la hora configurada, el sistema te mostrará automáticamente un aviso flotante con el recordatorio del parte de tus fincas.
         </div>
         """, unsafe_allow_html=True)
         
@@ -713,7 +671,7 @@ with col_contenido:
             h_parts = hora_aviso_usuario.split(":")
             t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(4, 45)
             
-            nueva_hora_sel = st.time_input("⏰ Hora preferida para recibir el aviso diario:", value=t_default)
+            nueva_hora_sel = st.time_input("⏰ Hora preferida para recibir la notificación visual:", value=t_default)
             guardar_hora = st.form_submit_button("💾 GUARDAR HORA DE AVISO", use_container_width=True, type="primary")
             
             if guardar_hora:
@@ -723,79 +681,13 @@ with col_contenido:
                 st.success(f"¡Hora de aviso actualizada con éxito a las {hora_str}!")
                 st.rerun()
 
-        st.markdown("---")
-        st.markdown("#### 🚀 Comprobación Manual del Parte")
-        if telegram_id == "No configurado":
-            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram.")
-        
-        if st.button("📲 PROBAR ENVÍO INMEDIATO A TELEGRAM", use_container_width=True, type="primary"):
-            if telegram_id == "No configurado":
-                st.error("No se puede enviar porque no hay un Chat ID de Telegram asociado a esta cuenta.")
-            else:
-                fincas_del_usuario = st.session_state.db_privada.get(user, {})
-                if not fincas_del_usuario:
-                    st.warning("No tienes ninguna finca registrada para analizar.")
-                else:
-                    msg_partes = [f"🚜 *AGROALERT • PARTE DIARIO (Programado a las {hora_aviso_usuario})*\n👤 *Agricultor:* {info_user.get('nombre', 'Agricultor')}\n"]
-                    
-                    for nombre_f, d_finca in fincas_del_usuario.items():
-                        m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
-                        
-                        if m_finca["viento"] > 15:
-                            estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
-                            accion_obligatoria = "👉 *Frenar actividad en campo.* Viento excesivo: alto riesgo de deriva y contaminación."
-                            consejos = (
-                                "💡 *Consejos profesionales de valor:*\n"
-                                "   1️⃣ *Mantenimiento:* Aprovecha en caseta para revisar boquillas, filtros y calibrar maquinaria.\n"
-                                "   2️⃣ *Stock:* Revisa el almacén de fitosanitarios para anticiparte a las próximas compras.\n"
-                                "   3️⃣ *Seguridad:* Evita cualquier aplicación que incumpla la normativa local."
-                            )
-                        elif m_finca["lluvia"] > 2.0:
-                            estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Riesgo de lluvia)"
-                            accion_obligatoria = "👉 *Frenar actividad en campo.* Riesgo de lavado inmediato del caldo aplicado."
-                            consejos = (
-                                "💡 *Consejos profesionales de valor:*\n"
-                                "   1️⃣ *Drenaje:* Vigila posibles encharcamientos y accesos principales a la parcela.\n"
-                                "   2️⃣ *PAC:* Pon al día tus apuntes fitosanitarios en el Cuaderno de Explotación.\n"
-                                "   3️⃣ *Planificación:* Revisa el estado sanitario general en cuanto amaine."
-                            )
-                        else:
-                            estado_f = "🟢 VÍA LIBRE PARA TRATAR"
-                            accion_obligatoria = "👉 *Ejecutar tratamiento en campo.* Mantén velocidad constante (4-6 km/h) y revisa la presión."
-                            consejos = (
-                                "💡 *Consejos profesionales de valor:*\n"
-                                "   1️⃣ *Calibración:* Comprueba que el manómetro asegure el tamaño óptimo de gota.\n"
-                                "   2️⃣ *Estrategia:* Asegura un reparto homogéneo en todo el volumen foliar.\n"
-                                "   3️⃣ *PAC:* Anota inmediatamente el número de registro MAPA y hectáreas tratadas al terminar."
-                            )
-
-                        msg_partes.append(
-                            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                            f"📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
-                            f"📌 *ESTADO:* {estado_f}\n"
-                            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                            f"🌤️ *Meteorología actual:*\n"
-                            f"   • Viento: {m_finca['viento']:.1f} km/h *(Límite seguro: < 15)*\n"
-                            f"   • Lluvia: {m_finca['lluvia']:.1f} mm *(Sin riesgo de lavado)*\n\n"
-                            f"🎯 *ACCIÓN OBLIGATORIA DE HOY:*\n"
-                            f"{accion_obligatoria}\n\n"
-                            f"{consejos}\n"
-                        )
-                        
-                    msg_prueba_total = "\n".join(msg_partes)
-                    
-                    ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
-                    if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
-                    else: st.error(res)
-
     elif "Ajustes de la Cuenta" in menu:
         st.markdown("### 👤 Ajustes de la Cuenta y Datos Personales")
-        st.write("Modifica tu información de perfil, correo electrónico, contraseña o vinculación con Telegram.")
+        st.write("Modifica tu información de perfil, correo electrónico o contraseña.")
         
         with st.form("form_ajustes_cuenta"):
             nuevo_nombre_perfil = st.text_input("Nombre y Apellidos", value=info_user.get("nombre", ""))
             nuevo_email_perfil = st.text_input("Correo Electrónico", value=info_user.get("email", ""))
-            nuevo_telegram_id = st.text_input("Código de Telegram (Chat ID)", value=info_user.get("telegram_id", ""))
             
             st.markdown("---")
             st.markdown("##### 🔑 Cambiar Contraseña (Opcional)")
@@ -815,14 +707,12 @@ with col_contenido:
                         st.session_state.usuarios_db[user]["pwd"] = pass_nueva1
                         st.session_state.usuarios_db[user]["nombre"] = nuevo_nombre_perfil
                         st.session_state.usuarios_db[user]["email"] = nuevo_email_perfil
-                        st.session_state.usuarios_db[user]["telegram_id"] = nuevo_telegram_id
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
                         st.success("¡Datos y contraseña actualizados correctamente!")
                         st.rerun()
                 else:
                     st.session_state.usuarios_db[user]["nombre"] = nuevo_nombre_perfil
                     st.session_state.usuarios_db[user]["email"] = nuevo_email_perfil
-                    st.session_state.usuarios_db[user]["telegram_id"] = nuevo_telegram_id
                     guardar_json(USERS_FILE, st.session_state.usuarios_db)
                     st.success("¡Datos de la cuenta actualizados correctamente!")
                     st.rerun()
@@ -838,7 +728,6 @@ with col_contenido:
                 "Usuario (Login)": username,
                 "Nombre y Apellidos": udata.get("nombre", "N/A"),
                 "Correo": udata.get("email", "N/A"),
-                "Telegram Chat ID": udata.get("telegram_id", "N/A"),
                 "Hora Aviso": udata.get("hora_aviso", "04:45"),
                 "Contraseña": udata.get("pwd", "N/A")
             })
