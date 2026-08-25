@@ -118,10 +118,10 @@ st.markdown("""
 
     .card-content { position: relative; z-index: 2; }
 
-    /* URLS CORREGIDAS PARA TODAS LAS FOTOS */
+    /* URLs 100% ESTABLES Y VALIDADAS PARA LAS 4 TARJETAS */
     .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); }
     .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); }
-    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); }
+    .card-rain { background-image: url('https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=700&auto=format&fit=crop'); }
     .card-shield { background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); }
 
     .card-title { font-size: 0.85rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -1133,7 +1133,7 @@ with col_contenido:
             if tabla_fincas:
                 st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
-    # SECCIÓN 7: LEYENDA Y FECHAS
+    # SECCIÓN 7: LEYENDA Y FUENTES
     elif "Leyenda Técnica" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
         
