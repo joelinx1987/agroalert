@@ -11,9 +11,16 @@ import json
 import hashlib
 from PIL import Image
 
+# CARGAR LOGO OFICIAL
+logo_path = "logo.png"
+if os.path.exists(logo_path):
+    logo_img = Image.open(logo_path)
+else:
+    logo_img = "🔔"
+
 st.set_page_config(
     page_title="AgroAlert | Explotación de Precisión",
-    page_icon="🚜",
+    page_icon=logo_img if os.path.exists(logo_path) else "🔔",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -317,9 +324,17 @@ if not st.session_state.usuario_autenticado:
     c1, col_login, c2 = st.columns([1, 1.8, 1])
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Mostrar Logo de la Campana
+        col_logo1, col_logo2, col_logo3 = st.columns([1, 1, 1])
+        with col_logo2:
+            if os.path.exists("logo.png"):
+                st.image("logo.png", width=120)
+            else:
+                st.markdown("<div style='text-align: center; font-size: 3.8rem;'>🔔</div>", unsafe_allow_html=True)
+
         st.markdown("""
         <div style="text-align: center; margin-bottom: 25px;">
-            <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert</h1>
             <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
         </div>
@@ -341,7 +356,6 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
-            # INTERFAZ MUY INTUITIVA PASO A PASO
             st.markdown("""
             <div style="background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
                 <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 10px;">
@@ -953,7 +967,7 @@ with col_contenido:
                 st.info(f"📊 Rendimiento estimado: **{rendimiento_ha:.0f} kg/ha** | Ingreso total: **{ingreso_bruto:.2f} €**")
 
                 b_guarda_cosecha = st.form_submit_button("💾 GUARDAR REGISTRO DE COSECHA", use_container_width=True, type="primary")
-                if b_guarda_cosecha:
+                if b_guardar_cosecha:
                     if explotacion_seleccionada not in st.session_state.labores_db:
                         st.session_state.labores_db[explotacion_seleccionada] = {"labores": [], "cosechas": []}
                     
