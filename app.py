@@ -9,6 +9,7 @@ import urllib.request
 import urllib.parse
 import json
 import hashlib
+from PIL import Image
 
 st.set_page_config(
     page_title="AgroAlert Pro | Explotación de Precisión",
@@ -167,8 +168,11 @@ FINCAS_FILE = "fincas_db.json"
 FITOS_FILE = "fitosanitarios_db.json"
 LABORES_FILE = "labores_db.json"
 PLAGAS_FILE = "plagas_geolocalizadas_db.json"
+UPLOADS_DIR = "uploads_geofotos"
 
-# BASE DE DATOS DE PRODUCTOS AUTORIZADOS MAPA (Simulador de Catálogo Oficial Actualizado)
+if not os.path.exists(UPLOADS_DIR):
+    os.makedirs(UPLOADS_DIR)
+
 CATALOGO_MAPA_OFICIAL = {
     "ES-00123": {"producto": "Oxicloruro de Cobre 50%", "materia": "Cobre (Oxicloruro)", "dosis_max": "4.0 kg/ha", "plazo": 14},
     "ES-00456": {"producto": "Azufre Moable 80%", "materia": "Azufre micronizado", "dosis_max": "6.0 kg/ha", "plazo": 5},
@@ -726,7 +730,7 @@ with col_contenido:
         </div>
         """, unsafe_allow_html=True)
 
-    # SECCIÓN 3: CUADERNO SIEX / PAC Y FITOSANITARIOS (CON VALIDACIÓN MAPA)
+    # SECCIÓN 3: CUADERNO SIEX / PAC Y FITOSANITARIOS
     elif "Cuaderno SIEX" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📋 Cuaderno de Explotación Homologado (SIEX / PAC)</h2>", unsafe_allow_html=True)
         st.markdown("<p style='color: #64748b;'>Conexión activa con el catálogo de validación del Registro MAPA para evitar rechazos en la administración.</p>", unsafe_allow_html=True)
@@ -737,9 +741,8 @@ with col_contenido:
             with c_f1:
                 fecha_fito = st.date_input("Fecha de aplicación:", date.today())
                 plaga_tratada = st.text_input("Plaga / Hongo / Motivo:", value="Mildiu")
-                # Selector o entrada de Nº Registro MAPA con ayudas de ejemplo
                 num_mapa = st.text_input("Nº Registro MAPA (ej: ES-00123, ES-00456, ES-00789):", value="ES-00123")
-                producto_fito = st.text_input("Producto Comercial (Se autocomprueba con MAPA):", value="Oxicloruro de Cobre 50%")
+                producto_fito = st.text_input("Producto Comercial:", value="Oxicloruro de Cobre 50%")
             with c_f2:
                 dosis_fito = st.text_input("Dosis aplicada:", value="2.5 kg/ha")
                 caldo_gastado = st.number_input("Gasto total caldo (Litros):", value=800, step=100)
@@ -787,14 +790,18 @@ with col_contenido:
         else:
             st.info("Aún no hay tratamientos oficiales registrados.")
 
-    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS
+    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON SUBIDA REAL DE FOTO)
     elif "Geofotos y Focos" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📸 Registro de Geofotos y Focos de Plaga</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color: #64748b;'>Registra incidencias de campo con geolocalización GPS automática para justificar inspecciones o controles.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #64748b;'>Sube o haz una foto de campo con geolocalización GPS automática para justificar inspecciones o controles.</p>", unsafe_allow_html=True)
 
         with st.form("form_geofoto"):
             desc_incidencia = st.text_input("Descripción del síntoma / plaga (ej: Foco de Mildiu en zona norte):", value="Mancha aislada en hoja")
             sev_incidencia = st.selectbox("Severidad:", ["🟢 Leve / Preventivo", "🟡 Moderado", "🔴 Severo / Urgente"])
+            
+            # Selector de archivo de imagen
+            foto_subida = st.file_uploader("📷 Adjuntar Fotografía (Cámara o Archivo):", type=["jpg", "jpeg", "png"])
+
             c_g1, c_g2 = st.columns(2)
             with c_g1:
                 lat_geo = st.number_input("Latitud GPS:", value=float(lat), format="%.4f")
@@ -803,6 +810,15 @@ with col_contenido:
             
             b_guarda_geo = st.form_submit_button("📸 GUARDAR GEOFOTO Y COORDENADAS", use_container_width=True, type="primary")
             if b_guarda_geo:
+                nombre_archivo_foto = "Sin imagen"
+                if foto_subida is not None:
+                    # Guardar la imagen física en la carpeta de uploads
+                    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    nombre_archivo_foto = f"{timestamp_str}_{foto_subida.name}"
+                    ruta_guardado = os.path.join(UPLOADS_DIR, nombre_archivo_foto)
+                    with open(ruta_guardado, "wb") as f:
+                        f.write(foto_subida.getbuffer())
+
                 if explotacion_seleccionada not in st.session_state.plagas_db:
                     st.session_state.plagas_db[explotacion_seleccionada] = []
                 
@@ -811,17 +827,36 @@ with col_contenido:
                     "Parcela": nombre_parcela,
                     "Incidencia": desc_incidencia,
                     "Severidad": sev_incidencia,
-                    "GPS": f"{lat_geo}, {lon_geo}"
+                    "GPS": f"{lat_geo}, {lon_geo}",
+                    "Foto": nombre_archivo_foto
                 }
                 st.session_state.plagas_db[explotacion_seleccionada].append(reg_g)
                 guardar_json(PLAGAS_FILE, st.session_state.plagas_db)
-                st.success("¡Incidencia geolocalizada registrada correctamente!")
+                st.success("¡Geofoto e incidencia geolocalizada registradas correctamente!")
                 st.rerun()
 
         st.markdown("### 🗺️ Incidencias Registradas en Campo:")
         hist_plagas = st.session_state.plagas_db.get(explotacion_seleccionada, [])
         if hist_plagas:
-            st.dataframe(pd.DataFrame(hist_plagas), use_container_width=True, hide_index=True)
+            for p in hist_plagas:
+                c_p1, c_p2 = st.columns([2, 1])
+                with c_p1:
+                    st.markdown(f"""
+                    <div style="background: rgba(255,255,255,0.9); border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <b>📅 Fecha:</b> {p['Fecha']} | <b>Parcela:</b> {p['Parcela']}<br>
+                        <b>📝 Incidencia:</b> {p['Incidencia']}<br>
+                        <b>⚠️ Severidad:</b> {p['Severidad']} | <b>📍 GPS:</b> {p['GPS']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                with c_p2:
+                    if p.get('Foto') and p['Foto'] != "Sin imagen":
+                        path_img = os.path.join(UPLOADS_DIR, p['Foto'])
+                        if os.path.exists(path_img):
+                            st.image(path_img, caption="Evidencia de campo", width=160)
+                        else:
+                            st.caption("Imagen no disponible localmente")
+                    else:
+                        st.caption("Sin imagen adjunta")
         else:
             st.info("Sin incidencias geolocalizadas registradas.")
 
