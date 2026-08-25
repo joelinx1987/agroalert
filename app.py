@@ -10,6 +10,7 @@ import json
 import hashlib
 import folium
 from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 
 # --- COMPROBACIÓN SEGURA DE LA RUTA DEL LOGO ---
 logo_path = None
@@ -160,7 +161,6 @@ def guardar_json(archivo, datos):
     except Exception:
         pass
 
-# --- TOKEN OFICIAL CONFIGURADO ---
 TOKEN_BOT_OFICIAL = "8996289527:AAHHSP4FIr8ct-tvFgHbel7dnKzkQXEwR6I"
 
 DEFAULT_USERS = {
@@ -257,7 +257,7 @@ def disparar_telegram(token, chat_id, mensaje):
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
-# --- CONTROL DE SESIÓN PERSISTENTE POR URL (EVITA CIERRE CON F5) ---
+# --- CONTROL DE SESIÓN PERSISTENTE POR URL ---
 if "usuario_autenticado" not in st.session_state:
     query_params = st.query_params
     if "user" in query_params and query_params["user"] in st.session_state.usuarios_db:
@@ -305,7 +305,7 @@ if not st.session_state.usuario_autenticado:
             with tab_registro:
                 st.markdown("""
                 <div class="guia-caja">
-                    <b>📱 ¿Cómo obtener tu código de Telegram (Chat ID) paso a paso?</b><br><br>
+                    <b>📱 ¿Cómo obtener tu código de Telegram (Chat ID)?</b><br><br>
                     1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil u ordenador.<br>
                     2️⃣ Busca en la lupa superior nuestro bot oficial: <b>@TuAgroAlert_bot</b><br>
                     3️⃣ Entra en el chat y pulsa en <b>"Iniciar"</b> (o envíale un mensaje como <i>Hola</i>).<br>
@@ -389,6 +389,41 @@ fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat":
 telegram_token = info_user.get("telegram_token", TOKEN_BOT_OFICIAL)
 telegram_id = info_user.get("telegram_id", "No configurado")
 hora_aviso_usuario = info_user.get("hora_aviso", "04:45")
+
+# --- COMPONENTE DE NOTIFICACIONES PUSH NATIVAS DEL NAVEGADOR ---
+components.html(f"""
+<script>
+    // Solicitar permiso de notificaciones al navegador al cargar
+    if (Notification && Notification.permission !== "granted") {{
+        Notification.requestPermission();
+    }}
+
+    // Comprobar la hora cada 30 segundos
+    setInterval(function() {{
+        const ahora = new Date();
+        const horas = String(ahora.getHours()).padStart(2, '0');
+        const minutos = String(ahora.getMinutes()).padStart(2, '0');
+        const horaActualStr = horas + ":" + minutos;
+        
+        const horaConfigurada = "{hora_aviso_usuario}";
+
+        if (horaActualStr === horaConfigurada) {{
+            // Evitar que salten varias veces en el mismo minuto guardando un flag en sessionStorage
+            const ultimaNoti = sessionStorage.getItem("ultima_notif");
+            if (ultimaNoti !== horaActualStr) {{
+                sessionStorage.setItem("ultima_notif", horaActualStr);
+                
+                if (Notification && Notification.permission === "granted") {{
+                    new Notification("🚜 AgroAlert - Parte Diario", {{
+                        body: "¡Es tu hora configurada! Revisa el parte meteorológico y el estado de tus fincas en la app.",
+                        icon: "https://cdn-icons-png.flaticon.com/512/3076/3076137.png"
+                    }});
+                }}
+            }}
+        }}
+    }}, 30000);
+</script>
+""", height=0)
 
 # --- CABECERA SUPERIOR PROFESIONAL CON SELECTOR RÁPIDO DE FINCA Y LOGO OFICIAL ---
 col_head_izq, col_head_centro, col_head_der = st.columns([1.2, 2.2, 1])
@@ -663,16 +698,14 @@ with col_contenido:
             st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
 
     elif "Avisos Automáticos y Programación" in menu:
-        st.markdown(f"### 📲 Configuración de Avisos Diarios en Telegram")
-        st.write("Elige la hora exacta a la vez que configuras tu parte meteorológico automatizado.")
+        st.markdown(f"### 📲 Configuración de Avisos Diarios y Notificaciones")
+        st.write("Elige la hora exacta a la que deseas recibir el aviso flotante en tu dispositivo y el parte en Telegram.")
         st.info(f"🤖 Chat ID de Telegram configurado: **{telegram_id}**")
         
         st.markdown("""
         <div class="guia-caja">
-            <b>📱 ¿Cómo obtener tu código de Telegram (Chat ID)?</b><br>
-            1. Abre Telegram y busca: <b>@TuAgroAlert_bot</b><br>
-            2. Envíale cualquier mensaje (ej. <i>Hola</i>).<br>
-            3. Copia el número (Chat ID) que te responda el bot y ponlo en <b>👤 Ajustes de la Cuenta</b>.
+            <b>🔔 Sobre las Notificaciones Visuales en Pantalla:</b><br>
+            Al entrar a esta aplicación por primera vez, tu navegador te pedirá permiso para <b>mostrar notificaciones</b>. Acepta para que, al llegar la hora configurada, te salte el aviso visual automáticamente en la pantalla de tu móvil u ordenador.
         </div>
         """, unsafe_allow_html=True)
         
@@ -693,7 +726,7 @@ with col_contenido:
         st.markdown("---")
         st.markdown("#### 🚀 Comprobación Manual del Parte")
         if telegram_id == "No configurado":
-            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Sigue los pasos de arriba y añádelo en '👤 Ajustes de la Cuenta'.")
+            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram.")
         
         if st.button("📲 PROBAR ENVÍO INMEDIATO A TELEGRAM", use_container_width=True, type="primary"):
             if telegram_id == "No configurado":
