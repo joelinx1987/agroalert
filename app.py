@@ -307,20 +307,27 @@ elif "Avisos Automáticos" in menu:
     st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
     
     if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
-        msg_partes = [f"🚜 *AGROALERT - PARTE DE TODAS TUS FINCAS*"]
+        msg_partes = [f"🚜 *AGROALERT - ESTADO DE TUS FINCAS HOY*"]
         for nombre_f, d_finca in fincas_usuario.items():
             m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
-            estado_f = "⛔ No recomendado" if m_finca["viento"] > 15 or m_finca["lluvia"] > 2.0 else "✅ Perfecto para sulfatar"
+            
+            if m_finca["viento"] > 15:
+                estado_f = "⛔ PROHIBIDO SULFATAR (Mucho viento)"
+            elif m_finca["lluvia"] > 2.0:
+                estado_f = "⛔ PROHIBIDO SULFATAR (Riesgo de lluvia)"
+            else:
+                estado_f = "✅ DÍA BUENO PARA ENTRAR"
+
             msg_partes.append(
                 f"\n📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
-                f"   • *Estado:* {estado_f}\n"
-                f"   • *Viento:* {m_finca['viento']:.1f} km/h\n"
+                f"   • *Consejo:* {estado_f}\n"
+                f"   • *Viento:* {m_finca['viento']:.1f} km/h *(Límite: 15)*\n"
                 f"   • *Lluvia:* {m_finca['lluvia']:.1f} mm"
             )
         msg_prueba_total = "\n".join(msg_partes)
         
         ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
-        if ok: st.success("¡Parte enviado con éxito a tu Telegram con todas tus fincas!")
+        if ok: st.success("¡Parte claro y detallado enviado con éxito a tu Telegram!")
         else: st.error(res)
 
 elif "Gestión de Fincas" in menu:
