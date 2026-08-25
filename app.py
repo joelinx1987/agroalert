@@ -246,6 +246,10 @@ elif menu=="🌾 Parcelas":
     # --------------------------------------------------------
     with tab_ver:
         if fincas:
+            # Guarda qué finca debe centrar el mapa.
+            if "finca_mapa_activa" not in st.session_state or st.session_state.finca_mapa_activa not in fincas:
+                st.session_state.finca_mapa_activa = next(iter(fincas))
+
             cs=st.columns(min(3,max(1,len(fincas))))
             for c,(name,d) in zip(cs,fincas.items()):
                 with c:
@@ -262,14 +266,46 @@ elif menu=="🌾 Parcelas":
                         unsafe_allow_html=True
                     )
 
+                    # Al pulsar la finca, el mapa se centra directamente en ella.
+                    if st.button(
+                        f"📍 Ver {name} en el mapa",
+                        key=f"mapa_{name}",
+                        use_container_width=True,
+                        type="primary" if st.session_state.finca_mapa_activa == name else "secondary"
+                    ):
+                        st.session_state.finca_mapa_activa = name
+                        st.rerun()
+
             st.markdown("<div class='section'>Mapa de explotación</div>",unsafe_allow_html=True)
+
+            finca_mapa = st.session_state.finca_mapa_activa
+            datos_mapa = fincas[finca_mapa]
+            lat_centro = float(datos_mapa.get("lat",42.4658))
+            lon_centro = float(datos_mapa.get("lon",-2.4499))
+
+            st.markdown(
+                f"<div class='card' style='padding:12px 16px;margin-bottom:12px'>"
+                f"<div class='kicker'>FINCA SELECCIONADA</div>"
+                f"<b>{finca_mapa}</b>"
+                f"<span class='sub'> · {datos_mapa.get('ha',0)} ha · {datos_mapa.get('variedad','Cultivo')}</span>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
+            # Muestra todas las fincas, pero centra y acerca el mapa a la seleccionada.
             md=pd.DataFrame([
                 {"lat":d.get("lat"),"lon":d.get("lon")}
                 for d in fincas.values()
                 if d.get("lat") is not None and d.get("lon") is not None
             ])
+
             if not md.empty:
-                st.map(md,zoom=11)
+                st.map(
+                    md,
+                    latitude=lat_centro,
+                    longitude=lon_centro,
+                    zoom=15
+                )
         else:
             st.info("Todavía no tienes parcelas registradas.")
 
