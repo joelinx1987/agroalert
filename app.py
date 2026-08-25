@@ -340,6 +340,54 @@ elif "Gestión de Fincas" in menu:
         st.dataframe(pd.DataFrame(datos_tabla), use_container_width=True, hide_index=True)
         st.markdown("---")
 
+    # 1. EDITAR FINCA EXISTENTE
+    if fincas_usuario:
+        st.markdown("#### ✏️ Edita los datos de una finca existente")
+        finca_a_editar = st.selectbox("Selecciona la finca que deseas modificar:", list(fincas_usuario.keys()), key="select_editar_finca")
+        datos_actuales = fincas_usuario[finca_a_editar]
+        
+        with st.form("form_editar_finca"):
+            c_ed1, c_ed2 = st.columns(2)
+            with c_ed1:
+                nuevo_nombre_finca = st.text_input("Nuevo nombre de la finca", value=finca_a_editar)
+                nueva_variedad = st.text_input("Variedad o cultivo", value=datos_actuales.get("variedad", "General"))
+                nueva_ha = st.number_input("Superficie en hectáreas", value=float(datos_actuales.get("ha", 1.0)), step=0.5)
+            with c_ed2:
+                st.write("Ubicación exacta:")
+                c_eco1, c_eco2 = st.columns(2)
+                with c_eco1:
+                    nueva_lat = st.number_input("Latitud", value=float(datos_actuales.get("lat", 42.4658)), format="%.6f")
+                with c_eco2:
+                    nueva_lon = st.number_input("Longitud", value=float(datos_actuales.get("lon", -2.4499)), format="%.6f")
+                    
+                st.write("Datos Catastrales:")
+                c_ecat1, c_ecat2 = st.columns(2)
+                with c_ecat1:
+                    nuevo_pol = st.text_input("Polígono", value=str(datos_actuales.get("poligono", "1")))
+                with c_ecat2:
+                    nueva_parc = st.text_input("Parcela", value=str(datos_actuales.get("parcela", "1")))
+
+            guardar_cambios = st.form_submit_button("💾 ACTUALIZAR DATOS DE LA FINCA", use_container_width=True, type="primary")
+            
+            if guardar_cambios:
+                # Si cambió de nombre, borramos la clave antigua para evitar duplicados
+                if finca_a_editar != nuevo_nombre_finca:
+                    del st.session_state.db_privada[user][finca_a_editar]
+                
+                st.session_state.db_privada[user][nuevo_nombre_finca] = {
+                    "lat": nueva_lat,
+                    "lon": nueva_lon,
+                    "variedad": nueva_variedad,
+                    "ha": nueva_ha,
+                    "poligono": nuevo_pol,
+                    "parcela": nueva_parc
+                }
+                guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                st.success(f"¡Finca '{nuevo_nombre_finca}' actualizada correctamente!")
+                st.rerun()
+        st.markdown("---")
+
+    # 2. AÑADIR NUEVA FINCA
     st.markdown("#### ➕ Añade una nueva parcela")
     with st.form("form_nueva_finca"):
         c_f1, c_f2 = st.columns(2)
