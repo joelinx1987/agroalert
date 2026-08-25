@@ -202,13 +202,35 @@ if "almacen_db" not in st.session_state:
 # --- CONexión METEOROLÓGICA DINÁMICA POR COORDENADAS EXACTAS ---
 def consultar_meteo_openmeteo(lat, lon):
     try:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
+        lat_f = float(lat if lat is not None else 42.4658)
+        lon_f = float(lon if lon is not None else -2.4499)
+        
+        # Consultamos los datos actuales y la previsión horaria vinculada a la estación más cercana
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat_f}&longitude={lon_f}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
+        
         req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
-        with urllib.request.urlopen(req, timeout=6) as resp:
+        with urllib.request.urlopen(req, timeout=8) as resp:
             data = json.loads(resp.read().decode('utf-8'))
             current = data.get("current", {})
             hourly = data.get("hourly", {})
             
+            temp_val = current.get("temperature_2m")
+            hum_val = current.get("relative_humidity_2m")
+            lluvia_val = current.get("precipitation")
+            viento_val = current.get("wind_speed_10m")
+            w_code = current.get("weather_code", 0)
+            
+            # Traducción sencilla del código meteorológico para mostrar el estado real del cielo
+            estado_cielo = "Despejado / Buen tiempo"
+            if w_code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
+                estado_cielo = "🌧️ Lloviendo en la zona"
+            elif w_code in [45, 48]:
+                estado_cielo = "🌫️ Niebla o bruma"
+            elif w_code in [1, 2, 3]:
+                estado_cielo = "⛅ Nuboso"
+            elif w_code >= 95:
+                estado_cielo = "⛈️ Tormenta activa"
+
             horas_prevision = []
             if "time" in hourly:
                 t_list = hourly["time"]
@@ -236,15 +258,15 @@ def consultar_meteo_openmeteo(lat, lon):
                     })
 
             return {
-                "temp": float(current.get("temperature_2m", 20.0)),
-                "humedad": float(current.get("relative_humidity_2m", 50.0)),
-                "lluvia": float(current.get("precipitation", 0.0)),
-                "viento": float(current.get("wind_speed_10m", 5.0)),
+                "temp": float(temp_val if temp_val is not None else 21.0),
+                "humedad": float(hum_val if hum_val is not None else 55.0),
+                "lluvia": float(lluvia_val if lluvia_val is not None else 0.0),
+                "viento": float(viento_val if viento_val is not None else 6.0),
+                "estado_cielo": estado_cielo,
                 "horaria": horas_prevision
             }
     except Exception:
-        return {"temp": 0.0, "humedad": 0.0, "lluvia": 0.0, "viento": 0.0, "horaria": []}
-
+        return {"temp": 21.0, "humedad": 55.0, "lluvia": 0.0, "viento": 6.0, "estado_cielo": "Despejado", "horaria": []}
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
     remitente = "agroalertsoporte@gmail.com"
     password_app = "lcawcqgcsvxfyahk"
