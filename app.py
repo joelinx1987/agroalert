@@ -27,7 +27,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES: FOTOS AGRÍCOLAS Y DISEÑOS LIMPIOS ---
+# --- ESTILOS VISUALES: CENTRADO ABSOLUTO Y DISEÑO LIMPIO ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -40,6 +40,42 @@ st.markdown("""
         background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important;
         background-attachment: fixed !important;
         color: #0f172a;
+    }
+
+    /* CONTENEDOR CENTRAL DE LA MARCA */
+    .brand-header-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 25px;
+    }
+
+    .brand-logo-img {
+        width: 260px;
+        max-width: 100%;
+        height: auto;
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+        margin-bottom: 15px;
+    }
+
+    .brand-title {
+        font-size: 2.3rem;
+        font-weight: 900;
+        color: #15803d;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .brand-subtitle {
+        font-size: 1.05rem;
+        color: #475569;
+        font-weight: 600;
+        margin-top: 6px;
     }
 
     /* BOTONES DE SECCIÓN VERTICALES */
@@ -327,20 +363,24 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # LOGOTIPO CENTRADO CON COLUMNAS NATIVAS DE STREAMLIT (SIN CONTENEDOR FORZADO)
-        col_l1, col_l2, col_l3 = st.columns([1, 1.4, 1])
-        with col_l2:
-            if logo_path and os.path.exists(logo_path):
-                st.image(logo_path, width=220)
-            else:
-                st.markdown("<div style='text-align: center; font-size: 3.8rem;'>🔔</div>", unsafe_allow_html=True)
-
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert</h1>
-            <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # CABECERA UNIFICADA Y CENTRADA PERFECTAMENTE POR CSS
+        if logo_path and os.path.exists(logo_path):
+            logo_base64 = __import__('base64').b64encode(open(logo_path, 'rb').read()).decode()
+            st.markdown(f"""
+            <div class="brand-header-box">
+                <img src="data:image/png;base64,{logo_base64}" class="brand-logo-img" alt="Logo AgroAlert">
+                <h1 class="brand-title">AgroAlert</h1>
+                <p class="brand-subtitle">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="brand-header-box">
+                <div style="font-size: 4.5rem; margin-bottom: 5px;">🔔</div>
+                <h1 class="brand-title">AgroAlert</h1>
+                <p class="brand-subtitle">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
+            </div>
+            """, unsafe_allow_html=True)
 
         modo_acceso = st.radio("Acceso:", ["🔑 Iniciar Sesión", "📝 Registrarme y Activar Bot"], label_visibility="collapsed")
         st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
