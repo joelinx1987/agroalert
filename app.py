@@ -327,11 +327,11 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # Mostrar Logo detectado (PNG o JPG)
-        col_logo1, col_logo2, col_logo3 = st.columns([1, 1, 1])
+        # Mostrar Logo detectado con tamaño amplio y limpio
+        col_logo1, col_logo2, col_logo3 = st.columns([0.5, 2, 0.5])
         with col_logo2:
             if logo_path:
-                st.image(logo_path, width=120)
+                st.image(logo_path, use_container_width=True)
             else:
                 st.markdown("<div style='text-align: center; font-size: 3.8rem;'>🔔</div>", unsafe_allow_html=True)
 
