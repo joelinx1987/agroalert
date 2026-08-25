@@ -2,3 +2,8 @@ streamlit
 pandas
 folium==0.15.1
 streamlit-folium==0.18.0
+streamlit
+pandas
+folium
+streamlit-folium
+pytz
