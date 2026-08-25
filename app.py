@@ -246,9 +246,8 @@ def consultar_meteo_openmeteo(lat, lon):
         return {"temp": 22.0, "humedad": 50.0, "lluvia": 0.0, "viento": 8.0, "horaria": []}
 
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
-    # Configuración SMTP (puedes ajustar tu servidor o usar una cuenta dedicada)
-    remitente = "alertas.agroalert@gmail.com"
-    password_app = "TU_CONTRASEÑA_DE_APLICACION"  # Configurar con contraseña de app de Gmail o servidor SMTP
+    remitente = "agroalertsoporte@gmail.com"
+    password_app = "lcawcqgcsvxfyahk"
     
     try:
         msg = MIMEMultipart()
@@ -258,7 +257,6 @@ def enviar_correo_electronico(destinatario, asunto, cuerpo):
         
         msg.attach(MIMEText(cuerpo, 'plain', 'utf-8'))
         
-        # Conexión al servidor SMTP de Gmail (o servidor genérico)
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(remitente, password_app)
@@ -266,8 +264,7 @@ def enviar_correo_electronico(destinatario, asunto, cuerpo):
         server.quit()
         return True, "¡Correo enviado con éxito a tu bandeja de entrada!"
     except Exception as e:
-        # En entorno de pruebas sin credenciales SMTP configuradas, simulamos el éxito o devolvemos aviso limpio
-        return True, "¡Simulación de envío por correo completada con éxito!"
+        return False, f"Error al enviar el correo: {str(e)}"
 
 # --- CONTROL DE SESIÓN PERSISTENTE POR URL ---
 if "usuario_autenticado" not in st.session_state:
