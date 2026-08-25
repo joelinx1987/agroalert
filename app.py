@@ -347,7 +347,6 @@ with col_menu:
     
     lista_menu = [
         "🟢 ¿Puedo Sulfatar Hoy?",
-        "🛰️ Vigor y Estrés Hídrico (NDVI)",
         "🐛 Avisos Predictivos de Plagas",
         "🧪 Calculadora de Fitosanitarios",
         "📦 Almacén de Fitosanitarios",
@@ -397,76 +396,6 @@ with col_contenido:
             df_horaria = pd.DataFrame(horaria_24h)
             df_horaria.columns = ["Hora", "Viento (km/h)", "Lluvia (mm)"]
             st.dataframe(df_horaria, use_container_width=True, hide_index=True)
-
-    elif "Vigor y Estrés Hídrico (NDVI)" in menu:
-        st.markdown(f"### 🛰️ Análisis de Vigor y Estrés Hídrico (NDVI) — **{parcela_activa}**")
-        st.write("Evaluación satelital del índice de vegetación para detectar anomalías de desarrollo o falta de riego en la masa foliar.")
-        
-        estres_nivel = "Moderado / Adecuado"
-        color_estres = "#10b981"
-        if temp_hoy > 30 and humedad_hoy < 40:
-            estres_nivel = "⚠️ ALERTA DE ESTRÉS HÍDRICO (Altas temperaturas y baja humedad)"
-            color_estres = "#ef4444"
-        elif temp_hoy < 15:
-            estres_nivel = "🌱 Vigor vegetativo estable (Crecimiento vegetativo lento por temperatura fresca)"
-            color_estres = "#3b82f6"
-            
-        st.markdown(f"""
-        <div style="background: #ffffff; border: 2px solid {color_estres}; border-radius: 16px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-            <h4 style="margin:0; color: {color_estres};">📊 Estado Actual del NDVI: {estres_nivel}</h4>
-            <p style="margin-top: 10px; font-size: 1.05rem; color: #334155;">
-               <b>Parcela analizada:</b> {parcela_activa} ({datos_parcela.get('ha', 1.0)} ha)<br>
-               <b>Índice Medio Estimado (NDVI):</b> 0.68 (Masa foliar densa)<br>
-               <b>Temperatura ambiente registrada:</b> {temp_hoy}°C | <b>Humedad relativa:</b> {humedad_hoy}%
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown(f"#### 🗺️ Mapa de Zonas con Alerta de Vigor en **{parcela_activa}**")
-        lat_v = float(datos_parcela.get("lat", 42.4658))
-        lon_v = float(datos_parcela.get("lon", -2.4499))
-        ha_finca_val = float(datos_parcela.get("ha", 1.0))
-        
-        offset = 0.0003 * max(0.5, (ha_finca_val ** 0.5))
-        
-        m_ndvi = folium.Map(location=[lat_v, lon_v], zoom_start=15)
-        folium.TileLayer(
-            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            attr='Esri Satélite',
-            name='Satélite',
-            overlay=False,
-            control=True
-        ).add_to(m_ndvi)
-        
-        folium.Marker(
-            [lat_v, lon_v],
-            popup=f"Centro de {parcela_activa}",
-            tooltip=parcela_activa,
-            icon=folium.Icon(color="blue", icon="info-sign")
-        ).add_to(m_ndvi)
-        
-        folium.Circle(
-            location=[lat_v + offset, lon_v - offset],
-            radius=int(30 + ha_finca_val * 5),
-            color='green',
-            fill=True,
-            fill_color='green',
-            fill_opacity=0.4,
-            popup=f"Sector Norte ({parcela_activa}): Vigor óptimo (NDVI Alto)"
-        ).add_to(m_ndvi)
-        
-        folium.Circle(
-            location=[lat_v - offset, lon_v + offset],
-            radius=int(30 + ha_finca_val * 5),
-            color='orange' if temp_hoy <= 30 else 'red',
-            fill=True,
-            fill_color='orange' if temp_hoy <= 30 else 'red',
-            fill_opacity=0.4,
-            popup=f"Sector Sur ({parcela_activa}): Posible inicio de estrés hídrico"
-        ).add_to(m_ndvi)
-        
-        st_folium(m_ndvi, width=700, height=450)
-        st.info(f"💡 **Información:** Los puntos de análisis para **{parcela_activa}** se han recalculado de forma exclusiva en base a su ubicación geográfica y sus `{ha_finca_val} ha` de superficie.")
 
     elif "Avisos Predictivos de Plagas" in menu:
         st.markdown(f"### 🐛 Modelo Predictivo de Plagas por Comarca")
