@@ -65,17 +65,23 @@ def ejecutar_alertas_diarias():
         if not fincas_usuario:
             continue
             
-        # Construir mensaje con TODAS las fincas del usuario
-        msg_partes = [f"🚜 *AGROALERT - PARTE DIARIO (4:45)*\n👤 *Agricultor:* {nombre}"]
+        # Construir mensaje claro y detallado con TODAS las fincas
+        msg_partes = [f"🚜 *AGROALERT - ESTADO DE TUS FINCAS HOY*\n👤 *Agricultor:* {nombre}"]
         
         for nombre_finca, d_finca in fincas_usuario.items():
             meteo = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
-            estado = "⛔ No recomendado" if meteo["viento"] > 15 or meteo["lluvia"] > 2.0 else "✅ Perfecto para sulfatar"
+            
+            if meteo["viento"] > 15:
+                estado = "⛔ PROHIBIDO SULFATAR (Mucho viento)"
+            elif meteo["lluvia"] > 2.0:
+                estado = "⛔ PROHIBIDO SULFATAR (Riesgo de lluvia)"
+            else:
+                estado = "✅ DÍA BUENO PARA ENTRAR"
             
             msg_partes.append(
                 f"\n📍 *Finca:* {nombre_finca} ({d_finca.get('ha', 0)} ha)\n"
-                f"   • *Estado:* {estado}\n"
-                f"   • *Viento:* {meteo['viento']:.1f} km/h\n"
+                f"   • *Consejo:* {estado}\n"
+                f"   • *Viento:* {meteo['viento']:.1f} km/h *(Límite: 15)*\n"
                 f"   • *Lluvia:* {meteo['lluvia']:.1f} mm"
             )
             
