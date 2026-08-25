@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES: DISEÑO SUAVE SIN BORDES NÍTIDOS ---
+# --- ESTILOS VISUALES CON FOTOGRAFÍAS AGRÍCOLAS LIMPIAS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -31,26 +31,26 @@ st.markdown("""
         color: var(--text-main, #0f172a);
     }
 
-    /* BOTONES DE SECCIÓN VERTICALES SUAVES */
+    /* BOTONES DE SECCIÓN VERTICALES */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 8px !important;
     }
     
     div[data-testid="stRadio"] label {
         background: var(--card-bg, #ffffff) !important;
-        border: none !important;
-        border-radius: 18px !important;
-        padding: 16px 20px !important;
+        border: 2px solid var(--border-color, #cbd5e1) !important;
+        border-radius: 14px !important;
+        padding: 14px 18px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
-        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
+        transition: all 0.15s ease !important;
     }
     
     div[data-testid="stRadio"] label:hover {
+        border-color: #15803d !important;
         background-color: #f0fdf4 !important;
-        box-shadow: 0 6px 24px rgba(21, 128, 61, 0.08) !important;
     }
 
     div[data-testid="stRadio"] label div p {
@@ -59,48 +59,48 @@ st.markdown("""
         color: var(--text-main, #0f172a) !important;
     }
 
-    /* SEMÁFOROS SUAVES */
+    /* SEMÁFOROS */
     .traffic-ok {
         background-color: #dcfce7;
-        border: none;
-        border-radius: 20px;
-        padding: 22px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 24px rgba(22, 163, 74, 0.1);
+        border: 3px solid #16a34a;
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12);
         color: #064e3b;
     }
     .traffic-danger {
         background-color: #fee2e2;
-        border: none;
-        border-radius: 20px;
-        padding: 22px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 24px rgba(220, 38, 38, 0.1);
+        border: 3px solid #dc2626;
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
         color: #7f1d1d;
     }
     .traffic-warning {
         background-color: #fef3c7;
-        border: none;
-        border-radius: 20px;
-        padding: 22px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 24px rgba(217, 119, 6, 0.1);
+        border: 3px solid #d97706;
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
         color: #78350f;
     }
 
     .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
     .traffic-sub { font-size: 1.05rem; font-weight: 600; }
 
-    /* --- TARJETAS FOTOGRÁFICAS SIN BORDES NÍTIDOS (SOFT-SHADOW) --- */
+    /* --- TARJETAS CON FOTOGRAFÍA AGRÍCOLA LIMPIA --- */
     .card-photo {
         position: relative;
-        border-radius: 20px;
-        padding: 22px 18px;
+        border-radius: 16px;
+        padding: 20px 16px;
         text-align: center;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         overflow: hidden;
         border: none;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
         background-size: cover;
         background-position: center;
     }
@@ -109,16 +109,17 @@ st.markdown("""
         content: "";
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.88) 100%);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.86) 100%);
         z-index: 1;
     }
 
     .card-content { position: relative; z-index: 2; }
 
-    .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); }
-    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); }
-    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); }
-    .card-shield { background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); }
+    /* FOTOGRAFÍAS AGRÍCULAS DE FONDO */
+    .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); } /* Sol al amanecer */
+    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); } /* Trigo / cereal meciéndose */
+    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); } /* Gotas sobre hojas */
+    .card-shield { background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); } /* Racimo de vid / brote */
 
     .card-title { font-size: 0.85rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
     .card-value { font-size: 1.85rem; font-weight: 900; color: #0f172a; margin-top: 4px; }
@@ -126,22 +127,20 @@ st.markdown("""
 
     .recipe-box {
         background-color: #ecfdf5;
-        border: none;
-        border-radius: 20px;
-        padding: 22px;
-        margin-top: 16px;
-        box-shadow: 0 10px 30px rgba(5, 150, 105, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 14px;
+        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.08);
         color: #065f46;
     }
     .recipe-big { font-size: 1.95rem; font-weight: 900; color: #047857; }
 
     .legend-card {
         background-color: #ffffff;
-        border: none;
-        border-radius: 18px;
-        padding: 20px 22px;
-        margin-bottom: 14px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
     }
     .legend-header { font-size: 1.1rem; font-weight: 800; color: #15803d; margin-bottom: 6px; }
     .legend-body { font-size: 0.95rem; color: #334155; line-height: 1.55; }
@@ -152,7 +151,6 @@ st.markdown("""
         padding: 12px 18px !important;
         border-radius: 14px !important;
         border: none !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.06) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -194,7 +192,7 @@ def guardar_json(archivo, datos):
 def render_google_map(latitud, longitud, zoom=16, height=360):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 18px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
+    <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -202,9 +200,9 @@ def render_google_map(latitud, longitud, zoom=16, height=360):
 
 def render_copy_box(texto_a_copiar):
     html_code = f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border-radius: 14px; padding: 10px 14px; margin: 8px 0 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
         <span style="font-style: italic; font-size: 1rem; color: #0f172a; font-weight: 700;">{texto_a_copiar}</span>
-        <button onclick="copiarTexto()" style="background: #15803d; color: #ffffff; border: none; border-radius: 10px; padding: 8px 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+        <button onclick="copiarTexto()" style="background: #15803d; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
             <span id="btn-lbl">📋 Copiar texto</span>
         </button>
     </div>
@@ -302,7 +300,7 @@ if not st.session_state.usuario_autenticado:
                         st.error("Usuario o contraseña incorrectos.")
         else:
             st.markdown("""
-            <div style="background: #ffffff; border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.04);">
+            <div style="background: #ffffff; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
                 <div style="font-size: 1.05rem; font-weight: 800; color: #15803d; margin-bottom: 6px;">
                     🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
                 </div>
@@ -319,7 +317,7 @@ if not st.session_state.usuario_autenticado:
             st.markdown("""
             <div style="margin-top: -6px; margin-bottom: 14px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(22,163,74,0.2);">
+                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.95rem;">
                         📲 TOCAR PARA ABRIR WHATSAPP DIRECTO
                     </div>
                 </a>
@@ -493,7 +491,7 @@ with col_menu:
 # CONTENIDO EN PANEL DERECHO
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO CON FOTOS AGRÍCOLAS
+    # SECCIÓN 1: SEMÁFORO DIARIO CON FOTOS AGRÍCOLAS LIMPIAS
     if "Puedo sulfatar hoy" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
@@ -536,7 +534,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-temp">
                 <div class="card-content">
-                    <div class="card-title">🌡️ Tª Hoy (Sol al amanecer)</div>
+                    <div class="card-title">🌡️ Tª HOY</div>
                     <div class="card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="card-unit">C</span></div>
                 </div>
             </div>
@@ -545,7 +543,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-wind">
                 <div class="card-content">
-                    <div class="card-title">💨 Viento (Trigo en campo)</div>
+                    <div class="card-title">💨 VIENTO</div>
                     <div class="card-value">{viento_hoy:.0f} <span class="card-unit">km/h</span></div>
                 </div>
             </div>
@@ -554,7 +552,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-rain">
                 <div class="card-content">
-                    <div class="card-title">🌧️ Lluvia (Gotas sobre hojas)</div>
+                    <div class="card-title">🌧️ LLUVIA</div>
                     <div class="card-value">{lluvia_hoy:.1f} <span class="card-unit">L</span></div>
                 </div>
             </div>
@@ -564,7 +562,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-shield">
                 <div class="card-content">
-                    <div class="card-title">🛡️ Sanidad (Brote de vid)</div>
+                    <div class="card-title">🛡️ HONGOS</div>
                     <div class="card-value" style="font-size:1.5rem; color: {color_hongos};">{riesgo_txt}</div>
                 </div>
             </div>
@@ -948,7 +946,7 @@ with col_contenido:
                 url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
                 st.markdown(f"""
                 <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
+                    <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
                         🚗 ABRIR EN APP DE GOOGLE MAPS (GPS / NAVEGACIÓN)
                     </div>
                 </a>
