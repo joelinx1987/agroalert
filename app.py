@@ -303,12 +303,25 @@ elif "Cuaderno de Campo" in menu:
 
 elif "Avisos Automáticos" in menu:
     st.markdown("### 📲 Aviso Diario en tu Telegram a las 4:45")
-    st.write("Recibirás un aviso automático diario en Telegram con los datos meteorológicos de tu parcela activa.")
+    st.write("Recibirás un aviso automático diario en Telegram con el parte meteorológico de **todas** tus fincas registradas.")
     st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
-    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 4:45*\n📍 *Parcela:* {parcela_activa} ({datos_parcela.get('ha', 0)} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy:.1f} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy:.1f} mm."
-    if st.button("📲 PROBAR ENVÍO A TELEGRAM AHORA", use_container_width=True, type="primary"):
-        ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba)
-        if ok: st.success(res)
+    
+    if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
+        # Generar mensaje que recorre TODAS las fincas del usuario
+        msg_partes = [f"🚜 *AGROALERT - PARTE DE TODAS TUS FINCAS*"]
+        for nombre_f, d_finca in fincas_usuario.items():
+            m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
+            estado_f = "⛔ No recomendado" if m_finca["viento"] > 15 or m_finca["lluvia"] > 2.0 else "✅ Perfecto para sulfatar"
+            msg_partes.append(
+                f"\n📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
+                f"   • *Estado:* {estado_f}\n"
+                f"   • *Viento:* {m_finca['viento']:.1f} km/h\n"
+                f"   • *Lluvia:* {m_finca['lluvia']:.1f} mm"
+            )
+        msg_prueba_total = "\n".join(msg_partes)
+        
+        ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
+        if ok: st.success("¡Parte enviado con éxito a tu Telegram con todas tus fincas!")
         else: st.error(res)
 
 elif "Gestión de Fincas" in menu:
@@ -318,14 +331,12 @@ elif "Gestión de Fincas" in menu:
     if fincas_usuario:
         st.markdown("#### 🗺️ Localizador Interactivo de Parcelas")
         
-        # Selector para elegir qué parcela enfocar en el mapa al instante
         finca_seleccionada_mapa = st.selectbox("🔍 Elige una parcela para centrar el mapa:", list(fincas_usuario.keys()), key="select_mapa_finca")
         d_mapa = fincas_usuario[finca_seleccionada_mapa]
         
         lat_sel = float(d_mapa.get("lat", 42.4658))
         lon_sel = float(d_mapa.get("lon", -2.4499))
         
-        # Mapa centrado específicamente en la parcela seleccionada con zoom de detalle (zoom 12-13)
         df_mapa_individual = pd.DataFrame([{"Finca": finca_seleccionada_mapa, "lat": lat_sel, "lon": lon_sel}])
         st.map(df_mapa_individual, zoom=12, use_container_width=True)
         
@@ -345,7 +356,6 @@ elif "Gestión de Fincas" in menu:
         st.dataframe(pd.DataFrame(datos_tabla), use_container_width=True, hide_index=True)
         st.markdown("---")
 
-    # 1. EDITAR FINCA EXISTENTE
     if fincas_usuario:
         st.markdown("#### ✏️ Edita los datos de una finca existente")
         finca_a_editar = st.selectbox("Selecciona la finca que deseas modificar:", list(fincas_usuario.keys()), key="select_editar_finca")
@@ -391,7 +401,6 @@ elif "Gestión de Fincas" in menu:
                 st.rerun()
         st.markdown("---")
 
-    # 2. AÑADIR NUEVA FINCA
     st.markdown("#### ➕ Añade una nueva parcela")
     with st.form("form_nueva_finca"):
         c_f1, c_f2 = st.columns(2)
@@ -422,7 +431,8 @@ elif "Gestión de Fincas" in menu:
                 
             st.session_state.db_privada[user][nombre_nueva] = {
                 "lat": lat_nueva, 
-                "lon": lon_nueva, 
+                "lon": lon_numpy := lon_nueva, # o lon_nueva directamente
+                "lon": lon_nueva,
                 "variedad": variedad_nueva, 
                 "ha": ha_nueva, 
                 "poligono": pol_nuevo, 
