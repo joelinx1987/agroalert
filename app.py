@@ -1,6 +1,3 @@
-
-
-
 import os
 import json
 import hashlib
@@ -235,13 +232,255 @@ elif menu=="🌦️ Clima":
 # PARCELAS
 # ============================================================
 elif menu=="🌾 Parcelas":
-    st.markdown("<div class='section'>🌾 Mis parcelas</div>",unsafe_allow_html=True)
-    cs=st.columns(min(3,max(1,len(fincas))))
-    for c,(name,d) in zip(cs,fincas.items()):
-        with c: st.markdown(f"<div class='card'><div style='font-size:1.7rem'>🌱</div><h3>{name}</h3><div class='value'>{d.get('ha',0)} ha</div><div class='sub'>{d.get('variedad','Cultivo')}</div><hr><div class='sub'>📍 {d.get('lat',0):.5f}, {d.get('lon',0):.5f}</div><div class='sub'>Polígono {d.get('poligono','—')} · Parcela {d.get('parcela','—')}</div></div>",unsafe_allow_html=True)
-    st.markdown("<div class='section'>Mapa de explotación</div>",unsafe_allow_html=True)
-    md=pd.DataFrame([{"lat":d.get('lat'),"lon":d.get('lon')} for d in fincas.values() if d.get('lat') is not None])
-    if not md.empty: st.map(md,zoom=11)
+    st.markdown("<div class='section'>🌾 Gestión de parcelas</div>",unsafe_allow_html=True)
+
+    tab_ver, tab_anadir, tab_modificar, tab_eliminar = st.tabs([
+        "🌾 Ver parcelas",
+        "➕ Añadir",
+        "✏️ Modificar",
+        "🗑️ Eliminar"
+    ])
+
+    # --------------------------------------------------------
+    # VER PARCELAS
+    # --------------------------------------------------------
+    with tab_ver:
+        if fincas:
+            cs=st.columns(min(3,max(1,len(fincas))))
+            for c,(name,d) in zip(cs,fincas.items()):
+                with c:
+                    st.markdown(
+                        f"<div class='card'>"
+                        f"<div style='font-size:1.7rem'>🌱</div>"
+                        f"<h3>{name}</h3>"
+                        f"<div class='value'>{d.get('ha',0)} ha</div>"
+                        f"<div class='sub'>{d.get('variedad','Cultivo')}</div>"
+                        f"<hr>"
+                        f"<div class='sub'>📍 {d.get('lat',0):.5f}, {d.get('lon',0):.5f}</div>"
+                        f"<div class='sub'>Polígono {d.get('poligono','—')} · Parcela {d.get('parcela','—')}</div>"
+                        f"</div>",
+                        unsafe_allow_html=True
+                    )
+
+            st.markdown("<div class='section'>Mapa de explotación</div>",unsafe_allow_html=True)
+            md=pd.DataFrame([
+                {"lat":d.get("lat"),"lon":d.get("lon")}
+                for d in fincas.values()
+                if d.get("lat") is not None and d.get("lon") is not None
+            ])
+            if not md.empty:
+                st.map(md,zoom=11)
+        else:
+            st.info("Todavía no tienes parcelas registradas.")
+
+    # --------------------------------------------------------
+    # AÑADIR PARCELA
+    # --------------------------------------------------------
+    with tab_anadir:
+        st.markdown("### ➕ Añadir nueva parcela")
+
+        with st.form("form_anadir_parcela"):
+            nombre_nuevo = st.text_input(
+                "Nombre de la parcela",
+                placeholder="Ej. 🍇 Viñedo Norte"
+            )
+            c1,c2 = st.columns(2)
+
+            with c1:
+                variedad_nueva = st.text_input(
+                    "Cultivo / variedad",
+                    placeholder="Ej. Tempranillo"
+                )
+                ha_nuevas = st.number_input(
+                    "Superficie (ha)",
+                    min_value=0.01,
+                    value=1.0,
+                    step=0.1
+                )
+                poligono_nuevo = st.text_input(
+                    "Polígono",
+                    placeholder="Ej. 12"
+                )
+
+            with c2:
+                lat_nueva = st.number_input(
+                    "Latitud",
+                    value=42.4658,
+                    format="%.6f"
+                )
+                lon_nueva = st.number_input(
+                    "Longitud",
+                    value=-2.4499,
+                    format="%.6f"
+                )
+                parcela_nueva = st.text_input(
+                    "Nº de parcela",
+                    placeholder="Ej. 104"
+                )
+
+            guardar_nueva = st.form_submit_button(
+                "➕ Añadir parcela",
+                use_container_width=True,
+                type="primary"
+            )
+
+            if guardar_nueva:
+                nombre_nuevo = nombre_nuevo.strip()
+
+                if not nombre_nuevo:
+                    st.error("Escribe un nombre para la parcela.")
+                elif nombre_nuevo in fincas:
+                    st.error("Ya existe una parcela con ese nombre.")
+                else:
+                    st.session_state.db_privada.setdefault(user,{})
+                    st.session_state.db_privada[user][nombre_nuevo] = {
+                        "lat": float(lat_nueva),
+                        "lon": float(lon_nueva),
+                        "ha": float(ha_nuevas),
+                        "variedad": variedad_nueva.strip() or "General",
+                        "poligono": poligono_nuevo.strip() or "—",
+                        "parcela": parcela_nueva.strip() or "—"
+                    }
+                    save_json(FINCAS_FILE,st.session_state.db_privada)
+                    st.success(f"Parcela «{nombre_nuevo}» añadida correctamente.")
+                    st.rerun()
+
+    # --------------------------------------------------------
+    # MODIFICAR PARCELA
+    # --------------------------------------------------------
+    with tab_modificar:
+        st.markdown("### ✏️ Modificar parcela")
+
+        if fincas:
+            parcela_editar = st.selectbox(
+                "Selecciona la parcela que quieres modificar",
+                list(fincas.keys()),
+                key="parcela_editar"
+            )
+            datos_editar = fincas[parcela_editar]
+
+            with st.form("form_modificar_parcela"):
+                nuevo_nombre = st.text_input(
+                    "Nombre",
+                    value=parcela_editar
+                )
+
+                c1,c2 = st.columns(2)
+
+                with c1:
+                    nueva_variedad = st.text_input(
+                        "Cultivo / variedad",
+                        value=str(datos_editar.get("variedad","General"))
+                    )
+                    nuevas_ha = st.number_input(
+                        "Superficie (ha)",
+                        min_value=0.01,
+                        value=float(datos_editar.get("ha",1.0)),
+                        step=0.1
+                    )
+                    nuevo_poligono = st.text_input(
+                        "Polígono",
+                        value=str(datos_editar.get("poligono",""))
+                    )
+
+                with c2:
+                    nueva_lat = st.number_input(
+                        "Latitud",
+                        value=float(datos_editar.get("lat",42.4658)),
+                        format="%.6f"
+                    )
+                    nueva_lon = st.number_input(
+                        "Longitud",
+                        value=float(datos_editar.get("lon",-2.4499)),
+                        format="%.6f"
+                    )
+                    nuevo_num_parcela = st.text_input(
+                        "Nº de parcela",
+                        value=str(datos_editar.get("parcela",""))
+                    )
+
+                guardar_cambios = st.form_submit_button(
+                    "💾 Guardar cambios",
+                    use_container_width=True,
+                    type="primary"
+                )
+
+                if guardar_cambios:
+                    nuevo_nombre = nuevo_nombre.strip()
+
+                    if not nuevo_nombre:
+                        st.error("El nombre de la parcela no puede quedar vacío.")
+                    elif nuevo_nombre != parcela_editar and nuevo_nombre in fincas:
+                        st.error("Ya existe otra parcela con ese nombre.")
+                    else:
+                        nuevos_datos = {
+                            "lat": float(nueva_lat),
+                            "lon": float(nueva_lon),
+                            "ha": float(nuevas_ha),
+                            "variedad": nueva_variedad.strip() or "General",
+                            "poligono": nuevo_poligono.strip() or "—",
+                            "parcela": nuevo_num_parcela.strip() or "—"
+                        }
+
+                        if nuevo_nombre != parcela_editar:
+                            datos_usuario = st.session_state.db_privada[user]
+                            nuevo_orden = {}
+                            for nombre_existente, datos_existentes in datos_usuario.items():
+                                if nombre_existente == parcela_editar:
+                                    nuevo_orden[nuevo_nombre] = nuevos_datos
+                                else:
+                                    nuevo_orden[nombre_existente] = datos_existentes
+                            st.session_state.db_privada[user] = nuevo_orden
+                        else:
+                            st.session_state.db_privada[user][parcela_editar] = nuevos_datos
+
+                        save_json(FINCAS_FILE,st.session_state.db_privada)
+                        st.success("Parcela actualizada correctamente.")
+                        st.rerun()
+        else:
+            st.info("No hay parcelas que modificar.")
+
+    # --------------------------------------------------------
+    # ELIMINAR PARCELA
+    # --------------------------------------------------------
+    with tab_eliminar:
+        st.markdown("### 🗑️ Eliminar parcela")
+
+        if len(fincas) > 1:
+            parcela_eliminar = st.selectbox(
+                "Selecciona la parcela que quieres eliminar",
+                list(fincas.keys()),
+                key="parcela_eliminar"
+            )
+
+            datos_eliminar = fincas[parcela_eliminar]
+
+            st.warning(
+                f"Vas a eliminar «{parcela_eliminar}» "
+                f"({datos_eliminar.get('ha',0)} ha). Esta acción no se puede deshacer."
+            )
+
+            confirmar_eliminar = st.checkbox(
+                "Confirmo que quiero eliminar esta parcela"
+            )
+
+            if st.button(
+                "🗑️ Eliminar definitivamente",
+                use_container_width=True,
+                disabled=not confirmar_eliminar
+            ):
+                del st.session_state.db_privada[user][parcela_eliminar]
+                save_json(FINCAS_FILE,st.session_state.db_privada)
+                st.success(f"Parcela «{parcela_eliminar}» eliminada.")
+                st.rerun()
+
+        elif len(fincas) == 1:
+            st.info(
+                "Debes conservar al menos una parcela. "
+                "Añade otra antes de eliminar la única parcela existente."
+            )
+        else:
+            st.info("No hay parcelas que eliminar.")
 
 # ============================================================
 # TRATAMIENTOS
