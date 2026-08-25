@@ -11,14 +11,18 @@ import json
 import hashlib
 from PIL import Image
 
-# DETECTAR LOGO AUTOMÁTICAMENTE (PNG o JPG)
+# DETECTAR LOGO O FONDO AUTOMÁTICAMENTE
 logo_path = None
 if os.path.exists("logo.png"):
     logo_path = "logo.png"
 elif os.path.exists("logo.jpg"):
     logo_path = "logo.jpg"
-elif os.path.exists("logo.png.jpg"):
-    logo_path = "logo.png.jpg"
+
+fondo_path = None
+if os.path.exists("fondo_logo.png"):
+    fondo_path = "fondo_logo.png"
+elif os.path.exists("fondo_logo.jpg"):
+    fondo_path = "fondo_logo.jpg"
 
 st.set_page_config(
     page_title="AgroAlert | Explotación de Precisión",
@@ -27,88 +31,77 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES: CENTRADO ABSOLUTO Y DISEÑO LIMPIO ---
-st.markdown("""
+# --- ESTILOS VISUALES: FONDO DE PANTALLA COMPLETA ---
+fondo_css_rule = ""
+if fondo_path and os.path.exists(fondo_path):
+    fondo_base64 = __import__('base64').b64encode(open(fondo_path, 'rb').read()).decode()
+    fondo_css_rule = f"""
+    .stApp {{
+        background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('data:image/png;base64,{fondo_base64}') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+    }}
+    """
+else:
+    fondo_css_rule = """
+    .stApp {
+        background: linear-gradient(135deg, #4d7c0f 0%, #3f6212 100%) !important;
+    }
+    """
+
+st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 
-    html, body, [class*="css"] {
+    html, body, [class*="css"] {{
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+    }}
 
-    .main {
-        background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important;
-        background-attachment: fixed !important;
-        color: #0f172a;
-    }
+    {fondo_css_rule}
 
-    /* CONTENEDOR CENTRAL DE LA MARCA */
-    .brand-header-box {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        width: 100%;
-        margin-top: 10px;
-        margin-bottom: 25px;
-    }
-
-    .brand-logo-img {
-        width: 260px;
-        max-width: 100%;
-        height: auto;
-        border-radius: 16px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-        margin-bottom: 15px;
-    }
-
-    .brand-title {
-        font-size: 2.3rem;
-        font-weight: 900;
-        color: #15803d;
-        margin: 0;
-        line-height: 1.1;
-    }
-
-    .brand-subtitle {
-        font-size: 1.05rem;
-        color: #475569;
-        font-weight: 600;
-        margin-top: 6px;
-    }
+    /* TARJETA DE ACCESO TRANSLÚCIDA Y ELEGANTE */
+    .login-card-container {{
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+        margin-top: 20px;
+    }}
 
     /* BOTONES DE SECCIÓN VERTICALES */
-    div[data-testid="stRadio"] > div {
+    div[data-testid="stRadio"] > div {{
         flex-direction: column !important;
         gap: 8px !important;
-    }
+    }}
     
-    div[data-testid="stRadio"] label {
-        background: rgba(255, 255, 255, 0.85) !important;
+    div[data-testid="stRadio"] label {{
+        background: rgba(255, 255, 255, 0.9) !important;
         backdrop-filter: blur(10px) !important;
         border: none !important;
         border-radius: 14px !important;
         padding: 14px 18px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
         transition: all 0.15s ease !important;
     }
     
-    div[data-testid="stRadio"] label:hover {
+    div[data-testid="stRadio"] label:hover {{
         background-color: rgba(240, 253, 244, 0.95) !important;
-        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.08) !important;
+        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.1) !important;
     }
 
-    div[data-testid="stRadio"] label div p {
+    div[data-testid="stRadio"] label div p {{
         font-size: 1rem !important;
         font-weight: 800 !important;
         color: #0f172a !important;
-    }
+    }}
 
     /* SEMÁFOROS */
-    .traffic-ok {
+    .traffic-ok {{
         background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
         border: none;
         border-radius: 16px;
@@ -117,7 +110,7 @@ st.markdown("""
         box-shadow: 0 8px 24px rgba(22, 163, 74, 0.1);
         color: #064e3b;
     }
-    .traffic-danger {
+    .traffic-danger {{
         background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
         border: none;
         border-radius: 16px;
@@ -126,7 +119,7 @@ st.markdown("""
         box-shadow: 0 8px 24px rgba(220, 38, 38, 0.1);
         color: #7f1d1d;
     }
-    .traffic-warning {
+    .traffic-warning {{
         background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
         border: none;
         border-radius: 16px;
@@ -136,11 +129,11 @@ st.markdown("""
         color: #78350f;
     }
 
-    .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
-    .traffic-sub { font-size: 1.05rem; font-weight: 600; }
+    .traffic-title {{ font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }}
+    .traffic-sub {{ font-size: 1.05rem; font-weight: 600; }}
 
     /* --- TARJETAS FOTOGRÁFICAS AGRÍCOLAS --- */
-    .card-photo {
+    .card-photo {{
         position: relative;
         border-radius: 16px;
         padding: 20px 16px;
@@ -153,7 +146,7 @@ st.markdown("""
         background-position: center;
     }
     
-    .card-photo::before {
+    .card-photo::before {{
         content: "";
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -162,18 +155,18 @@ st.markdown("""
         z-index: 1;
     }
 
-    .card-content { position: relative; z-index: 2; }
+    .card-content {{ position: relative; z-index: 2; }}
 
-    .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); }
-    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); }
-    .card-rain { background-image: url('https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=700&auto=format&fit=crop'); }
-    .card-shield { background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); }
+    .card-temp {{ background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); }}
+    .card-wind {{ background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); }}
+    .card-rain {{ background-image: url('https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=700&auto=format&fit=crop'); }}
+    .card-shield {{ background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); }}
 
-    .card-title { font-size: 0.85rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
-    .card-value { font-size: 1.85rem; font-weight: 900; color: #0f172a; margin-top: 4px; }
-    .card-unit { font-size: 0.95rem; font-weight: 600; color: #64748b; }
+    .card-title {{ font-size: 0.85rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }}
+    .card-value {{ font-size: 1.85rem; font-weight: 900; color: #0f172a; margin-top: 4px; }}
+    .card-unit {{ font-size: 0.95rem; font-weight: 600; color: #64748b; }}
 
-    .recipe-box {
+    .recipe-box {{
         background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
         border: none;
         border-radius: 16px;
@@ -182,9 +175,9 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(5, 150, 105, 0.08);
         color: #065f46;
     }
-    .recipe-big { font-size: 1.95rem; font-weight: 900; color: #047857; }
+    .recipe-big {{ font-size: 1.95rem; font-weight: 900; color: #047857; }}
 
-    .legend-card {
+    .legend-card {{
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(10px);
         border: none;
@@ -193,10 +186,10 @@ st.markdown("""
         margin-bottom: 12px;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
     }
-    .legend-header { font-size: 1.1rem; font-weight: 800; color: #15803d; margin-bottom: 6px; }
-    .legend-body { font-size: 0.95rem; color: #334155; line-height: 1.55; }
+    .legend-header {{ font-size: 1.1rem; font-weight: 800; color: #15803d; margin-bottom: 6px; }}
+    .legend-body {{ font-size: 0.95rem; color: #334155; line-height: 1.55; }}
     
-    .stButton>button {
+    .stButton>button {{
         font-size: 1.05rem !important;
         font-weight: 800 !important;
         padding: 12px 18px !important;
@@ -363,24 +356,15 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # CABECERA UNIFICADA Y CENTRADA PERFECTAMENTE POR CSS
-        if logo_path and os.path.exists(logo_path):
-            logo_base64 = __import__('base64').b64encode(open(logo_path, 'rb').read()).decode()
-            st.markdown(f"""
-            <div class="brand-header-box">
-                <img src="data:image/png;base64,{logo_base64}" class="brand-logo-img" alt="Logo AgroAlert">
-                <h1 class="brand-title">AgroAlert</h1>
-                <p class="brand-subtitle">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="brand-header-box">
-                <div style="font-size: 4.5rem; margin-bottom: 5px;">🔔</div>
-                <h1 class="brand-title">AgroAlert</h1>
-                <p class="brand-subtitle">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
-            </div>
-            """, unsafe_allow_html=True)
+        # PANTALLA DE ACCESO ENCAPSULADA SOBRE EL FONDO
+        st.markdown('<div class="login-card-container">', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="font-size: 2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert</h1>
+            <p style="font-size: 0.95rem; color: #475569; font-weight: 600; margin-top: 4px;">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         modo_acceso = st.radio("Acceso:", ["🔑 Iniciar Sesión", "📝 Registrarme y Activar Bot"], label_visibility="collapsed")
         st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
@@ -399,12 +383,12 @@ if not st.session_state.usuario_autenticado:
                         st.error("Usuario o contraseña incorrectos.")
         else:
             st.markdown("""
-            <div style="background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-                <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 10px;">
+            <div style="background: rgba(240,253,244,0.9); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid #bbf7d0;">
+                <div style="font-size: 1rem; font-weight: 900; color: #15803d; margin-bottom: 6px;">
                     📲 PASO 1: VINCULA TU WHATSAPP
                 </div>
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.6; margin-bottom: 10px;">
-                    Para recibir las alertas matutinas y de heladas, activa el bot oficial de CallMeBot enviando un mensaje de autorización:
+                <div style="font-size: 0.9rem; color: #334155; line-height: 1.5;">
+                    Para recibir alertas de heladas y partes diarios, activa el bot enviando este mensaje:
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -412,20 +396,20 @@ if not st.session_state.usuario_autenticado:
             render_copy_box("I allow callmebot to send me messages")
 
             st.markdown("""
-            <div style="margin-top: -4px; margin-bottom: 22px;">
+            <div style="margin-top: -4px; margin-bottom: 18px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; text-align: center; padding: 13px; border-radius: 14px; font-weight: 900; font-size: 1rem; box-shadow: 0 6px 20px rgba(22,163,74,0.25);">
+                    <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(22,163,74,0.25);">
                         🟢 1. PULSA AQUÍ PARA ABRIR WHATSAPP Y ENVIAR
                     </div>
                 </a>
             </div>
             
-            <div style="background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-                <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 10px;">
+            <div style="background: rgba(240,253,244,0.9); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid #bbf7d0;">
+                <div style="font-size: 1rem; font-weight: 900; color: #15803d; margin-bottom: 6px;">
                     📝 PASO 2: CREA TU CUENTA
                 </div>
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.5; margin-bottom: 10px;">
-                    Una vez que el bot te responda en WhatsApp con tu <b>APIKey</b> (código numérico), rellena tus datos aquí abajo:
+                <div style="font-size: 0.9rem; color: #334155; line-height: 1.5;">
+                    Cuando el bot te responda con tu <b>APIKey</b> numérica, rellena tus datos aquí:
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -434,7 +418,7 @@ if not st.session_state.usuario_autenticado:
                 nu = st.text_input("Usuario (nombre de acceso)").strip()
                 nn = st.text_input("Tu Nombre o Explotación").strip()
                 ntel = st.text_input("📱 Tu Teléfono Móvil (+34)").strip()
-                napi = st.text_input("🔑 APIKey que te ha dado el bot por WhatsApp").strip()
+                napi = st.text_input("🔑 APIKey proporcionada por el bot").strip()
                 np = st.text_input("Contraseña de acceso", type="password")
                 
                 b_up = st.form_submit_button("🚀 FINALIZAR Y CREAR CUENTA", use_container_width=True, type="primary")
@@ -463,6 +447,8 @@ if not st.session_state.usuario_autenticado:
                         st.session_state.usuario_autenticado = nu
                         st.success("¡Cuenta creada con éxito!")
                         st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 # ==============================================================================
