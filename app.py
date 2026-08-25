@@ -203,7 +203,6 @@ def consultar_meteo_openmeteo(lat, lon):
                 w_list = hourly["wind_speed_10m"]
                 p_list = hourly["precipitation"]
                 
-                # Buscamos la hora actual exacta para filtrar las siguientes 24 horas
                 ahora_str = datetime.now().strftime("%Y-%m-%dT%H:00")
                 idx_inicio = 0
                 for i, t in enumerate(t_list):
@@ -211,13 +210,11 @@ def consultar_meteo_openmeteo(lat, lon):
                         idx_inicio = i
                         break
                 
-                # Tomamos exactamente las siguientes 24 horas
                 t_24h = t_list[idx_inicio : idx_inicio + 24]
                 w_24h = w_list[idx_inicio : idx_inicio + 24]
                 p_24h = p_list[idx_inicio : idx_inicio + 24]
                 
                 for t, w, p in zip(t_24h, w_24h, p_24h):
-                    # Formateamos la fecha y hora para que sea clara (ej. "26/08 09:00")
                     dt_obj = datetime.fromisoformat(t)
                     fecha_hora_str = dt_obj.strftime("%d/%m %H:00")
                     horas_prevision.append({
@@ -286,11 +283,11 @@ if not st.session_state.usuario_autenticado:
         with tab_registro:
             st.markdown("""
             <div class="guia-caja">
-                <b>🌾 ¿Cómo conectar los avisos a tu móvil paso a paso?</b><br><br>
+                <b>🌾 ¿Cómo conectar los avisos a tu móvil paso a paso?</b> (Opcional)<br><br>
                 1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
                 2️⃣ Busca arriba en la lupa nuestro bot oficial: <b>@ActualizacionAgroAlert_bot</b><br>
                 3️⃣ Escríbele cualquier mensaje (por ejemplo: <i>Hola</i>).<br>
-                4️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo aquí abajo!
+                4️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo abajo si deseas recibir avisos diarios!
             </div>
             """, unsafe_allow_html=True)
 
@@ -298,7 +295,7 @@ if not st.session_state.usuario_autenticado:
                 nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
                 nuevo_pwd = st.text_input("Contraseña", type="password")
                 nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                nuevo_chat_id = st.text_input("Tu Código de Telegram (que te acaba de dar el bot)")
+                nuevo_chat_id = st.text_input("Tu Código de Telegram (Opcional)")
                 
                 nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
                 
@@ -314,15 +311,15 @@ if not st.session_state.usuario_autenticado:
 
                 registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
                 if registrarse:
-                    if not nuevo_user or not nuevo_pwd or not nuevo_chat_id:
-                        st.error("Por favor, rellena tu usuario, contraseña y número de Telegram.")
+                    if not nuevo_user or not nuevo_pwd:
+                        st.error("Por favor, rellena al menos tu usuario y contraseña.")
                     elif nuevo_user in st.session_state.usuarios_db:
                         st.error("Ese usuario ya existe. Elige otro.")
                     else:
                         st.session_state.usuarios_db[nuevo_user] = {
                             "pwd": nuevo_pwd,
                             "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
-                            "telegram_id": nuevo_chat_id.strip(),
+                            "telegram_id": nuevo_chat_id.strip() if nuevo_chat_id else "No configurado",
                             "telegram_token": nuevo_token
                         }
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
@@ -341,7 +338,7 @@ user = st.session_state.usuario_autenticado
 info_user = st.session_state.usuarios_db.get(user, {})
 fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat": 42.46, "lon": -2.44, "ha": 2.0}})
 telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
-telegram_id = info_user.get("telegram_id", "5473461038")
+telegram_id = info_user.get("telegram_id", "No configurado")
 
 # --- CABECERA SUPERIOR PROFESIONAL CON SELECTOR RÁPIDO DE FINCA Y LOGO OFICIAL ---
 col_head_izq, col_head_centro, col_head_der = st.columns([1.2, 2.2, 1])
@@ -601,58 +598,64 @@ with col_contenido:
         st.write("Recibirás un aviso automático diario en Telegram con el parte meteorológico estructurado de **todas** tus fincas y su acción obligatoria.")
         st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
         
+        if telegram_id == "No configurado":
+            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Si deseas recibir avisos, actualiza tu cuenta o regístrate vinculando tu número.")
+        
         if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
-            msg_partes = [f"🚜 *AGROALERT • PARTE DIARIO DE EXPLOTACIÓN*\n👤 *Agricultor:* {info_user.get('nombre', 'Agricultor')}\n"]
-            
-            for nombre_f, d_finca in fincas_usuario.items():
-                m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
+            if telegram_id == "No configurado":
+                st.error("No se puede enviar porque no hay un Chat ID de Telegram asociado a esta cuenta.")
+            else:
+                msg_partes = [f"🚜 *AGROALERT • PARTE DIARIO DE EXPLOTACIÓN*\n👤 *Agricultor:* {info_user.get('nombre', 'Agricultor')}\n"]
                 
-                if m_finca["viento"] > 15:
-                    estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
-                    accion_obligatoria = "👉 *Frenar actividad en campo.* Viento excesivo: alto riesgo de deriva y contaminación."
-                    consejos = (
-                        "💡 *Consejos profesionales de valor:*\n"
-                        "   1️⃣ *Mantenimiento:* Aprovecha en caseta para revisar boquillas, filtros y calibrar maquinaria.\n"
-                        "   2️⃣ *Stock:* Revisa el almacén de fitosanitarios para anticiparte a las próximas compras.\n"
-                        "   3️⃣ *Seguridad:* Evita cualquier aplicación que incumpla la normativa local."
-                    )
-                elif m_finca["lluvia"] > 2.0:
-                    estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Riesgo de lluvia)"
-                    accion_obligatoria = "👉 *Frenar actividad en campo.* Riesgo de lavado inmediato del caldo aplicado."
-                    consejos = (
-                        "💡 *Consejos profesionales de valor:*\n"
-                        "   1️⃣ *Drenaje:* Vigila posibles encharcamientos y accesos principales a la parcela.\n"
-                        "   2️⃣ *PAC:* Pon al día tus apuntes fitosanitarios en el Cuaderno de Explotación.\n"
-                        "   3️⃣ *Planificación:* Revisa el estado sanitario general en cuanto amaine."
-                    )
-                else:
-                    estado_f = "🟢 VÍA LIBRE PARA TRATAR"
-                    accion_obligatoria = "👉 *Ejecutar tratamiento en campo.* Mantén velocidad constante (4-6 km/h) y revisa la presión."
-                    consejos = (
-                        "💡 *Consejos profesionales de valor:*\n"
-                        "   1️⃣ *Calibración:* Comprueba que el manómetro asegure el tamaño óptimo de gota.\n"
-                        "   2️⃣ *Estrategia:* Asegura un reparto homogéneo en todo el volumen foliar.\n"
-                        "   3️⃣ *PAC:* Anota inmediatamente el número de registro MAPA y hectáreas tratadas al terminar."
-                    )
+                for nombre_f, d_finca in fincas_usuario.items():
+                    m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
+                    
+                    if m_finca["viento"] > 15:
+                        estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
+                        accion_obligatoria = "👉 *Frenar actividad en campo.* Viento excesivo: alto riesgo de deriva y contaminación."
+                        consejos = (
+                            "💡 *Consejos profesionales de valor:*\n"
+                            "   1️⃣ *Mantenimiento:* Aprovecha en caseta para revisar boquillas, filtros y calibrar maquinaria.\n"
+                            "   2️⃣ *Stock:* Revisa el almacén de fitosanitarios para anticiparte a las próximas compras.\n"
+                            "   3️⃣ *Seguridad:* Evita cualquier aplicación que incumpla la normativa local."
+                        )
+                    elif m_finca["lluvia"] > 2.0:
+                        estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Riesgo de lluvia)"
+                        accion_obligatoria = "👉 *Frenar actividad en campo.* Riesgo de lavado inmediato del caldo aplicado."
+                        consejos = (
+                            "💡 *Consejos profesionales de valor:*\n"
+                            "   1️⃣ *Drenaje:* Vigila posibles encharcamientos y accesos principales a la parcela.\n"
+                            "   2️⃣ *PAC:* Pon al día tus apuntes fitosanitarios en el Cuaderno de Explotación.\n"
+                            "   3️⃣ *Planificación:* Revisa el estado sanitario general en cuanto amaine."
+                        )
+                    else:
+                        estado_f = "🟢 VÍA LIBRE PARA TRATAR"
+                        accion_obligatoria = "👉 *Ejecutar tratamiento en campo.* Mantén velocidad constante (4-6 km/h) y revisa la presión."
+                        consejos = (
+                            "💡 *Consejos profesionales de valor:*\n"
+                            "   1️⃣ *Calibración:* Comprueba que el manómetro asegure el tamaño óptimo de gota.\n"
+                            "   2️⃣ *Estrategia:* Asegura un reparto homogéneo en todo el volumen foliar.\n"
+                            "   3️⃣ *PAC:* Anota inmediatamente el número de registro MAPA y hectáreas tratadas al terminar."
+                        )
 
-                msg_partes.append(
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
-                    f"📌 *ESTADO:* {estado_f}\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"🌤️ *Meteorología actual:*\n"
-                    f"   • Viento: {m_finca['viento']:.1f} km/h *(Límite seguro: < 15)*\n"
-                    f"   • Lluvia: {m_finca['lluvia']:.1f} mm *(Sin riesgo de lavado)*\n\n"
-                    f"🎯 *ACCIÓN OBLIGATORIA DE HOY:*\n"
-                    f"{accion_obligatoria}\n\n"
-                    f"{consejos}\n"
-                )
+                    msg_partes.append(
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
+                        f"📌 *ESTADO:* {estado_f}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"🌤️ *Meteorología actual:*\n"
+                        f"   • Viento: {m_finca['viento']:.1f} km/h *(Límite seguro: < 15)*\n"
+                        f"   • Lluvia: {m_finca['lluvia']:.1f} mm *(Sin riesgo de lavado)*\n\n"
+                        f"🎯 *ACCIÓN OBLIGATORIA DE HOY:*\n"
+                        f"{accion_obligatoria}\n\n"
+                        f"{consejos}\n"
+                    )
+                    
+                msg_prueba_total = "\n".join(msg_partes)
                 
-            msg_prueba_total = "\n".join(msg_partes)
-            
-            ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
-            if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
-            else: st.error(res)
+                ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
+                if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
+                else: st.error(res)
 
     elif "Gestión de Usuarios Registrados" in menu:
         st.markdown("### 👥 Panel de Control y Control de Nuevos Usuarios")
