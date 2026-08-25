@@ -231,7 +231,7 @@ st.write("")
 
 menu = st.radio("Menú:", [
     "🟢 ¿Puedo Sulfatar Hoy?",
-    "🧪 Cuenta de la Vieja (Calculadora de Cuba)",
+    "🧪 Calculadora de Fitosanitarios",
     "📋 Cuaderno de Campo (PAC sin multas)",
     "📲 Avisos Automáticos a las 4:45",
     "⚙️ Gestión de Fincas y Parcelas"
@@ -253,9 +253,9 @@ if "Puedo Sulfatar" in menu:
     with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
     with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
 
-elif "Calculadora de Cuba" in menu:
-    st.markdown("### 🧪 ¿Cuánto producto echo a la cuba?")
-    st.write("Calcula de forma exacta la cantidad de fitosanitario que debes verter en tu depósito según las hectáreas y el volumen de caldo.")
+elif "Calculadora de Fitosanitarios" in menu:
+    st.markdown("### 🧪 Calculadora de Fitosanitarios")
+    st.write("Calcula de forma exacta la cantidad de producto que debes verter en tu depósito según las hectáreas y el volumen de caldo.")
     with st.form("form_cuba"):
         c_c1, c_c2 = st.columns(2)
         with c_c1:
