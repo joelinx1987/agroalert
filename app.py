@@ -584,7 +584,7 @@ with col_contenido:
                     <div style="font-size: 1.4rem; font-weight: 900; color: #ffffff;">{et0_hoy:.1f} <span style="font-size: 0.85rem; color: #38bdf8;">mm/día (Pérdida hídrica)</span></div>
                 </div>
             </div>
-            <div style="font-size: 0.9rem; color: #cbd5e1; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.1; padding-top: 10px;">
+            <div style="font-size: 0.9rem; color: #cbd5e1; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                 💧 <b>Recomendación de Riego:</b> Con una lluvia de {lluvia_hoy:.1f} L y un consumo diario de {et0_hoy:.1f} mm, el balance hídrico está equilibrado. Riego recomendado: <b>2 horas por goteo</b> este fin de semana.
             </div>
         </div>
@@ -625,7 +625,7 @@ with col_contenido:
         st.line_chart(df_grafica)
 
     # SECCIÓN 2: CALCULADORA DE DOSIS, COSTES (€/ha) Y CUBA
-    elif "Calculadora de costes" in seccion_activa:
+    elif "Calculadora de Costes" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>🧪 Calculadora de Costes (€/ha) y Cuba</h2>", unsafe_allow_html=True)
         c_c1, c_c2 = st.columns(2)
         with c_c1:
