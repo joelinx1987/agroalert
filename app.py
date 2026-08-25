@@ -20,79 +20,25 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES SENCILLOS Y DE GRANDES BOTONES ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-
-    html, body, [class*="css"] {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    .main {
-        background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important;
-        background-attachment: fixed !important;
-        color: #0f172a;
-    }
-
-    div[data-testid="stRadio"] > div {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-    
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    .main { background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important; background-attachment: fixed !important; color: #0f172a; }
+    div[data-testid="stRadio"] > div { flex-direction: column !important; gap: 10px !important; }
     div[data-testid="stRadio"] label {
-        background: #ffffff !important;
-        border: 2px solid #e2e8f0 !important;
-        border-radius: 16px !important;
-        padding: 16px 20px !important;
-        width: 100% !important;
-        cursor: pointer !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
-        transition: all 0.15s ease !important;
+        background: #ffffff !important; border: 2px solid #e2e8f0 !important; border-radius: 16px !important;
+        padding: 16px 20px !important; width: 100% !important; cursor: pointer !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; transition: all 0.15s ease !important;
     }
-    
-    div[data-testid="stRadio"] label:hover {
-        background-color: #f0fdf4 !important;
-        border-color: #16a34a !important;
-    }
-
-    div[data-testid="stRadio"] label div p {
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-        color: #0f172a !important;
-    }
-
-    .semaforo-ok {
-        background: #dcfce7;
-        border: 3px solid #22c55e;
-        border-radius: 20px;
-        padding: 24px;
-        text-align: center;
-        color: #064e3b;
-        box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15);
-    }
-    .semaforo-bad {
-        background: #fee2e2;
-        border: 3px solid #ef4444;
-        border-radius: 20px;
-        padding: 24px;
-        text-align: center;
-        color: #7f1d1d;
-        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
-    }
-
-    .stButton>button {
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-        padding: 14px 20px !important;
-        border-radius: 14px !important;
-        border: none !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important;
-    }
+    div[data-testid="stRadio"] label:hover { background-color: #f0fdf4 !important; border-color: #16a34a !important; }
+    div[data-testid="stRadio"] label div p { font-size: 1.1rem !important; font-weight: 800 !important; color: #0f172a !important; }
+    .semaforo-ok { background: #dcfce7; border: 3px solid #22c55e; border-radius: 20px; padding: 24px; text-align: center; color: #064e3b; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
+    .semaforo-bad { background: #fee2e2; border: 3px solid #ef4444; border-radius: 20px; padding: 24px; text-align: center; color: #7f1d1d; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15); }
+    .stButton>button { font-size: 1.1rem !important; font-weight: 800 !important; padding: 14px 20px !important; border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- BASE DE DATOS Y PERSISTENCIA ---
 USERS_FILE = "usuarios_db.json"
 FINCAS_FILE = "fincas_db.json"
 FITOS_FILE = "fitosanitarios_db.json"
@@ -122,14 +68,8 @@ def guardar_json(archivo, datos):
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
-def normalizar_telefono(tel):
-    t = tel.replace(" ", "").replace("-", "").replace(".", "")
-    if not t.startswith("+"):
-        t = "+34" + t if not t.startswith("34") else "+" + t
-    return t
-
 DEFAULT_USERS = {
-    "joel": {"pwd": make_hash("1234"), "nombre": "Joel (La Rioja)", "telefono": "+34626665232", "apikey": "3443251"}
+    "joel": {"pwd": make_hash("1234"), "nombre": "Joel (La Rioja)", "telegram_id": "5473461038", "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"}
 }
 DEFAULT_FINCAS = {
     "joel": {
@@ -145,19 +85,16 @@ if "db_privada" not in st.session_state:
 if "fitos_db" not in st.session_state:
     st.session_state.fitos_db = cargar_json(FITOS_FILE, {})
 
-# --- API WHATSAPP ---
-def disparar_whatsapp(telefono, apikey, mensaje):
+def disparar_telegram(token, chat_id, mensaje):
     try:
-        num_limpio = normalizar_telefono(telefono)
-        texto_encoded = urllib.parse.quote(mensaje)
-        url = f"https://api.callmebot.com/whatsapp.php?phone={num_limpio}&text={texto_encoded}&apikey={apikey.strip()}"
-        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        data = urllib.parse.urlencode({'chat_id': chat_id, 'text': mensaje, 'parse_mode': 'Markdown'}).encode('utf-8')
+        req = urllib.request.Request(url, data=data, headers={'User-Agent': 'AgroAlert/1.0'})
         with urllib.request.urlopen(req, timeout=10) as resp:
-            return True, "¡Mensaje enviado con éxito a tu WhatsApp!"
+            return True, "¡Mensaje enviado con éxito a tu Telegram!"
     except Exception as e:
         return False, f"Error al enviar: {str(e)}"
 
-# --- PANTALLA DE ACCESO ---
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
@@ -187,12 +124,11 @@ if not st.session_state.usuario_autenticado:
                     st.error("Usuario o contraseña incorrectos.")
     st.stop()
 
-# --- PANEL PRINCIPAL ---
 user = st.session_state.usuario_autenticado
 info_user = st.session_state.usuarios_db.get(user, {})
 fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat": 42.46, "lon": -2.44, "ha": 2.0}})
-user_telefono = info_user.get("telefono", "+34626665232")
-user_apikey = info_user.get("apikey", "3443251")
+telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
+telegram_id = info_user.get("telegram_id", "5473461038")
 
 c_h1, c_h2 = st.columns([3, 1])
 with c_h1:
@@ -207,8 +143,6 @@ st.write("---")
 nombres_fincas = list(fincas_usuario.keys())
 parcela_activa = st.selectbox("📍 SELECCIONA TU PARCELA:", nombres_fincas)
 datos_parcela = fincas_usuario[parcela_activa]
-lat, lon, superficie = datos_parcela["lat"], datos_parcela["lon"], datos_parcela["ha"]
-
 viento_hoy = 8.0
 lluvia_hoy = 0.0
 
@@ -218,42 +152,24 @@ menu = st.radio("Menú:", [
     "🟢 ¿Puedo Sulfatar Hoy?",
     "🧪 Cuenta de la Vieja (Calculadora de Cuba)",
     "📋 Cuaderno de Campo (PAC sin multas)",
-    "📲 Avisos Automáticos a las 11:45"
+    "📲 Avisos Automáticos a las 11:55"
 ], label_visibility="collapsed")
 
 st.write("---")
 
-# 1. SEMÁFORO
 if "Puedo Sulfatar" in menu:
     st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
-    
     if viento_hoy > 15 or lluvia_hoy > 2.0:
-        st.markdown(f"""
-        <div class="semaforo-bad">
-            <h2 style="margin:0; font-weight:900;">⛔ HOY NO ES BUEN DÍA</h2>
-            <p style="font-size:1.1rem; margin-top:8px;">Viento a {viento_hoy:.0f} km/h o previsión de lluvia. Te puedes arriesgar a tirar el producto.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ HOY NO ES BUEN DÍA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento a {viento_hoy:.0f} km/h o previsión de lluvia.</p></div>', unsafe_allow_html=True)
     else:
-        st.markdown(f"""
-        <div class="semaforo-ok">
-            <h2 style="margin:0; font-weight:900;">✅ DÍA PERFECTO PARA ENTRAR</h2>
-            <p style="font-size:1.1rem; margin-top:8px;">Viento en calma ({viento_hoy:.0f} km/h) y sin lluvia. ¡Adelante con el tractor!</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ DÍA PERFECTO PARA ENTRAR</h2><p style="font-size:1.1rem; margin-top:8px;">Viento en calma ({viento_hoy:.0f} km/h) y sin lluvia.</p></div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     c_m1, c_m2 = st.columns(2)
-    with c_m1:
-        st.metric("💨 Viento actual", f"{viento_hoy:.0f} km/h", "Ideal < 15")
-    with c_m2:
-        st.metric("🌧️ Lluvia prevista", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
+    with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.0f} km/h", "Ideal < 15")
+    with c_m2: st.metric("🌧️ Lluvia prevista", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
 
-# 2. CALCULADORA DE CUBA
 elif "Calculadora de Cuba" in menu:
     st.markdown("### 🧪 ¿Cuánto producto echo a la cuba?")
-    st.write("Dime los datos de tu tratamiento y te hago las cuentas al momento:")
-
     with st.form("form_cuba"):
         c_c1, c_c2 = st.columns(2)
         with c_c1:
@@ -261,73 +177,38 @@ elif "Calculadora de Cuba" in menu:
             gasto_por_ha = st.number_input("Litros de caldo que gastas por hectárea:", value=400, step=50)
         with c_c2:
             dosis_ha = st.number_input("Dosis recomendada por hectárea (kg o L):", value=2.5, step=0.5)
-            ha_finca = st.number_input("Hectáreas que vas a tratar:", value=float(superficie), step=0.5)
-
+            ha_finca = st.number_input("Hectáreas que vas a tratar:", value=float(datos_parcela["ha"]), step=0.5)
         calcular = st.form_submit_button("🧮 CALCULÁMELO", use_container_width=True, type="primary")
-
         if calcular:
             ha_por_cuba = litros_cuba / gasto_por_ha if gasto_por_ha > 0 else 0
             producto_por_cuba = dosis_ha * ha_por_cuba
             total_cubas = (ha_finca * gasto_por_ha) / litros_cuba if litros_cuba > 0 else 0
             total_producto = dosis_ha * ha_finca
+            st.markdown(f'<div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 16px; padding: 20px; margin-top: 15px; color: #065f46;"><h3 style="margin:0; color:#047857;">📌 RESULTADO:</h3><p style="font-size: 1.3rem; font-weight: 800; margin: 10px 0;">👉 Echa <b>{producto_por_cuba:.2f} kg/L</b> por cuba de {litros_cuba} L.</p><p style="font-size: 1rem; margin: 0;">🚜 Total para {ha_finca} ha: <b>{total_cubas:.1f} cubas</b> ({total_producto:.2f} kg/L totales).</p></div>', unsafe_allow_html=True)
 
-            st.markdown(f"""
-            <div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 16px; padding: 20px; margin-top: 15px; color: #065f46;">
-                <h3 style="margin:0; color:#047857;">📌 RESULTADO PARA EL TRACTOR:</h3>
-                <p style="font-size: 1.3rem; font-weight: 800; margin: 10px 0;">👉 Echa <b>{producto_por_cuba:.2f} kg o litros</b> por cada cuba de {litros_cuba} L.</p>
-                <hr style="border-color: #a7f3d0;">
-                <p style="font-size: 1rem; margin: 0;">🚜 Para tus {ha_finca} hectáreas necesitarás <b>{total_cubas:.1f} cubas</b> enteras (en total gastarás <b>{total_producto:.2f} kg/L</b> de producto).</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-# 3. CUADERNO DE CAMPO
 elif "Cuaderno de Campo" in menu:
-    st.markdown("### 📋 Tu Cuaderno de Explotación (Sin líos)")
-    st.write("Apunta aquí lo que echas para enseñárselo al inspector o a la cooperativa cuando te lo pidan.")
-
+    st.markdown("### 📋 Tu Cuaderno de Explotación")
     with st.form("form_cuaderno"):
         f_apli = st.date_input("Fecha de aplicación:", date.today())
-        motivo = st.text_input("¿Qué has tratado? (ej: Mildiu, Oídio, Pulgón):", value="Mildiu preventivo")
-        reg_mapa = st.text_input("Nº Registro MAPA del producto (ej: ES-00123):", value="ES-00123")
-        cant_gastada = st.text_input("Cantidad total gastada:", value="10 kg")
-        
-        guardar_fito = st.form_submit_button("💾 GUARDAR APUNTE EN EL CUADERNO", use_container_width=True, type="primary")
+        motivo = st.text_input("¿Qué has tratado?:", value="Mildiu preventivo")
+        reg_mapa = st.text_input("Nº Registro MAPA:", value="ES-00123")
+        guardar_fito = st.form_submit_button("💾 GUARDAR APUNTE", use_container_width=True, type="primary")
         if guardar_fito:
-            if user not in st.session_state.fitos_db:
-                st.session_state.fitos_db[user] = []
-            
+            if user not in st.session_state.fitos_db: st.session_state.fitos_db[user] = []
             plazo_dias = CATALOGO_MAPA.get(reg_mapa.strip().upper(), {"plazo": 14})["plazo"]
             librede = f_apli + timedelta(days=plazo_dias)
-
-            st.session_state.fitos_db[user].append({
-                "Fecha": str(f_apli),
-                "Parcela": parcela_activa,
-                "Tratamiento": motivo,
-                "MAPA": reg_mapa.upper(),
-                "Libre recolección": str(librede)
-            })
+            st.session_state.fitos_db[user].append({"Fecha": str(f_apli), "Parcela": parcela_activa, "Tratamiento": motivo, "MAPA": reg_mapa.upper(), "Libre recolección": str(librede)})
             guardar_json(FITOS_FILE, st.session_state.fitos_db)
-            st.success("¡Apuntado correctamente! Ya lo tienes guardado para la PAC.")
-
-    st.markdown("#### 📜 Histórico de apuntes:")
+            st.success("¡Apuntado correctamente!")
     mis_datos = st.session_state.fitos_db.get(user, [])
-    if mis_datos:
-        st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
-    else:
-        st.info("No tienes apuntes guardados todavía.")
+    if mis_datos: st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
 
-# 4. AVISOS AUTOMÁTICOS A LAS 11:45
-elif "Avisos Automáticos a las 11:45" in menu:
-    st.markdown("### 📲 Aviso Diario en tu WhatsApp a las 11:45")
-    st.write("La aplicación te enviará automáticamente un mensaje todos los días a las **11:45 h** contándote si puedes entrar al campo con el tractor y el riesgo meteorológico.")
-
-    st.info(f"📱 Teléfono configurado: **{user_telefono}**")
-
-    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 11:45*\n📍 *Parcela:* {parcela_activa}\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy:.0f} km/h (Calma).\n🌧️ *Lluvia:* 0 mm."
-
-    if st.button("📲 PROBAR ENVÍO DE AVISO AHORA MISMO", use_container_width=True, type="primary"):
-        ok, res = disparar_whatsapp(user_telefono, user_apikey, msg_prueba)
-        if ok:
-            st.success(res)
-        else:
-            st.error(res)
+elif "Avisos Automáticos a las 11:55" in menu:
+    st.markdown("### 📲 Aviso Diario en tu Telegram a las 11:55")
+    st.write("Recibirás un aviso automático en Telegram con los datos de tu parcela activa.")
+    st.info(f"🤖 Chat ID configurado: **{telegram_id}**")
+    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 11:55*\n📍 *Parcela:* {parcela_activa} ({datos_parcela['ha']} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy} mm."
+    if st.button("📲 PROBAR ENVÍO A TELEGRAM AHORA", use_container_width=True, type="primary"):
+        ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba)
+        if ok: st.success(res)
+        else: st.error(res)
