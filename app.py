@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES: FONDO AGRAR-TECH AVANZADO Y GLASSMORPHISM ---
+# --- ESTILOS VISUALES: FOTOS AGRÍCOLAS Y SIN BORDES NÍTIDOS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -26,14 +26,13 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* FONDO MODERNO DEGRADADO AGRÍCOLA / TECH */
     .main {
         background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important;
         background-attachment: fixed !important;
         color: #0f172a;
     }
 
-    /* BOTONES DE SECCIÓN VERTICALES (EFECTO CRISTAL) */
+    /* BOTONES DE SECCIÓN VERTICALES */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
         gap: 8px !important;
@@ -42,19 +41,17 @@ st.markdown("""
     div[data-testid="stRadio"] label {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(226, 232, 240, 0.8) !important;
+        border: none !important;
         border-radius: 14px !important;
         padding: 14px 18px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important;
-        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
+        transition: all 0.15s ease !important;
     }
     
     div[data-testid="stRadio"] label:hover {
-        border-color: #16a34a !important;
         background-color: rgba(240, 253, 244, 0.95) !important;
-        transform: translateY(-1px);
         box-shadow: 0 6px 20px rgba(22, 163, 74, 0.08) !important;
     }
 
@@ -67,7 +64,7 @@ st.markdown("""
     /* SEMÁFOROS */
     .traffic-ok {
         background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-        border: 1px solid #86efac;
+        border: none;
         border-radius: 16px;
         padding: 20px 22px;
         margin-bottom: 18px;
@@ -76,7 +73,7 @@ st.markdown("""
     }
     .traffic-danger {
         background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-        border: 1px solid #fca5a5;
+        border: none;
         border-radius: 16px;
         padding: 20px 22px;
         margin-bottom: 18px;
@@ -85,7 +82,7 @@ st.markdown("""
     }
     .traffic-warning {
         background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        border: 1px solid #fcd34d;
+        border: none;
         border-radius: 16px;
         padding: 20px 22px;
         margin-bottom: 18px;
@@ -96,7 +93,7 @@ st.markdown("""
     .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
     .traffic-sub { font-size: 1.05rem; font-weight: 600; }
 
-    /* --- TARJETAS FOTOGRÁFICAS AGRÍCOLAS FLOTANTES --- */
+    /* --- TARJETAS FOTOGRÁFICAS AGRÍCOLAS SIN BORDES NÍTIDOS --- */
     .card-photo {
         position: relative;
         border-radius: 16px;
@@ -104,7 +101,7 @@ st.markdown("""
         text-align: center;
         margin-bottom: 14px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.6);
+        border: none !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         background-size: cover;
         background-position: center;
@@ -121,6 +118,7 @@ st.markdown("""
 
     .card-content { position: relative; z-index: 2; }
 
+    /* URLS CORREGIDAS PARA TODAS LAS FOTOS */
     .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); }
     .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); }
     .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); }
@@ -132,7 +130,7 @@ st.markdown("""
 
     .recipe-box {
         background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-        border: 1px solid #a7f3d0;
+        border: none;
         border-radius: 16px;
         padding: 20px;
         margin-top: 14px;
@@ -144,7 +142,7 @@ st.markdown("""
     .legend-card {
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
+        border: none;
         border-radius: 14px;
         padding: 18px 20px;
         margin-bottom: 12px;
@@ -454,9 +452,9 @@ if st.session_state.modo_contraste:
         .card-title { color: #86EFAC !important; }
         .card-value { color: #FFFFFF !important; }
         .card-unit { color: #CBD5E1 !important; }
-        div[data-testid="stRadio"] label { background: rgba(30, 41, 59, 0.9) !important; border-color: #475569 !important; }
+        div[data-testid="stRadio"] label { background: rgba(30, 41, 59, 0.9) !important; border: none !important; }
         div[data-testid="stRadio"] label div p { color: #FFFFFF !important; }
-        .legend-card { background: rgba(30, 41, 59, 0.9) !important; border-color: #475569 !important; color: #FFFFFF !important; }
+        .legend-card { background: rgba(30, 41, 59, 0.9) !important; border: none !important; color: #FFFFFF !important; }
         .legend-header { color: #4ADE80 !important; }
         .legend-body { color: #E2E8F0 !important; }
     </style>
@@ -1105,7 +1103,7 @@ with col_contenido:
                     c_asuelo, c_ariego = st.columns(2)
                     with c_asuelo:
                         suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-                    with c_asuelo:
+                    with c_ariego:
                         riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
 
                     btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
@@ -1135,7 +1133,7 @@ with col_contenido:
             if tabla_fincas:
                 st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
-    # SECCIÓN 7: LEYENDA Y FUENTES
+    # SECCIÓN 7: LEYENDA Y FECHAS
     elif "Leyenda Técnica" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
         
