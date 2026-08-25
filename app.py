@@ -161,7 +161,13 @@ def guardar_json(archivo, datos):
         pass
 
 DEFAULT_USERS = {
-    "admin1987": {"pwd": "admin1987", "nombre": "Joel (La Rioja)", "telegram_id": "5473461038", "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"}
+    "admin1987": {
+        "pwd": "admin1987", 
+        "nombre": "Joel (La Rioja)", 
+        "email": "joel@agroalert.es",
+        "telegram_id": "5473461038", 
+        "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
+    }
 }
 DEFAULT_FINCAS = {
     "admin1987": {
@@ -179,7 +185,11 @@ DEFAULT_ALMACEN = {
 
 if "usuarios_db" not in st.session_state:
     st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
-st.session_state.usuarios_db["admin1987"] = DEFAULT_USERS["admin1987"]
+for u in DEFAULT_USERS:
+    if u in st.session_state.usuarios_db:
+        for k, v in DEFAULT_USERS[u].items():
+            if k not in st.session_state.usuarios_db[u]:
+                st.session_state.usuarios_db[u][k] = v
 
 if "db_privada" not in st.session_state:
     st.session_state.db_privada = cargar_json(FINCAS_FILE, DEFAULT_FINCAS)
@@ -284,7 +294,6 @@ if not st.session_state.usuario_autenticado:
                         else:
                             st.error("Usuario o contraseña incorrectos.")
                 
-                # Enlace interactivo para recuperar contraseña
                 if st.button("❓ ¿Se me ha olvidado la contraseña?", use_container_width=True):
                     st.session_state.modo_recuperacion = True
                     st.rerun()
@@ -302,6 +311,7 @@ if not st.session_state.usuario_autenticado:
 
                 with st.form("form_registro_nuevo"):
                     nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
+                    nuevo_email = st.text_input("Correo electrónico").strip()
                     nuevo_pwd = st.text_input("Contraseña", type="password")
                     nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
                     nuevo_chat_id = st.text_input("Tu Código de Telegram (Opcional)")
@@ -328,6 +338,7 @@ if not st.session_state.usuario_autenticado:
                             st.session_state.usuarios_db[nuevo_user] = {
                                 "pwd": nuevo_pwd,
                                 "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
+                                "email": nuevo_email if nuevo_email else "",
                                 "telegram_id": nuevo_chat_id.strip() if nuevo_chat_id else "No configurado",
                                 "telegram_token": nuevo_token
                             }
@@ -342,7 +353,6 @@ if not st.session_state.usuario_autenticado:
 
                             st.success("¡Cuenta creada con éxito! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
         else:
-            # --- APARTADO DE RECUPERACIÓN DE CONTRASEÑA ---
             st.markdown("### 🔒 Recuperación de Contraseña")
             st.write("Introduce tu nombre de usuario para verificar tu identidad y crear una nueva contraseña.")
             
@@ -412,7 +422,8 @@ with col_menu:
         "📦 Almacén de Fitosanitarios",
         "📋 Cuaderno de Campo (PAC sin multas)",
         "📲 Avisos Automáticos a las 4:45",
-        "⚙️ Gestión de Fincas y Parcelas"
+        "⚙️ Gestión de Fincas y Parcelas",
+        "⚙️ Ajustes de la Cuenta"
     ]
     
     if user == "admin1987":
@@ -425,8 +436,8 @@ with col_menu:
     st.markdown("##### 📢 ¡Comparte AgroAlert!")
     st.write("Comparte esta herramienta gratuita con otros agricultores:")
     
-    texto_compartir = urllib.parse.quote("¡Échale un vistazo a AgroAlert! Una app gratuita para agricultores que te avisa del tiempo para sulfatar, controla el Cuaderno PAC y manda avisos por Telegram. Pruébala aquí:")
-    url_app = "https://share.streamlit.io" # (Puedes cambiar esto por tu enlace definitivo)
+    texto_compartir = urllib.parse.quote("¡Échale un vistazo à AgroAlert! Una app gratuita para agricultores que te avisa del tiempo para sulfatar, controla el Cuaderno PAC y manda avisos por Telegram. Pruébala aquí:")
+    url_app = "https://share.streamlit.io"
     
     link_whatsapp = f"https://api.whatsapp.com/send?text={texto_compartir}%20{url_app}"
     link_telegram = f"https://t.me/share/url?url={url_app}&text={texto_compartir}"
@@ -653,7 +664,7 @@ with col_contenido:
         st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
         
         if telegram_id == "No configurado":
-            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Si deseas recibir avisos, actualiza tu cuenta o regístrate vinculando tu número.")
+            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Puedes añadirlo en la sección '⚙️ Ajustes de la Cuenta'.")
         
         if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
             if telegram_id == "No configurado":
@@ -711,6 +722,45 @@ with col_contenido:
                 if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
                 else: st.error(res)
 
+    elif "Ajustes de la Cuenta" in menu:
+        st.markdown("### ⚙️ Ajustes de la Cuenta y Datos Personales")
+        st.write("Modifica tu información de perfil, correo electrónico, contraseña o vinculación con Telegram.")
+        
+        with st.form("form_ajustes_cuenta"):
+            nuevo_nombre_perfil = st.text_input("Nombre y Apellidos", value=info_user.get("nombre", ""))
+            nuevo_email_perfil = st.text_input("Correo Electrónico", value=info_user.get("email", ""))
+            nuevo_telegram_id = st.text_input("Código de Telegram (Chat ID)", value=info_user.get("telegram_id", ""))
+            
+            st.markdown("---")
+            st.markdown("##### 🔑 Cambiar Contraseña (Opcional)")
+            cambiar_pass = st.checkbox("Quiero cambiar mi contraseña actual")
+            pass_actual = st.text_input("Contraseña actual", type="password")
+            pass_nueva1 = st.text_input("Nueva contraseña", type="password")
+            pass_nueva2 = st.text_input("Confirma la nueva contraseña", type="password")
+            
+            guardar_ajustes = st.form_submit_button("💾 GUARDAR CAMBIOS DE LA CUENTA", use_container_width=True, type="primary")
+            if guardar_ajustes:
+                if cambiar_pass:
+                    if pass_actual != info_user.get("pwd", ""):
+                        st.error("La contraseña actual no es correcta.")
+                    elif not pass_nueva1 or pass_nueva1 != pass_nueva2:
+                        st.error("La nueva contraseña está vacía o no coincide en ambos campos.")
+                    else:
+                        st.session_state.usuarios_db[user]["pwd"] = pass_nueva1
+                        st.session_state.usuarios_db[user]["nombre"] = nuevo_nombre_perfil
+                        st.session_state.usuarios_db[user]["email"] = nuevo_email_perfil
+                        st.session_state.usuarios_db[user]["telegram_id"] = nuevo_telegram_id
+                        guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                        st.success("¡Datos y contraseña actualizados correctamente!")
+                        st.rerun()
+                else:
+                    st.session_state.usuarios_db[user]["nombre"] = nuevo_nombre_perfil
+                    st.session_state.usuarios_db[user]["email"] = nuevo_email_perfil
+                    st.session_state.usuarios_db[user]["telegram_id"] = nuevo_telegram_id
+                    guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                    st.success("¡Datos de la cuenta actualizados correctamente!")
+                    st.rerun()
+
     elif "Gestión de Usuarios Registrados" in menu:
         st.markdown("### 👥 Panel de Control y Control de Nuevos Usuarios")
         st.write("Aquí puedes supervisar todos los agricultores que se han dado de alta en la plataforma, sus datos de contacto y gestionar sus cuentas.")
@@ -721,6 +771,7 @@ with col_contenido:
             tabla_usuarios.append({
                 "Usuario (Login)": username,
                 "Nombre y Apellidos": udata.get("nombre", "N/A"),
+                "Correo": udata.get("email", "N/A"),
                 "Telegram Chat ID": udata.get("telegram_id", "N/A"),
                 "Contraseña": udata.get("pwd", "N/A")
             })
