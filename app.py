@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES Y ANIMACIONES SUTILES ---
+# --- ESTILOS VISUALES LIMPIOS Y ROBUSTOS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -93,105 +93,6 @@ st.markdown("""
     .traffic-sub {
         font-size: 1.05rem;
         font-weight: 600;
-    }
-
-    /* TARJETAS METEOROLÓGICAS LIMPIAS Y SUAVES */
-    .field-card-animated {
-        position: relative;
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 18px 16px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-        margin-bottom: 14px;
-        overflow: hidden;
-        z-index: 1;
-    }
-    
-    .field-card-content {
-        position: relative;
-        z-index: 3;
-    }
-
-    .field-card-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }
-    .field-card-value {
-        font-size: 1.85rem;
-        font-weight: 900;
-        color: #0f172a;
-        margin-top: 4px;
-    }
-    .field-card-unit {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #64748b;
-    }
-
-    /* --- ANIMACIONES DE FONDO SUTILES --- */
-    
-    /* 1. LLUVIA SUAVE */
-    .bg-rain-active {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(219, 234, 254, 0.3) 100%);
-        animation: rainPulse 2s ease-in-out infinite alternate;
-        z-index: 2;
-    }
-    @keyframes rainPulse {
-        0% { opacity: 0.3; }
-        100% { opacity: 0.7; }
-    }
-
-    /* 2. VIENTO ELEGANTE (Brisa / Reflejo sutil) */
-    .bg-wind-active {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(90deg, transparent 0%, rgba(241, 245, 249, 0.8) 50%, transparent 100%);
-        background-size: 200% 100%;
-        animation: windSoft 3s ease-in-out infinite;
-        z-index: 2;
-    }
-    @keyframes windSoft {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-
-    /* 3. TEMPERATURA CÁLIDA TENUE */
-    .bg-temp-pulse {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 20%, rgba(254, 243, 199, 0.45) 0%, transparent 70%);
-        animation: tempSoft 4s ease-in-out infinite alternate;
-        z-index: 2;
-    }
-    @keyframes tempSoft {
-        0% { opacity: 0.4; }
-        100% { opacity: 0.8; }
-    }
-
-    /* 4. HONGOS / PROTECCIÓN SUAVE */
-    .bg-shield-pulse {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 80%, rgba(220, 252, 231, 0.5) 0%, transparent 70%);
-        z-index: 2;
-    }
-    .bg-danger-pulse {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 80%, rgba(254, 226, 226, 0.55) 0%, transparent 70%);
-        animation: dangerSoft 2s ease-in-out infinite alternate;
-        z-index: 2;
-    }
-    @keyframes dangerSoft {
-        0% { opacity: 0.5; }
-        100% { opacity: 0.9; }
     }
 
     .recipe-box {
@@ -547,7 +448,7 @@ with col_menu:
 # CONTENIDO EN PANEL DERECHO
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS SUAVES Y CORREGIDAS
+    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS LIMPIAS Y ESTABLES
     if "Puedo sulfatar hoy" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
@@ -585,57 +486,13 @@ with col_contenido:
         else:
             riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
 
-        # Fondos sutiles
-        anim_rain = '<div class="bg-rain-active"></div>' if lluvia_hoy > 0 else ''
-        anim_wind = '<div class="bg-wind-active"></div>' if viento_hoy > 5 else ''
-        anim_temp = '<div class="bg-temp-pulse"></div>'
-        anim_shield = '<div class="bg-danger-pulse"></div>' if ('ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt) else '<div class="bg-shield-pulse"></div>'
-
         c_m1, c_m2 = st.columns(2)
         with c_m1:
-            # 1. TARJETA TEMPERATURA
-            st.markdown(f"""
-            <div class="field-card-animated">
-                {anim_temp}
-                <div class="field-card-content">
-                    <div class="field-card-title">🌡️ Tª Hoy</div>
-                    <div class="field-card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="field-card-unit">C</span></div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # 2. TARJETA VIENTO
-            st.markdown(f"""
-            <div class="field-card-animated">
-                {anim_wind}
-                <div class="field-card-content">
-                    <div class="field-card-title">💨 Viento</div>
-                    <div class="field-card-value">{viento_hoy:.0f} <span class="field-card-unit">km/h</span></div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.metric(label="🌡️ Tª Hoy", value=f"{min_hoy:.0f}° / {max_hoy:.0f}°C")
+            st.metric(label="💨 Viento", value=f"{viento_hoy:.0f} km/h")
         with c_m2:
-            # 3. TARJETA LLUVIA (CORREGIDA)
-            st.markdown(f"""
-            <div class="field-card-animated">
-                {anim_rain}
-                <div class="field-card-content">
-                    <div class="field-card-title">🌧️ Lluvia</div>
-                    <div class="field-card-value">{lluvia_hoy:.1f} <span class="field-card-unit">L</span></div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # 4. TARJETA HONGOS
-            st.markdown(f"""
-            <div class="field-card-animated">
-                {anim_shield}
-                <div class="field-card-content">
-                    <div class="field-card-title">🛡️ Hongos</div>
-                    <div class="field-card-value" style="font-size:1.55rem; color: {'#dc2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else '#15803d'};">{riesgo_txt}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.metric(label="🌧️ Lluvia", value=f"{lluvia_hoy:.1f} L")
+            st.metric(label="🛡️ Hongos", value=riesgo_txt)
 
         st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 15px;'>📅 Previsión Semanal:</h3>", unsafe_allow_html=True)
         df_dias = []
@@ -1033,7 +890,7 @@ with col_contenido:
                     c_asuelo, c_ariego = st.columns(2)
                     with c_asuelo:
                         suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-                    with c_ariego:
+                    with c_asuelo:
                         riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
 
                     btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
@@ -1140,7 +997,7 @@ with col_contenido:
                     del st.session_state.labores_db[usuario_a_borrar]
                     guardar_json(LABORES_FILE, st.session_state.labores_db)
                     
-                st.success(f"¡Usuario '{usuario_a_borrar}' eliminado!")
+                st.success(f"¡Usuario '{usuario_a_borrar}' y todos sus datos han sido eliminados por completo!")
                 st.rerun()
 
         st.write("---")
