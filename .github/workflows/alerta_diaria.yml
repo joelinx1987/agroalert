@@ -1,9 +1,10 @@
-name: Bot WhatsApp Diario AgroAlert
+name: Bot Telegram Diario AgroAlert
 
 on:
   schedule:
-    # 55 9 * * * en UTC equivale exactamente a las 11:55 AM en España (horario de verano)
-    - cron: '55 9 * * *'
+    # 4:45 AM en horario peninsular español (en invierno UTC+1 son las 03:45 UTC / en verano UTC+2 son las 02:45 UTC)
+    # Si prefieres las 4:45 de la madrugada (hora UTC pura): '45 4 * * *'
+    - cron: '45 4 * * *'
   workflow_dispatch:
 
 jobs:
