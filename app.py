@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES LIMPIOS Y ROBUSTOS ---
+# --- ESTILOS VISUALES ORIGINALES LIMPIOS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -34,17 +34,17 @@ st.markdown("""
     /* BOTONES DE SECCIÓN VERTICALES */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
-        gap: 8px !important;
+        gap: 10px !important;
     }
     
     div[data-testid="stRadio"] label {
         background: #ffffff !important;
         border: 2px solid #cbd5e1 !important;
         border-radius: 14px !important;
-        padding: 14px 18px !important;
+        padding: 16px 20px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
         transition: all 0.15s ease !important;
     }
     
@@ -54,7 +54,7 @@ st.markdown("""
     }
 
     div[data-testid="stRadio"] label div p {
-        font-size: 1rem !important;
+        font-size: 1.15rem !important;
         font-weight: 800 !important;
         color: #0f172a !important;
     }
@@ -63,47 +63,75 @@ st.markdown("""
     .traffic-ok {
         background-color: #dcfce7;
         border: 3px solid #16a34a;
-        border-radius: 16px;
-        padding: 20px 22px;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12);
+        border-radius: 18px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
     }
     .traffic-danger {
         background-color: #fee2e2;
         border: 3px solid #dc2626;
-        border-radius: 16px;
-        padding: 20px 22px;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+        border-radius: 18px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
     }
     .traffic-warning {
         background-color: #fef3c7;
         border: 3px solid #d97706;
-        border-radius: 16px;
-        padding: 20px 22px;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+        border-radius: 18px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.15);
     }
 
     .traffic-title {
-        font-size: 1.35rem;
+        font-size: 1.5rem;
         font-weight: 900;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
     .traffic-sub {
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         font-weight: 600;
+    }
+
+    /* TARJETAS METEOROLÓGICAS ORIGINALES */
+    .field-card {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px 16px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        margin-bottom: 14px;
+    }
+    .field-card-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+    }
+    .field-card-value {
+        font-size: 1.9rem;
+        font-weight: 900;
+        color: #0f172a;
+        margin-top: 4px;
+    }
+    .field-card-unit {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #64748b;
     }
 
     .recipe-box {
         background-color: #ecfdf5;
         border: 3px solid #059669;
-        border-radius: 16px;
+        border-radius: 18px;
         padding: 20px;
-        margin-top: 14px;
+        margin-top: 15px;
     }
     .recipe-big {
-        font-size: 1.95rem;
+        font-size: 2.1rem;
         font-weight: 900;
         color: #047857;
     }
@@ -111,10 +139,10 @@ st.markdown("""
     .legend-card {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
-        border-radius: 14px;
+        border-radius: 16px;
         padding: 18px 20px;
         margin-bottom: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
     .legend-header {
         font-size: 1.1rem;
@@ -129,10 +157,10 @@ st.markdown("""
     }
     
     .stButton>button {
-        font-size: 1.05rem !important;
+        font-size: 1.1rem !important;
         font-weight: 800 !important;
-        padding: 12px 18px !important;
-        border-radius: 12px !important;
+        padding: 14px !important;
+        border-radius: 14px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -174,7 +202,7 @@ def guardar_json(archivo, datos):
 def render_google_map(latitud, longitud, zoom=16, height=360):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 14px; overflow: hidden; border: 2px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+    <div style="border-radius: 16px; overflow: hidden; border: 2px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -422,7 +450,7 @@ temp_media_hoy = (min_hoy + max_hoy) / 2
 st.write("---")
 
 # ==============================================================================
-# LAYOUT DE 2 COLUMNAS
+# LAYOUT DE 2 COLUMNAS (MENÚ IZQUIERDA + CONTENIDO DERECHA)
 # ==============================================================================
 col_menu, col_contenido = st.columns([1, 2.3], gap="large")
 
@@ -448,7 +476,7 @@ with col_menu:
 # CONTENIDO EN PANEL DERECHO
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS LIMPIAS Y ESTABLES
+    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS LIMPIAS
     if "Puedo sulfatar hoy" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
@@ -488,11 +516,31 @@ with col_contenido:
 
         c_m1, c_m2 = st.columns(2)
         with c_m1:
-            st.metric(label="🌡️ Tª Hoy", value=f"{min_hoy:.0f}° / {max_hoy:.0f}°C")
-            st.metric(label="💨 Viento", value=f"{viento_hoy:.0f} km/h")
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">🌡️ Tª Hoy</div>
+                <div class="field-card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="field-card-unit">C</span></div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">💨 Viento</div>
+                <div class="field-card-value">{viento_hoy:.0f} <span class="field-card-unit">km/h</span></div>
+            </div>
+            """, unsafe_allow_html=True)
         with c_m2:
-            st.metric(label="🌧️ Lluvia", value=f"{lluvia_hoy:.1f} L")
-            st.metric(label="🛡️ Hongos", value=riesgo_txt)
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">🌧️ Lluvia</div>
+                <div class="field-card-value">{lluvia_hoy:.1f} <span class="field-card-unit">L</span></div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="field-card">
+                <div class="field-card-title">🛡️ Hongos</div>
+                <div class="field-card-value" style="font-size:1.5rem; color: {'#dc2626' if 'ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt else '#15803d'};">{riesgo_txt}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
         st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 15px;'>📅 Previsión Semanal:</h3>", unsafe_allow_html=True)
         df_dias = []
@@ -552,7 +600,7 @@ with col_contenido:
             <div style="font-size: 1.15rem; font-weight: 700; color: #047857;">
                 🚜 {ha_a_sulfatar} ha = {num_cubas_necesarias:.1f} cubas ({kilos_totales_finca:.2f} kg/L totales).
             </div>
-            <div style="font-size: 1rem; font-weight: 600; color: #065f46; margin-top: 4px;">
+            <div style="font-size: 1rem; font-weight: 600; color: #047857; margin-top: 4px;">
                 💰 Coste: {coste_total_euros:.2f} € ({(coste_total_euros/ha_a_sulfatar if ha_a_sulfatar>0 else 0):.2f} €/ha).
             </div>
         </div>
@@ -890,7 +938,7 @@ with col_contenido:
                     c_asuelo, c_ariego = st.columns(2)
                     with c_asuelo:
                         suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-                    with c_asuelo:
+                    with c_ariego:
                         riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
 
                     btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
