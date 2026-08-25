@@ -12,29 +12,119 @@ import hashlib
 logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else None)
 
 st.set_page_config(
-    page_title="AgroAlert | El Asistente del Agricultor",
+    page_title="AgroAlert | Asistente Agrícola Profesional",
     page_icon=logo_path if logo_path else "🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
+# --- ESTILOS CSS PREMIUM Y DISEÑO MODERNO ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-    .main { background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important; background-attachment: fixed !important; color: #0f172a; }
-    div[data-testid="stRadio"] > div { flex-direction: column !important; gap: 10px !important; }
-    div[data-testid="stRadio"] label {
-        background: #ffffff !important; border: 2px solid #e2e8f0 !important; border-radius: 16px !important;
-        padding: 16px 20px !important; width: 100% !important; cursor: pointer !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; transition: all 0.15s ease !important;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif !important;
     }
-    div[data-testid="stRadio"] label:hover { background-color: #f0fdf4 !important; border-color: #16a34a !important; }
-    div[data-testid="stRadio"] label div p { font-size: 1.1rem !important; font-weight: 800 !important; color: #0f172a !important; }
-    .semaforo-ok { background: #dcfce7; border: 3px solid #22c55e; border-radius: 20px; padding: 24px; text-align: center; color: #064e3b; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
-    .semaforo-bad { background: #fee2e2; border: 3px solid #ef4444; border-radius: 20px; padding: 24px; text-align: center; color: #7f1d1d; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15); }
-    .stButton>button { font-size: 1.1rem !important; font-weight: 800 !important; padding: 14px 20px !important; border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important; }
-    .guia-caja { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 18px; margin-bottom: 15px; color: #065f46; font-size: 1.05rem; line-height: 1.6; }
+    
+    .main {
+        background: linear-gradient(135deg, #f6fdf9 0%, #edf4f0 100%) !important;
+        background-attachment: fixed !important;
+        color: #1e293b;
+    }
+
+    /* Tarjetas contenedoras generales */
+    .agro-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+
+    /* Menú de navegación lateral/superior estilizado */
+    div[data-testid="stRadio"] > div {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    div[data-testid="stRadio"] label {
+        background: #ffffff !important;
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 16px 22px !important;
+        width: 100% !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02) !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+    
+    div[data-testid="stRadio"] label:hover {
+        background-color: #f0fdf4 !important;
+        border-color: #16a34a !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.1) !important;
+    }
+    
+    div[data-testid="stRadio"] label div p {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        color: #15803d !important;
+    }
+
+    /* Semáforos de éxito y error */
+    .semaforo-ok {
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        border: 2px solid #22c55e;
+        border-radius: 20px;
+        padding: 28px;
+        text-align: center;
+        color: #064e3b;
+        box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15);
+    }
+    
+    .semaforo-bad {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 2px solid #ef4444;
+        border-radius: 20px;
+        padding: 28px;
+        text-align: center;
+        color: #7f1d1d;
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
+    }
+
+    /* Botones principales de acción */
+    .stButton>button {
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        padding: 14px 24px !important;
+        border-radius: 14px !important;
+        border: none !important;
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100% ) !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3) !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .stButton>button:hover {
+        background: linear-gradient(135deg, #15803d 0%, #166534 100% ) !important;
+        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4) !important;
+        transform: translateY(-1px);
+    }
+
+    /* Cajas informativas de guías */
+    .guia-caja {
+        background: #f0fdf4;
+        border-left: 5px solid #16a34a;
+        border-radius: 0 16px 16px 0;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #065f46;
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -123,8 +213,8 @@ if not st.session_state.usuario_autenticado:
             st.image(logo_path, width=180)
         
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="color: #15803d; font-weight: 900;">AgroAlert</h1>
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="color: #15803d; font-weight: 900; font-size: 2.5rem; margin-bottom: 5px;">AgroAlert</h1>
             <p style="font-weight: 600; color: #475569; font-size: 1.1rem;">Tu asistente de confianza para el campo y la PAC</p>
         </div>
         """, unsafe_allow_html=True)
@@ -203,6 +293,7 @@ fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat":
 telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
 telegram_id = info_user.get("telegram_id", "5473461038")
 
+# --- CABECERA SUPERIOR ---
 c_h1, c_h2 = st.columns([3, 1])
 with c_h1:
     st.markdown(f"### 🚜 Hola, {info_user.get('nombre', 'Agricultor')}")
@@ -401,7 +492,7 @@ elif "Gestión de Fincas" in menu:
             with c_ed1:
                 nuevo_nombre_finca = st.text_input("Nuevo nombre de la finca", value=finca_a_editar)
                 nueva_variedad = st.text_input("Variedad o cultivo", value=datos_actuales.get("variedad", "General"))
-                nueva_ha = st.number_input("Superficie en hectáreas", value=float(datos_actuales.get("ha", 1.0)), step=0.5)
+                nueva_ha = st.number_input("Hectáreas de la finca", value=float(datos_actuales.get("ha", 1.0)), step=0.5)
             with c_ed2:
                 st.write("Ubicación exacta (Coordenadas geográficas):")
                 c_eco1, c_eco2 = st.columns(2)
