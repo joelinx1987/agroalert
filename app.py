@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES CON FOTOGRAFÍAS AGRÍCOLAS DE FONDO ---
+# --- ESTILOS VISUALES CON FOTOGRAFÍAS AGRÍCOLAS ESPECÍFICAS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -91,7 +91,7 @@ st.markdown("""
     .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
     .traffic-sub { font-size: 1.05rem; font-weight: 600; }
 
-    /* --- TARJETAS CON FOTOGRAFÍA AGRÍCOLA PURA --- */
+    /* --- TARJETAS CON FOTOGRAFÍA AGRÍCOLA ESPECÍFICA --- */
     .card-photo {
         position: relative;
         border-radius: 16px;
@@ -105,7 +105,7 @@ st.markdown("""
         background-position: center;
     }
     
-    /* Capa translúcida blanca para asegurar legibilidad perfecta sobre la foto agrícola */
+    /* Capa translúcida blanca para asegurar legibilidad perfecta */
     .card-photo::before {
         content: "";
         position: absolute;
@@ -116,11 +116,11 @@ st.markdown("""
 
     .card-content { position: relative; z-index: 2; }
 
-    /* FOTOGRAFÍAS 100% DE AGRICULTURA */
-    .card-temp { background-image: url('https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=700&auto=format&fit=crop'); } /* Viñedos / Campo abierto soleado */
-    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); } /* Cereal / Espigas de trigo */
-    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); } /* Hojas verdes con rocío / lluvia */
-    .card-shield { background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=700&auto=format&fit=crop'); } /* Tractor / Agricultura de precisión */
+    /* FOTOGRAFÍAS ESPECÍFICAS SOLICITADAS */
+    .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); } /* 🌡️ Sol al amanecer */
+    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); } /* 💨 Trigo / cereal meciéndose en el campo */
+    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); } /* 🌧️ Gotas de agua sobre hojas verdes */
+    .card-shield { background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); } /* 🛡️ Racimo de vid / brote limpio y saludable */
 
     .card-title { font-size: 0.85rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.05em; }
     .card-value { font-size: 1.85rem; font-weight: 900; color: #0f172a; margin-top: 4px; }
@@ -151,7 +151,7 @@ st.markdown("""
         font-size: 1.05rem !important;
         font-weight: 800 !important;
         padding: 12px 18px !important;
-        border-radius: 12px !important;
+        border-radius: 14px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -535,7 +535,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-temp">
                 <div class="card-content">
-                    <div class="card-title">🌡️ Tª Hoy</div>
+                    <div class="card-title">🌡️ Tª Hoy (Sol al amanecer)</div>
                     <div class="card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="card-unit">C</span></div>
                 </div>
             </div>
@@ -544,7 +544,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-wind">
                 <div class="card-content">
-                    <div class="card-title">💨 Viento</div>
+                    <div class="card-title">💨 Viento (Trigo en campo)</div>
                     <div class="card-value">{viento_hoy:.0f} <span class="card-unit">km/h</span></div>
                 </div>
             </div>
@@ -553,7 +553,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-rain">
                 <div class="card-content">
-                    <div class="card-title">🌧️ Lluvia</div>
+                    <div class="card-title">🌧️ Lluvia (Gotas sobre hojas)</div>
                     <div class="card-value">{lluvia_hoy:.1f} <span class="card-unit">L</span></div>
                 </div>
             </div>
@@ -563,7 +563,7 @@ with col_contenido:
             st.markdown(f'''
             <div class="card-photo card-shield">
                 <div class="card-content">
-                    <div class="card-title">🛡️ Hongos</div>
+                    <div class="card-title">🛡️ Sanidad (Brote de vid)</div>
                     <div class="card-value" style="font-size:1.5rem; color: {color_hongos};">{riesgo_txt}</div>
                 </div>
             </div>
