@@ -27,7 +27,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES: FOTOS AGRÍCOLAS Y CENTRADO PERFECTO ---
+# --- ESTILOS VISUALES: FOTOS AGRÍCOLAS Y DISEÑOS LIMPIOS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -40,20 +40,6 @@ st.markdown("""
         background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important;
         background-attachment: fixed !important;
         color: #0f172a;
-    }
-
-    /* CONTENEDOR CENTRADO ABSOLUTO PARA EL LOGO */
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        margin-bottom: 5px;
-    }
-    .logo-container img {
-        width: 180px;
-        border-radius: 14px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
     }
 
     /* BOTONES DE SECCIÓN VERTICALES */
@@ -341,15 +327,13 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # LOGOTIPO CENTRADO ABSOLUTO CON HTML
-        if logo_path and os.path.exists(logo_path):
-            st.markdown(f"""
-            <div class="logo-container">
-                <img src="data:image/png;base64,{__import__('base64').b64encode(open(logo_path, 'rb').read()).decode()}" alt="Logo AgroAlert">
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("<div style='text-align: center; font-size: 3.8rem;'>🔔</div>", unsafe_allow_html=True)
+        # LOGOTIPO CENTRADO CON COLUMNAS NATIVAS DE STREAMLIT (SIN CONTENEDOR FORZADO)
+        col_l1, col_l2, col_l3 = st.columns([1, 1.4, 1])
+        with col_l2:
+            if logo_path and os.path.exists(logo_path):
+                st.image(logo_path, width=220)
+            else:
+                st.markdown("<div style='text-align: center; font-size: 3.8rem;'>🔔</div>", unsafe_allow_html=True)
 
         st.markdown("""
         <div style="text-align: center; margin-bottom: 25px;">
