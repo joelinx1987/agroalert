@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES Y ANIMACIONES DE FONDO CSS DINÁMICAS ---
+# --- ESTILOS VISUALES Y ANIMACIONES SUTILES ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -95,7 +95,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* TARJETAS METEOROLÓGICAS CON CONTENEDOR RELATIVO */
+    /* TARJETAS METEOROLÓGICAS LIMPIAS Y SUAVES */
     .field-card-animated {
         position: relative;
         background-color: #ffffff;
@@ -103,7 +103,7 @@ st.markdown("""
         border-radius: 16px;
         padding: 18px 16px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         margin-bottom: 14px;
         overflow: hidden;
         z-index: 1;
@@ -117,7 +117,7 @@ st.markdown("""
     .field-card-title {
         font-size: 0.85rem;
         font-weight: 800;
-        color: #475569;
+        color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
@@ -133,82 +133,65 @@ st.markdown("""
         color: #64748b;
     }
 
-    /* --- ANIMACIONES DE FONDO (KEYFRAMES) --- */
+    /* --- ANIMACIONES DE FONDO SUTILES --- */
     
-    /* 1. ANIMACIÓN DE LLUVIA (Gotas cayendo) */
+    /* 1. LLUVIA SUAVE */
     .bg-rain-active {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background-image: 
-            radial-gradient(2px 12px at 20px 30px, rgba(59, 130, 246, 0.35), transparent),
-            radial-gradient(2px 14px at 60px 80px, rgba(59, 130, 246, 0.4), transparent),
-            radial-gradient(2px 10px at 120px 40px, rgba(59, 130, 246, 0.3), transparent),
-            radial-gradient(2px 14px at 180px 100px, rgba(59, 130, 246, 0.45), transparent),
-            radial-gradient(2px 12px at 240px 60px, rgba(59, 130, 246, 0.35), transparent);
-        background-size: 260px 140px;
-        animation: rainFall 0.8s linear infinite;
+        background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(219, 234, 254, 0.3) 100%);
+        animation: rainPulse 2s ease-in-out infinite alternate;
         z-index: 2;
-        pointer-events: none;
     }
-    @keyframes rainFall {
-        0% { transform: translateY(-140px) skewX(-10deg); opacity: 0.8; }
-        100% { transform: translateY(140px) skewX(-10deg); opacity: 0.8; }
+    @keyframes rainPulse {
+        0% { opacity: 0.3; }
+        100% { opacity: 0.7; }
     }
 
-    /* 2. ANIMACIÓN DE VIENTO (Ráfagas cruzando) */
+    /* 2. VIENTO ELEGANTE (Brisa / Reflejo sutil) */
     .bg-wind-active {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(90deg, 
-            transparent 0%, 
-            rgba(203, 213, 225, 0.35) 45%, 
-            rgba(148, 163, 184, 0.55) 50%, 
-            rgba(203, 213, 225, 0.35) 55%, 
-            transparent 100%);
-        background-size: 300px 100%;
-        animation: windBlow 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        background: linear-gradient(90deg, transparent 0%, rgba(241, 245, 249, 0.8) 50%, transparent 100%);
+        background-size: 200% 100%;
+        animation: windSoft 3s ease-in-out infinite;
         z-index: 2;
-        pointer-events: none;
     }
-    @keyframes windBlow {
-        0% { transform: translateX(-300px) skewY(-2deg); }
-        100% { transform: translateX(450px) skewY(-2deg); }
+    @keyframes windSoft {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
     }
 
-    /* 3. ANIMACIÓN DE TEMPERATURA (Gradiente pulsante) */
+    /* 3. TEMPERATURA CÁLIDA TENUE */
     .bg-temp-pulse {
         position: absolute;
-        top: -50%; left: -50%; right: -50%; bottom: -50%;
-        background: radial-gradient(circle at center, rgba(251, 146, 60, 0.18) 0%, rgba(254, 215, 170, 0.08) 50%, transparent 75%);
-        animation: tempBreathe 4.5s ease-in-out infinite alternate;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(circle at 50% 20%, rgba(254, 243, 199, 0.45) 0%, transparent 70%);
+        animation: tempSoft 4s ease-in-out infinite alternate;
         z-index: 2;
-        pointer-events: none;
     }
-    @keyframes tempBreathe {
-        0% { transform: scale(0.85); opacity: 0.5; }
-        100% { transform: scale(1.15); opacity: 0.95; }
+    @keyframes tempSoft {
+        0% { opacity: 0.4; }
+        100% { opacity: 0.8; }
     }
 
-    /* 4. ANIMACIÓN DE HONGOS / ESCUDO (Aura defensiva) */
+    /* 4. HONGOS / PROTECCIÓN SUAVE */
     .bg-shield-pulse {
         position: absolute;
-        top: -50%; left: -50%; right: -50%; bottom: -50%;
-        background: radial-gradient(circle at center, rgba(34, 197, 94, 0.16) 0%, transparent 65%);
-        animation: shieldBreathe 3.5s ease-in-out infinite alternate;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(circle at 50% 80%, rgba(220, 252, 231, 0.5) 0%, transparent 70%);
         z-index: 2;
-        pointer-events: none;
     }
     .bg-danger-pulse {
         position: absolute;
-        top: -50%; left: -50%; right: -50%; bottom: -50%;
-        background: radial-gradient(circle at center, rgba(239, 68, 68, 0.22) 0%, transparent 65%);
-        animation: shieldBreathe 1.5s ease-in-out infinite alternate;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(circle at 50% 80%, rgba(254, 226, 226, 0.55) 0%, transparent 70%);
+        animation: dangerSoft 2s ease-in-out infinite alternate;
         z-index: 2;
-        pointer-events: none;
     }
-    @keyframes shieldBreathe {
-        0% { transform: scale(0.9); opacity: 0.4; }
-        100% { transform: scale(1.1); opacity: 0.85; }
+    @keyframes dangerSoft {
+        0% { opacity: 0.5; }
+        100% { opacity: 0.9; }
     }
 
     .recipe-box {
@@ -538,7 +521,7 @@ temp_media_hoy = (min_hoy + max_hoy) / 2
 st.write("---")
 
 # ==============================================================================
-# LAYOUT DE 2 COLUMNAS (PANEL IZQUIERDO MENÚ + PANEL DERECHO CONTENIDO)
+# LAYOUT DE 2 COLUMNAS
 # ==============================================================================
 col_menu, col_contenido = st.columns([1, 2.3], gap="large")
 
@@ -561,10 +544,10 @@ with col_menu:
     seccion_activa = st.radio("Navegación:", opciones_menu, label_visibility="collapsed")
 
 # ==============================================================================
-# CONTENIDO EN PANEL DERECHO CON FONDOS ANIMADOS
+# CONTENIDO EN PANEL DERECHO
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS DINÁMICAS
+    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS SUAVES Y CORREGIDAS
     if "Puedo sulfatar hoy" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
@@ -602,7 +585,7 @@ with col_contenido:
         else:
             riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
 
-        # LÓGICA DE ACTIVACIÓN DE ANIMACIONES EN LAS TARJETAS
+        # Fondos sutiles
         anim_rain = '<div class="bg-rain-active"></div>' if lluvia_hoy > 0 else ''
         anim_wind = '<div class="bg-wind-active"></div>' if viento_hoy > 5 else ''
         anim_temp = '<div class="bg-temp-pulse"></div>'
@@ -610,7 +593,7 @@ with col_contenido:
 
         c_m1, c_m2 = st.columns(2)
         with c_m1:
-            # 1. TARJETA TEMPERATURA ANIMADA
+            # 1. TARJETA TEMPERATURA
             st.markdown(f"""
             <div class="field-card-animated">
                 {anim_temp}
@@ -621,7 +604,7 @@ with col_contenido:
             </div>
             """, unsafe_allow_html=True)
             
-            # 2. TARJETA VIENTO ANIMADA
+            # 2. TARJETA VIENTO
             st.markdown(f"""
             <div class="field-card-animated">
                 {anim_wind}
@@ -632,7 +615,7 @@ with col_contenido:
             </div>
             """, unsafe_allow_html=True)
         with c_m2:
-            # 3. TARJETA LLUVIA ANIMADA
+            # 3. TARJETA LLUVIA (CORREGIDA)
             st.markdown(f"""
             <div class="field-card-animated">
                 {anim_rain}
@@ -643,7 +626,7 @@ with col_contenido:
             </div>
             """, unsafe_allow_html=True)
             
-            # 4. TARJETA HONGOS ANIMADA
+            # 4. TARJETA HONGOS
             st.markdown(f"""
             <div class="field-card-animated">
                 {anim_shield}
@@ -1157,7 +1140,7 @@ with col_contenido:
                     del st.session_state.labores_db[usuario_a_borrar]
                     guardar_json(LABORES_FILE, st.session_state.labores_db)
                     
-                st.success(f"¡Usuario '{usuario_a_borrar}' y todos sus datos han sido eliminados por completo!")
+                st.success(f"¡Usuario '{usuario_a_borrar}' eliminado!")
                 st.rerun()
 
         st.write("---")
