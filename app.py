@@ -12,17 +12,8 @@ import hashlib
 from PIL import Image
 
 # DETECTAR LOGO O FONDO AUTOMÁTICAMENTE
-logo_path = None
-if os.path.exists("logo.png"):
-    logo_path = "logo.png"
-elif os.path.exists("logo.jpg"):
-    logo_path = "logo.jpg"
-
-fondo_path = None
-if os.path.exists("fondo_logo.png"):
-    fondo_path = "fondo_logo.png"
-elif os.path.exists("fondo_logo.jpg"):
-    fondo_path = "fondo_logo.jpg"
+logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else None)
+fondo_path = "fondo_logo.png" if os.path.exists("fondo_logo.png") else ("fondo_logo.jpg" if os.path.exists("fondo_logo.jpg") else None)
 
 st.set_page_config(
     page_title="AgroAlert | Explotación de Precisión",
@@ -34,9 +25,9 @@ st.set_page_config(
 # --- ESTILOS VISUALES: FONDO DE PANTALLA COMPLETA ---
 if fondo_path and os.path.exists(fondo_path):
     fondo_base64 = __import__('base64').b64encode(open(fondo_path, 'rb').read()).decode()
-    background_rule = f"background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('data:image/png;base64,{fondo_base64}') !important; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; background-attachment: fixed !important;"
+    background_css = f".stApp {{ background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('data:image/png;base64,{fondo_base64}') !important; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; background-attachment: fixed !important; }}"
 else:
-    background_rule = "background: linear-gradient(135deg, #4d7c0f 0%, #3f6212 100%) !important;"
+    background_css = ".stApp { background: linear-gradient(135deg, #4d7c0f 0%, #3f6212 100%) !important; }"
 
 st.markdown(f"""
 <style>
@@ -46,9 +37,7 @@ st.markdown(f"""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }}
 
-    .stApp {{
-        {background_rule}
-    }}
+    {background_css}
 
     /* TARJETA DE ACCESO TRANSLÚCIDA Y ELEGANTE */
     .login-card-container {{
@@ -1235,7 +1224,7 @@ with col_contenido:
                     c_asuelo, c_ariego = st.columns(2)
                     with c_asuelo:
                         suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-                    with c_ariego:
+                    with c_asuelo:
                         riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
 
                     btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
