@@ -241,8 +241,7 @@ def consultar_meteo_openmeteo(lat, lon):
                 "viento": float(current.get("wind_speed_10m", 5.0)),
                 "horaria": horas_prevision
             }
-    except Exception as e:
-        # Si ocurre algún fallo de conexión, devolvemos un diccionario que al menos refleje que hubo un error de red y no datos ficticios idénticos
+    except Exception:
         return {"temp": 0.0, "humedad": 0.0, "lluvia": 0.0, "viento": 0.0, "horaria": []}
 
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
@@ -436,8 +435,12 @@ col_head_izq, col_head_centro, col_head_der = st.columns([1.2, 2.2, 1])
 with col_head_izq:
     st.markdown(f"<h4 style='margin-top: 10px; color: #1e293b;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h4>", unsafe_allow_html=True)
     nombres_fincas = list(fincas_usuario.keys())
-    parcela_activa = st.selectbox("📍 Parcela activa en España:", nombres_fincas, label_visibility="visible")
-    datos_parcela = fincas_usuario.get(parcela_activa, {"lat": 42.46, "lon": -2.44, "ha": 1.0})
+    if nombres_fincas:
+        parcela_activa = st.selectbox("📍 Parcela activa en España:", nombres_fincas, label_visibility="visible")
+        datos_parcela = fincas_usuario.get(parcela_activa, {"lat": 42.46, "lon": -2.44, "ha": 1.0})
+    else:
+        parcela_activa = "Sin fincas"
+        datos_parcela = {"lat": 42.46, "lon": -2.44, "ha": 1.0}
 
 with col_head_centro:
     if logo_path and os.path.exists(logo_path):
@@ -516,98 +519,104 @@ with col_contenido:
     st.markdown("<br>", unsafe_allow_html=True)
 
     if "Puedo Sulfatar" in menu:
-        st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
-        
-        razones = []
-        if viento_hoy > 15:
-            razones.append(f"• Viento fuerte a {viento_hoy:.1f} km/h (Límite máximo recomendado: 15 km/h)")
-        if lluvia_hoy > 2.0:
-            razones.append(f"• Riesgo de precipitaciones de {lluvia_hoy:.1f} mm (Riesgo de lavado)")
-
-        if viento_hoy > 15 or lluvia_hoy > 2.0:
-            razones_texto = "<br>".join(razones)
-            st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ CONDICIONES NO APTAS PARA TRATAR</h2><p style="font-size:1.1rem; margin-top:12px; line-height:1.6;"><b>Motivos meteorológicos:</b><br>{razones_texto}</p></div>', unsafe_allow_html=True)
+        if not fincas_usuario:
+            st.warning("⚠️ No tienes ninguna finca registrada. Ve a 'Gestión de Fincas en España' para añadir una.")
         else:
-            st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ VÍA LIBRE PARA TRATAR LA FINCA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento suave ({viento_hoy:.1f} km/h) y sin precipitaciones.</p></div>', unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        c_m1, c_m2, c_m3, c_m4 = st.columns(4)
-        with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.1f} km/h", "Ideal < 15")
-        with c_m2: st.metric("🌧️ Lluvia", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
-        with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
-        with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
+            st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
+            
+            razones = []
+            if viento_hoy > 15:
+                razones.append(f"• Viento fuerte a {viento_hoy:.1f} km/h (Límite máximo recomendado: 15 km/h)")
+            if lluvia_hoy > 2.0:
+                razones.append(f"• Riesgo de precipitaciones de {lluvia_hoy:.1f} mm (Riesgo de lavado)")
 
-        if horaria_24h:
+            if viento_hoy > 15 or lluvia_hoy > 2.0:
+                razones_texto = "<br>".join(razones)
+                st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ CONDICIONES NO APTAS PARA TRATAR</h2><p style="font-size:1.1rem; margin-top:12px; line-height:1.6;"><b>Motivos meteorológicos:</b><br>{razones_texto}</p></div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ VÍA LIBRE PARA TRATAR LA FINCA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento suave ({viento_hoy:.1f} km/h) y sin precipitaciones.</p></div>', unsafe_allow_html=True)
+            
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(f"#### ⏱️ Evolución y Previsión Horaria para **{parcela_activa}** (Próximas 24 Horas):")
-            df_horaria = pd.DataFrame(horaria_24h)
-            st.dataframe(df_horaria, use_container_width=True, hide_index=True)
+            c_m1, c_m2, c_m3, c_m4 = st.columns(4)
+            with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.1f} km/h", "Ideal < 15")
+            with c_m2: st.metric("🌧️ Lluvia", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
+            with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
+            with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
+
+            if horaria_24h:
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown(f"#### ⏱️ Evolución y Previsión Horaria para **{parcela_activa}** (Próximas 24 Horas):")
+                df_horaria = pd.DataFrame(horaria_24h)
+                st.dataframe(df_horaria, use_container_width=True, hide_index=True)
 
     elif "Avisos Predictivos de Plagas" in menu:
-        st.markdown(f"### 🐛 Modelo Predictivo de Plagas (Radio Comarcal: 50 km)")
-        st.write(f"Análisis biológico automatizado evaluando el radio de influencia de **50 km a la redonda** desde la ubicación de **{parcela_activa}**.")
-        
-        lat_f = datos_parcela.get("lat", 42.4658)
-        lon_f = datos_parcela.get("lon", -2.4499)
-        
-        meteo_comarca = consultar_meteo_openmeteo(lat_f, lon_f)
-        temp_comarca = meteo_comarca["temp"]
-        humedad_comarca = meteo_comarca["humedad"]
-        
-        riesgo_mildiu = "Alto" if humedad_comarca > 65 and temp_comarca > 20 else "Bajo / Controlado"
-        riesgo_oidio = "Moderado" if temp_comarca >= 22 and temp_comarca <= 32 else "Bajo"
-        riesgo_polilla = "Activo (Vuelo de generación)" if temp_comarca > 18 else "Inactivo"
-        
-        st.markdown(f"""
-        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-            <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">🦠 Riesgo Mildiu (Radio 50km)</p>
-                <h3 style="margin: 5px 0 0 0; color: #0f172a; font-size: 1.3rem;">{riesgo_mildiu}</h3>
-                <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #10b981; font-weight: 500;">↑ Fungicida preventivo</p>
-            </div>
-            <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">🌾 Riesgo Oídio (Radio 50km)</p>
-                <h3 style="margin: 5px 0 0 0; color: #0f172a; font-size: 1.3rem;">{riesgo_oidio}</h3>
-                <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #10b981; font-weight: 500;">↑ Azufres</p>
-            </div>
-            <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">🦋 Polilla del Racimo</p>
-                <h3 style="margin: 5px 0 0 0; color: #0f172a; font-size: 1.3rem; line-height: 1.2;">{riesgo_polilla}</h3>
-                <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #10b981; font-weight: 500;">↑ Trampas de feromona</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        if not fincas_usuario:
+            st.warning("⚠️ No tienes fincas registradas.")
+        else:
+            st.markdown(f"### 🐛 Modelo Predictivo de Plagas (Radio Comarcal: 50 km)")
+            st.write(f"Análisis biológico automatizado evaluando el radio de influencia de **50 km a la redonda** desde la ubicación de **{parcela_activa}**.")
             
-        st.markdown("---")
-        st.markdown(f"#### 🗺️ Visualización del Radio de Influencia Comarcal (50 km) para {parcela_activa}")
-        
-        m_comarca = folium.Map(location=[lat_f, lon_f], zoom_start=10)
-        folium.TileLayer(
-            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            attr='Esri Satélite',
-            name='Satélite',
-            overlay=False,
-            control=True
-        ).add_to(m_comarca)
-        
-        folium.Circle(
-            location=[lat_f, lon_f],
-            radius=50000,
-            color='#3b82f6',
-            fill=True,
-            fill_color='#3b82f6',
-            fill_opacity=0.15,
-            popup=f"Radio de influencia comarcal de 50 km para {parcela_activa}"
-        ).add_to(m_comarca)
-        
-        folium.Marker(
-            [lat_f, lon_f],
-            popup=f"Finca Base: {parcela_activa}",
-            tooltip=parcela_activa,
-            icon=folium.Icon(color="green", icon="leaf", prefix="fa")
-        ).add_to(m_comarca)
-        
-        st_folium(m_comarca, width=700, height=450)
+            lat_f = datos_parcela.get("lat", 42.4658)
+            lon_f = datos_parcela.get("lon", -2.4499)
+            
+            meteo_comarca = consultar_meteo_openmeteo(lat_f, lon_f)
+            temp_comarca = meteo_comarca["temp"]
+            humedad_comarca = meteo_comarca["humedad"]
+            
+            riesgo_mildiu = "Alto" if humedad_comarca > 65 and temp_comarca > 20 else "Bajo / Controlado"
+            riesgo_oidio = "Moderado" if temp_comarca >= 22 and temp_comarca <= 32 else "Bajo"
+            riesgo_polilla = "Activo (Vuelo de generación)" if temp_comarca > 18 else "Inactivo"
+            
+            st.markdown(f"""
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">🦠 Riesgo Mildiu (Radio 50km)</p>
+                    <h3 style="margin: 5px 0 0 0; color: #0f172a; font-size: 1.3rem;">{riesgo_mildiu}</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #10b981; font-weight: 500;">↑ Fungicida preventivo</p>
+                </div>
+                <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">🌾 Riesgo Oídio (Radio 50km)</p>
+                    <h3 style="margin: 5px 0 0 0; color: #0f172a; font-size: 1.3rem;">{riesgo_oidio}</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #10b981; font-weight: 500;">↑ Azufres</p>
+                </div>
+                <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">🦋 Polilla del Racimo</p>
+                    <h3 style="margin: 5px 0 0 0; color: #0f172a; font-size: 1.3rem; line-height: 1.2;">{riesgo_polilla}</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #10b981; font-weight: 500;">↑ Trampas de feromona</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+                
+            st.markdown("---")
+            st.markdown(f"#### 🗺️ Visualización del Radio de Influencia Comarcal (50 km) para {parcela_activa}")
+            
+            m_comarca = folium.Map(location=[lat_f, lon_f], zoom_start=10)
+            folium.TileLayer(
+                tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attr='Esri Satélite',
+                name='Satélite',
+                overlay=False,
+                control=True
+            ).add_to(m_comarca)
+            
+            folium.Circle(
+                location=[lat_f, lon_f],
+                radius=50000,
+                color='#3b82f6',
+                fill=True,
+                fill_color='#3b82f6',
+                fill_opacity=0.15,
+                popup=f"Radio de influencia comarcal de 50 km para {parcela_activa}"
+            ).add_to(m_comarca)
+            
+            folium.Marker(
+                [lat_f, lon_f],
+                popup=f"Finca Base: {parcela_activa}",
+                tooltip=parcela_activa,
+                icon=folium.Icon(color="green", icon="leaf", prefix="fa")
+            ).add_to(m_comarca)
+            
+            st_folium(m_comarca, width=700, height=450)
 
     elif "Calculadora de Fitosanitarios" in menu:
         st.markdown("### 🧪 Calculadora de Fitosanitarios")
@@ -856,12 +865,11 @@ with col_contenido:
                     st.rerun()
 
     elif "Gestión de Fincas" in menu:
-        st.markdown("### ⚙️ Gestión de Fincas y Parcelas en España")
-        st.write("Selecciona una parcela de España para verla en vista de satélite con todo detalle o edita sus coordenadas.")
+        st.markdown("### ⚙️ Gestión, Edición y Borrado de Fincas en España")
+        st.write("Añade nuevas parcelas, edita las existentes o elimina aquellas que ya no cultives.")
         
         if fincas_usuario:
             st.markdown("#### 🛰️ Vista de Satélite de Parcelas")
-            
             finca_seleccionada_mapa = st.selectbox("🔍 Elige una parcela para centrar el mapa:", list(fincas_usuario.keys()), key="select_mapa_finca")
             d_mapa = fincas_usuario[finca_seleccionada_mapa]
             
@@ -885,8 +893,22 @@ with col_contenido:
             ).add_to(m)
             
             st_folium(m, width=700, height=450)
-            
             st.markdown(f"📌 *Mostrando vista de satélite en España de:* **{finca_seleccionada_mapa}** (Lat: {lat_sel}, Lon: {lon_sel})")
+            st.markdown("---")
+
+        # --- SECCIÓN NUEVA: ELIMINAR FINCA ---
+        if fincas_usuario:
+            st.markdown("#### 🗑️ Eliminar una Finca")
+            with st.form("form_eliminar_finca"):
+                finca_a_borrar = st.selectbox("Selecciona la finca que deseas eliminar definitivamente:", list(fincas_usuario.keys()))
+                btn_borrar_finca = st.form_submit_button("🗑️ ELIMINAR ESTA FINCA", use_container_width=True, type="primary")
+                
+                if btn_borrar_finca:
+                    if finca_a_borrar in st.session_state.db_privada[user]:
+                        del st.session_state.db_privada[user][finca_a_borrar]
+                        guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                        st.success(f"¡Finca '{finca_a_borrar}' eliminada correctamente!")
+                        st.rerun()
             st.markdown("---")
 
         if fincas_usuario:
@@ -964,7 +986,6 @@ with col_contenido:
                     
                 st.session_state.db_privada[user][nombre_nueva] = {
                     "lat": lat_nueva, 
-                    "lon": lat_nueva, # Asegurado el campo correcto
                     "lon": lon_nueva,
                     "variedad": variedad_nueva, 
                     "ha": ha_nueva, 
