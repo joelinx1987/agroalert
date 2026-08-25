@@ -316,11 +316,36 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
+            st.markdown("""
+            <div style="background: #ffffff; border: 2px solid #16a34a; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px;">
+                <div style="font-size: 1.05rem; font-weight: 800; color: #15803d; margin-bottom: 6px;">
+                    🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
+                </div>
+                <div style="font-size: 0.95rem; color: #334155; line-height: 1.5;">
+                    <b>1.</b> Abre un chat en WhatsApp con el número: 
+                    <span style="background: #fef3c7; color: #92400e; font-weight: 800; padding: 2px 6px; border-radius: 4px;">+34 623 91 22 04</span><br>
+                    <b>2.</b> Envía este mensaje exacto:
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            render_copy_box("I allow callmebot to send me messages")
+
+            st.markdown("""
+            <div style="margin-top: -6px; margin-bottom: 14px;">
+                <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
+                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.95rem;">
+                        📲 TOCAR PARA ABRIR WHATSAPP DIRECTO
+                    </div>
+                </a>
+            </div>
+            """, unsafe_allow_html=True)
+
             with st.form("form_reg"):
                 nu = st.text_input("Usuario").strip()
                 nn = st.text_input("Tu Nombre o Explotación").strip()
                 ntel = st.text_input("📱 Teléfono Móvil (+34)").strip()
-                napi = st.text_input("🔑 APIKey WhatsApp").strip()
+                napi = st.text_input("🔑 APIKey WhatsApp (código recibido del bot)").strip()
                 np = st.text_input("Contraseña", type="password")
                 
                 b_up = st.form_submit_button("🚀 CREAR CUENTA", use_container_width=True, type="primary")
