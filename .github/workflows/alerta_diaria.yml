@@ -2,9 +2,8 @@ name: Bot WhatsApp Diario AgroAlert
 
 on:
   schedule:
-    # 11:45 AM hora peninsular española gracias a timezone: Europe/Madrid
-    - cron: '45 11 * * *'
-    timezone: 'Europe/Madrid'
+    # 45 9 * * * en UTC equivale exactamente a las 11:45 AM en España (en horario de verano)
+    - cron: '45 9 * * *'
   workflow_dispatch:
 
 jobs:
