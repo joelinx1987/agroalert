@@ -7,7 +7,6 @@ from datetime import datetime, date, timedelta
 import urllib.request
 import urllib.parse
 import json
-import hashlib
 
 logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else None)
 
@@ -37,7 +36,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-USERS_FILE = "usuarios_db.json"
 FINCAS_FILE = "fincas_db.json"
 FITOS_FILE = "fitosanitarios_db.json"
 
@@ -73,8 +71,9 @@ DEFAULT_FINCAS = {
     }
 }
 
-if "usuarios_db" not in st.session_state:
-    st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
+# Forzamos los usuarios por defecto para evitar bloqueos de caché
+st.session_state.usuarios_db = DEFAULT_USERS
+
 if "db_privada" not in st.session_state:
     st.session_state.db_privada = cargar_json(FINCAS_FILE, DEFAULT_FINCAS)
 if "fitos_db" not in st.session_state:
