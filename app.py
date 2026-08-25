@@ -79,7 +79,6 @@ DEFAULT_FINCAS = {
 
 if "usuarios_db" not in st.session_state:
     st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
-# Forzamos siempre tu acceso directo para que no de fallo:
 st.session_state.usuarios_db["admin1987"] = DEFAULT_USERS["admin1987"]
 
 if "db_privada" not in st.session_state:
@@ -316,21 +315,18 @@ elif "Gestión de Fincas" in menu:
     st.markdown("### ⚙️ Gestión de Fincas y Parcelas")
     st.write("Configura tus parcelas para tener todo bajo control. Guarda la ubicación exacta en el mapa para que el cálculo meteorológico sea preciso al milímetro.")
     
-    # 1. MOSTRAR EL MAPA VISUAL Y LOS DATOS DE LAS FINCAS EXISTENTES
     if fincas_usuario:
         st.markdown("#### 🗺️ Mapa de tus parcelas actuales")
         
-        # Preparamos los datos para el mapa de Streamlit
         df_mapa_datos = []
         for nombre, datos in fincas_usuario.items():
-            if "lat" in datos y "lon" in datos:
+            if "lat" in datos and "lon" in datos:
                 df_mapa_datos.append({"Finca": nombre, "lat": float(datos["lat"]), "lon": float(datos["lon"])})
                 
         if df_mapa_datos:
             df_mapa = pd.DataFrame(df_mapa_datos)
             st.map(df_mapa, zoom=11, use_container_width=True)
             
-        # Tabla resumen con la info detallada (Polígono, parcela, variedad...)
         st.markdown("#### 📋 Resumen de datos")
         datos_tabla = []
         for nombre, d in fincas_usuario.items():
@@ -344,7 +340,6 @@ elif "Gestión de Fincas" in menu:
         st.dataframe(pd.DataFrame(datos_tabla), use_container_width=True, hide_index=True)
         st.markdown("---")
 
-    # 2. FORMULARIO COMPLETO PARA AÑADIR NUEVA FINCA
     st.markdown("#### ➕ Añade una nueva parcela")
     with st.form("form_nueva_finca"):
         c_f1, c_f2 = st.columns(2)
