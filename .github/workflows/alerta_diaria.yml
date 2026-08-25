@@ -2,8 +2,8 @@ name: Bot WhatsApp Diario AgroAlert
 
 on:
   schedule:
-    # 4:45 AM hora peninsular (España usa UTC+1 en invierno y UTC+2 en verano)
-    # Configurado en UTC (ej: 2:45 UTC en verano / 3:45 UTC en invierno). 
+    # 11:45 AM hora peninsular (España usa UTC+1 en invierno y UTC+2 en verano)
+    # Configurado en UTC (ej: 11:45 UTC en verano / 11:45 UTC en invierno). 
     # O usa directamente el soporte de zona horaria de GitHub Actions:
     - cron: '45 4 * * *'
       timezone: 'Europe/Madrid'
