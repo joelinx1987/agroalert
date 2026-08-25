@@ -13,7 +13,6 @@ from streamlit_folium import st_folium
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import pytz
 
 # --- COMPROBACIÓN SEGURA DE LA RUTA DEL LOGO ---
 logo_path = None
@@ -169,7 +168,7 @@ DEFAULT_USERS = {
         "pwd": "admin1987", 
         "nombre": "Joel (La Rioja)", 
         "email": "joel@agroalert.es",
-        "hora_aviso": "04:45"
+        "hora_aviso": "08:00"
     }
 }
 DEFAULT_FINCAS = {
@@ -267,22 +266,16 @@ def enviar_correo_electronico(destinatario, asunto, cuerpo):
     except Exception as e:
         return False, f"Error al enviar el correo: {str(e)}"
 
-# --- FUNCIÓN DE PROCESAMIENTO AUTOMÁTICO HORARIO (HORA ESPAÑA) ---
+# --- FUNCIÓN DE PROCESAMIENTO AUTOMÁTICO HORARIO (CADA MEDIA HORA) ---
 def verificar_y_enviar_automatizaciones():
-    try:
-        zona_espana = pytz.timezone('Europe/Madrid')
-        ahora_espana = datetime.now(zona_espana)
-        ahora_h_m = ahora_espana.strftime("%H:%M")
-    except Exception:
-        ahora_utc = datetime.utcnow()
-        ahora_espana_utc = ahora_utc + timedelta(hours=2)
-        ahora_h_m = ahora_espana_utc.strftime("%H:%M")
+    ahora_espana = datetime.utcnow() + timedelta(hours=2)
+    ahora_h_m = ahora_espana.strftime("%H:%M")
 
     usuarios = cargar_json(USERS_FILE, {})
     fincas_db = cargar_json(FINCAS_FILE, {})
     
     for username, udata in usuarios.items():
-        hora_usuario = udata.get("hora_aviso", "04:45")
+        hora_usuario = udata.get("hora_aviso", "08:00")
         email_u = udata.get("email", "")
         
         if hora_usuario == ahora_h_m and email_u:
@@ -387,7 +380,7 @@ if not st.session_state.usuario_autenticado:
                                 "pwd": nuevo_pwd,
                                 "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
                                 "email": nuevo_email,
-                                "hora_aviso": "04:45"
+                                "hora_aviso": "08:00"
                             }
                             guardar_json(USERS_FILE, st.session_state.usuarios_db)
 
@@ -430,7 +423,7 @@ if not st.session_state.usuario_autenticado:
 user = st.session_state.usuario_autenticado
 info_user = st.session_state.usuarios_db.get(user, {})
 fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat": 42.46, "lon": -2.44, "ha": 2.0}})
-hora_aviso_usuario = info_user.get("hora_aviso", "04:45")
+hora_aviso_usuario = info_user.get("hora_aviso", "08:00")
 email_usuario = info_user.get("email", "")
 
 # --- CABECERA SUPERIOR PROFESIONAL CON SELECTOR RÁPIDO DE FINCA Y LOGO OFICIAL ---
@@ -702,9 +695,29 @@ with col_contenido:
         
         with st.form("form_hora_aviso"):
             h_parts = hora_aviso_usuario.split(":")
-            t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(4, 45)
+            t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(8, 0)
             
-            nueva_hora_sel = st.time_input("⏰ Hora preferida para recibir el parte diario:", value=t_default)
+            # Generamos las opciones limpias de media hora en media hora para que sea súper intuitivo
+            horas_opciones = [time(h, m) for h in range(24) for m in (0, 30)]
+            
+            # Buscar índice por defecto si coincide
+            idx_default = 0
+            if t_default in horas_opciones:
+                idx_default = horas_opciones.index(t_default)
+            else:
+                # Si tuviera una hora rara previa, la acercamos al bloque de media hora más cercano
+                m_cercano = 30 if t_default.minute >= 15 else 0
+                t_cercano = time(t_default.hour, m_cercano)
+                if t_cercano in horas_opciones:
+                    idx_default = horas_opciones.index(t_cercano)
+
+            nueva_hora_sel = st.selectbox(
+                "⏰ Elige la hora exacta para recibir tu parte (intervalos de 30 minutos):", 
+                horas_opciones, 
+                index=idx_default,
+                format_func=lambda t: t.strftime("%H:%M")
+            )
+            
             nuevo_email_aviso = st.text_input("✉️ Correo electrónico de recepción:", value=email_usuario)
             
             guardar_hora = st.form_submit_button("💾 GUARDAR CONFIGURACIÓN DE CORREO", use_container_width=True, type="primary")
@@ -804,7 +817,7 @@ with col_contenido:
                 "Usuario (Login)": username,
                 "Nombre y Apellidos": udata.get("nombre", "N/A"),
                 "Correo de Avisos": udata.get("email", "N/A"),
-                "Hora Aviso": udata.get("hora_aviso", "04:45"),
+                "Hora Aviso": udata.get("hora_aviso", "08:00"),
                 "Contraseña": udata.get("pwd", "N/A")
             })
             
