@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES Y SOPORTE DE MODO ALTO CONTRASTE ---
+# --- ESTILOS VISUALES: FONDO AGRAR-TECH AVANZADO Y GLASSMORPHISM ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -26,72 +26,77 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
+    /* FONDO MODERNO DEGRADADO AGRÍCOLA / TECH */
     .main {
-        background-color: var(--bg-main, #f4f6f8);
-        color: var(--text-main, #0f172a);
+        background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+        background-attachment: fixed !important;
+        color: #0f172a;
     }
 
-    /* BOTONES DE SECCIÓN VERTICALES */
+    /* BOTONES DE SECCIÓN VERTICALES (EFECTO CRISTAL) */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
         gap: 8px !important;
     }
     
     div[data-testid="stRadio"] label {
-        background: var(--card-bg, #ffffff) !important;
-        border: 2px solid var(--border-color, #cbd5e1) !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(226, 232, 240, 0.8) !important;
         border-radius: 14px !important;
         padding: 14px 18px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
-        transition: all 0.15s ease !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important;
+        transition: all 0.2s ease !important;
     }
     
     div[data-testid="stRadio"] label:hover {
-        border-color: #15803d !important;
-        background-color: #f0fdf4 !important;
+        border-color: #16a34a !important;
+        background-color: rgba(240, 253, 244, 0.95) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.08) !important;
     }
 
     div[data-testid="stRadio"] label div p {
         font-size: 1rem !important;
         font-weight: 800 !important;
-        color: var(--text-main, #0f172a) !important;
+        color: #0f172a !important;
     }
 
     /* SEMÁFOROS */
     .traffic-ok {
-        background-color: #dcfce7;
-        border: 3px solid #16a34a;
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        border: 1px solid #86efac;
         border-radius: 16px;
         padding: 20px 22px;
         margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12);
+        box-shadow: 0 8px 24px rgba(22, 163, 74, 0.1);
         color: #064e3b;
     }
     .traffic-danger {
-        background-color: #fee2e2;
-        border: 3px solid #dc2626;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 1px solid #fca5a5;
         border-radius: 16px;
         padding: 20px 22px;
         margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+        box-shadow: 0 8px 24px rgba(220, 38, 38, 0.1);
         color: #7f1d1d;
     }
     .traffic-warning {
-        background-color: #fef3c7;
-        border: 3px solid #d97706;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #fcd34d;
         border-radius: 16px;
         padding: 20px 22px;
         margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+        box-shadow: 0 8px 24px rgba(217, 119, 6, 0.1);
         color: #78350f;
     }
 
     .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
     .traffic-sub { font-size: 1.05rem; font-weight: 600; }
 
-    /* --- TARJETAS FOTOGRÁFICAS AGRÍCOLAS --- */
+    /* --- TARJETAS FOTOGRÁFICAS AGRÍCOLAS FLOTANTES --- */
     .card-photo {
         position: relative;
         border-radius: 16px;
@@ -99,8 +104,8 @@ st.markdown("""
         text-align: center;
         margin-bottom: 14px;
         overflow: hidden;
-        border: none;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         background-size: cover;
         background-position: center;
     }
@@ -109,7 +114,8 @@ st.markdown("""
         content: "";
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.86) 100%);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(255, 255, 255, 0.88) 100%);
+        backdrop-filter: blur(4px);
         z-index: 1;
     }
 
@@ -125,21 +131,24 @@ st.markdown("""
     .card-unit { font-size: 0.95rem; font-weight: 600; color: #64748b; }
 
     .recipe-box {
-        background-color: #ecfdf5;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #a7f3d0;
         border-radius: 16px;
         padding: 20px;
         margin-top: 14px;
-        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.08);
+        box-shadow: 0 10px 30px rgba(5, 150, 105, 0.08);
         color: #065f46;
     }
     .recipe-big { font-size: 1.95rem; font-weight: 900; color: #047857; }
 
     .legend-card {
-        background-color: #ffffff;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
         border-radius: 14px;
         padding: 18px 20px;
         margin-bottom: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
     }
     .legend-header { font-size: 1.1rem; font-weight: 800; color: #15803d; margin-bottom: 6px; }
     .legend-body { font-size: 0.95rem; color: #334155; line-height: 1.55; }
@@ -150,6 +159,7 @@ st.markdown("""
         padding: 12px 18px !important;
         border-radius: 14px !important;
         border: none !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -192,7 +202,7 @@ def guardar_json(archivo, datos):
 def render_google_map(latitud, longitud, zoom=16, height=360):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+    <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -200,7 +210,7 @@ def render_google_map(latitud, longitud, zoom=16, height=360):
 
 def render_copy_box(texto_a_copiar):
     html_code = f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(248,250,252,0.9); border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
         <span style="font-style: italic; font-size: 1rem; color: #0f172a; font-weight: 700;">{texto_a_copiar}</span>
         <button onclick="copiarTexto()" style="background: #15803d; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
             <span id="btn-lbl">📋 Copiar texto</span>
@@ -317,7 +327,7 @@ if not st.session_state.usuario_autenticado:
                         st.error("Usuario o contraseña incorrectos.")
         else:
             st.markdown("""
-            <div style="background: #ffffff; border: 2px solid #16a34a; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px;">
+            <div style="background: rgba(255,255,255,0.9); border: 2px solid #16a34a; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
                 <div style="font-size: 1.05rem; font-weight: 800; color: #15803d; margin-bottom: 6px;">
                     🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
                 </div>
@@ -334,7 +344,7 @@ if not st.session_state.usuario_autenticado:
             st.markdown("""
             <div style="margin-top: -6px; margin-bottom: 14px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.95rem;">
+                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(22,163,74,0.2);">
                         📲 TOCAR PARA ABRIR WHATSAPP DIRECTO
                     </div>
                 </a>
@@ -439,14 +449,14 @@ with c_top4:
 if st.session_state.modo_contraste:
     st.markdown("""
     <style>
-        .main { background-color: #000000 !important; color: #FFFFFF !important; }
+        .main { background: #000000 !important; color: #FFFFFF !important; }
         .card-photo::before { background: rgba(0, 0, 0, 0.85) !important; }
         .card-title { color: #86EFAC !important; }
         .card-value { color: #FFFFFF !important; }
         .card-unit { color: #CBD5E1 !important; }
-        div[data-testid="stRadio"] label { background: #1E293B !important; }
+        div[data-testid="stRadio"] label { background: rgba(30, 41, 59, 0.9) !important; border-color: #475569 !important; }
         div[data-testid="stRadio"] label div p { color: #FFFFFF !important; }
-        .legend-card { background-color: #1E293B !important; color: #FFFFFF !important; }
+        .legend-card { background: rgba(30, 41, 59, 0.9) !important; border-color: #475569 !important; color: #FFFFFF !important; }
         .legend-header { color: #4ADE80 !important; }
         .legend-body { color: #E2E8F0 !important; }
     </style>
@@ -1095,7 +1105,7 @@ with col_contenido:
                     c_asuelo, c_ariego = st.columns(2)
                     with c_asuelo:
                         suelo_finca = st.selectbox("Terreno:", ["Cascajo / Pedregoso", "Cascajo / Calcáreo", "Arcillo-calcáreo", "Arenoso", "Tierra fuerte"])
-                    with c_ariego:
+                    with c_asuelo:
                         riego_finca = st.selectbox("Régimen de riego:", ["Secano", "Goteo", "Aspersión", "A pie / Inundación"])
 
                     btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
