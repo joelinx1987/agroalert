@@ -205,9 +205,12 @@ def consultar_meteo_openmeteo(lat, lon):
         lat_f = float(lat if lat is not None else 42.4658)
         lon_f = float(lon if lon is not None else -2.4499)
         
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat_f}&longitude={lon_f}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
+        # Añadimos un parámetro basado en la hora actual exacta para evitar que el navegador o la API sirvan datos cacheados antiguos
+        cache_buster = datetime.now().strftime("%Y%m%d%H%M")
         
-        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat_f}&longitude={lon_f}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto&cb={cache_buster}"
+        
+        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0', 'Cache-Control': 'no-cache'})
         with urllib.request.urlopen(req, timeout=8) as resp:
             data = json.loads(resp.read().decode('utf-8'))
             current = data.get("current", {})
