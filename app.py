@@ -11,6 +11,7 @@ import json
 import hashlib
 from PIL import Image
 
+# DETECTAR LOGO AUTOMÁTICAMENTE
 logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else None)
 
 st.set_page_config(
@@ -20,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES: FOTO DEL TRACTOR DIFUMINADA COMO FONDO DE LOGIN ---
+# --- ESTILOS VISUALES LIMPIOS Y PROFESIONALES ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -29,26 +30,10 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* FONDO DE TRACTOR DIFUMINADO PARA EL ACCESO */
-    .stApp {
-        background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
-                    url('https://images.unsplash.com/photo-1595974482597-4f6c4f2e967a?q=80&w=1920&auto=format&fit=crop') !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-repeat: no-repeat !important;
+    .main {
+        background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #f1f5f9 100%) !important;
         background-attachment: fixed !important;
-    }
-
-    /* TARJETA DE ACCESO TRANSLÚCIDA Y ELEGANTE */
-    .login-card-container {
-        background: rgba(255, 255, 255, 0.90) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border-radius: 22px;
-        padding: 32px;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        margin-top: 10px;
+        color: #0f172a;
     }
 
     /* BOTONES DE SECCIÓN VERTICALES */
@@ -58,20 +43,20 @@ st.markdown("""
     }
     
     div[data-testid="stRadio"] label {
-        background: rgba(255, 255, 255, 0.9) !important;
+        background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(10px) !important;
         border: none !important;
         border-radius: 14px !important;
         padding: 14px 18px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
         transition: all 0.15s ease !important;
     }
     
     div[data-testid="stRadio"] label:hover {
         background-color: rgba(240, 253, 244, 0.95) !important;
-        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.1) !important;
+        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.08) !important;
     }
 
     div[data-testid="stRadio"] label div p {
@@ -336,9 +321,6 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # CONTENEDOR ELEGANTE CON EFECTO BORROSO SOBRE EL TRACTOR
-        st.markdown('<div class="login-card-container">', unsafe_allow_html=True)
-        
         col_l1, col_l2, col_l3 = st.columns([1, 1.4, 1])
         with col_l2:
             if logo_path and os.path.exists(logo_path):
@@ -434,8 +416,6 @@ if not st.session_state.usuario_autenticado:
                         st.session_state.usuario_autenticado = nu
                         st.success("¡Cuenta creada con éxito!")
                         st.rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 # ==============================================================================
