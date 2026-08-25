@@ -9,7 +9,12 @@ import urllib.parse
 import json
 import hashlib
 
-logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else ("fondo_logo.jpg.jpg" if os.path.exists("fondo_logo.jpg.jpg" else None))
+# --- COMPROBACIÓN SEGURA DE LA RUTA DEL LOGO ---
+logo_path = None
+for posibles_nombres in ["logo.png", "logo.jpg", "fondo_logo.jpg.jpg"]:
+    if os.path.exists(posibles_nombres):
+        logo_path = posibles_nombres
+        break
 
 st.set_page_config(
     page_title="AgroAlert | Asistente Agrícola Profesional",
@@ -540,7 +545,7 @@ with col_contenido:
             with c_f1:
                 nombre_nueva = st.text_input("Nombre de la nueva finca (ej: Viñedo Alto)")
                 variedad_nueva = st.text_input("Variedad o cultivo (ej: Tempranillo)", value="Tempranillo")
-                ha_nueva = st.number_input("Superficie en hectáreas", value=1.0, step=0.5)
+                ha_nueva = st.number_input("Hectáreas de la finca", value=1.0, step=0.5)
             with c_f2:
                 st.write("Ubicación exacta para Meteorología:")
                 c_coord1, c_coord2 = st.columns(2)
