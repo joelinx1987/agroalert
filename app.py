@@ -251,6 +251,9 @@ if "usuario_autenticado" not in st.session_state:
     else:
         st.session_state.usuario_autenticado = None
 
+if "modo_recuperacion" not in st.session_state:
+    st.session_state.modo_recuperacion = False
+
 if not st.session_state.usuario_autenticado:
     c1, col_login, c2 = st.columns([1, 2.2, 1])
     with col_login:
@@ -265,73 +268,106 @@ if not st.session_state.usuario_autenticado:
             </div>
             """, unsafe_allow_html=True)
 
-        tab_entrar, tab_registro = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarse Nuevo"])
+        if not st.session_state.modo_recuperacion:
+            tab_entrar, tab_registro = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarse Nuevo"])
 
-        with tab_entrar:
-            with st.form("form_login"):
-                usuario = st.text_input("Usuario").strip().lower()
-                pwd = st.text_input("Contraseña", type="password")
-                entrar = st.form_submit_button("🚜 ENTRAR A MI EXPLOTACIÓN", use_container_width=True, type="primary")
-                if entrar:
-                    if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == pwd:
-                        st.session_state.usuario_autenticado = usuario
-                        st.query_params["user"] = usuario
-                        st.rerun()
-                    else:
-                        st.error("Usuario o contraseña incorrectos.")
-
-        with tab_registro:
-            st.markdown("""
-            <div class="guia-caja">
-                <b>🌾 ¿Cómo conectar los avisos a tu móvil paso a paso?</b> (Opcional)<br><br>
-                1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
-                2️⃣ Busca arriba en la lupa nuestro bot oficial: <b>@ActualizacionAgroAlert_bot</b><br>
-                3️⃣ Escríbele cualquier mensaje (por ejemplo: <i>Hola</i>).<br>
-                4️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo abajo si deseas recibir avisos diarios!
-            </div>
-            """, unsafe_allow_html=True)
-
-            with st.form("form_registro_nuevo"):
-                nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
-                nuevo_pwd = st.text_input("Contraseña", type="password")
-                nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                nuevo_chat_id = st.text_input("Tu Código de Telegram (Opcional)")
+            with tab_entrar:
+                with st.form("form_login"):
+                    usuario = st.text_input("Usuario").strip().lower()
+                    pwd = st.text_input("Contraseña", type="password")
+                    entrar = st.form_submit_button("🚜 ENTRAR A MI EXPLOTACIÓN", use_container_width=True, type="primary")
+                    if entrar:
+                        if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == pwd:
+                            st.session_state.usuario_autenticado = usuario
+                            st.query_params["user"] = usuario
+                            st.rerun()
+                        else:
+                            st.error("Usuario o contraseña incorrectos.")
                 
-                nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
-                
-                st.markdown("---")
-                st.markdown("##### 📍 Datos de tu parcela principal")
-                c_rp1, c_rp2 = st.columns(2)
-                with c_rp1:
-                    nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
-                    superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
-                with c_rp2:
-                    lat_inicial = st.number_input("Latitud (ej: 42.4658)", value=42.4658, format="%.6f")
-                    lon_inicial = st.number_input("Longitud (ej: -2.4499)", value=-2.4499, format="%.6f")
+                # Enlace interactivo para recuperar contraseña
+                if st.button("❓ ¿Se me ha olvidado la contraseña?", use_container_width=True):
+                    st.session_state.modo_recuperacion = True
+                    st.rerun()
 
-                registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
-                if registrarse:
-                    if not nuevo_user or not nuevo_pwd:
-                        st.error("Por favor, rellena al menos tu usuario y contraseña.")
-                    elif nuevo_user in st.session_state.usuarios_db:
-                        st.error("Ese usuario ya existe. Elige otro.")
+            with tab_registro:
+                st.markdown("""
+                <div class="guia-caja">
+                    <b>🌾 ¿Cómo conectar los avisos a tu móvil paso a paso?</b> (Opcional)<br><br>
+                    1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
+                    2️⃣ Busca arriba en la lupa nuestro bot oficial: <b>@ActualizacionAgroAlert_bot</b><br>
+                    3️⃣ Escríbele cualquier mensaje (por ejemplo: <i>Hola</i>).<br>
+                    4️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo abajo si deseas recibir avisos diarios!
+                </div>
+                """, unsafe_allow_html=True)
+
+                with st.form("form_registro_nuevo"):
+                    nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
+                    nuevo_pwd = st.text_input("Contraseña", type="password")
+                    nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
+                    nuevo_chat_id = st.text_input("Tu Código de Telegram (Opcional)")
+                    
+                    nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
+                    
+                    st.markdown("---")
+                    st.markdown("##### 📍 Datos de tu parcela principal")
+                    c_rp1, c_rp2 = st.columns(2)
+                    with c_rp1:
+                        nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
+                        superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
+                    with c_rp2:
+                        lat_inicial = st.number_input("Latitud (ej: 42.4658)", value=42.4658, format="%.6f")
+                        lon_inicial = st.number_input("Longitud (ej: -2.4499)", value=-2.4499, format="%.6f")
+
+                    registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
+                    if registrarse:
+                        if not nuevo_user or not nuevo_pwd:
+                            st.error("Por favor, rellena al menos tu usuario y contraseña.")
+                        elif nuevo_user in st.session_state.usuarios_db:
+                            st.error("Ese usuario ya existe. Elige otro.")
+                        else:
+                            st.session_state.usuarios_db[nuevo_user] = {
+                                "pwd": nuevo_pwd,
+                                "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
+                                "telegram_id": nuevo_chat_id.strip() if nuevo_chat_id else "No configurado",
+                                "telegram_token": nuevo_token
+                            }
+                            guardar_json(USERS_FILE, st.session_state.usuarios_db)
+
+                            if nuevo_user not in st.session_state.db_privada:
+                                st.session_state.db_privada[nuevo_user] = {}
+                            st.session_state.db_privada[nuevo_user][nombre_parcela] = {
+                                "lat": lat_inicial, "lon": lon_inicial, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
+                            }
+                            guardar_json(FINCAS_FILE, st.session_state.db_privada)
+
+                            st.success("¡Cuenta creada con éxito! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
+        else:
+            # --- APARTADO DE RECUPERACIÓN DE CONTRASEÑA ---
+            st.markdown("### 🔒 Recuperación de Contraseña")
+            st.write("Introduce tu nombre de usuario para verificar tu identidad y crear una nueva contraseña.")
+            
+            with st.form("form_recuperar"):
+                user_recu = st.text_input("Nombre de usuario").strip().lower()
+                nueva_pwd1 = st.text_input("Nueva contraseña", type="password")
+                nueva_pwd2 = st.text_input("Confirma la nueva contraseña", type="password")
+                
+                btn_cambiar = st.form_submit_button("✉️ VERIFICAR Y CAMBIAR CONTRASEÑA", use_container_width=True, type="primary")
+                if btn_cambiar:
+                    if user_recu not in st.session_state.usuarios_db:
+                        st.error("El usuario introducido no existe en el sistema.")
+                    elif not nueva_pwd1 or nueva_pwd1 != nueva_pwd2:
+                        st.error("Las contraseñas no coinciden o están vacías.")
                     else:
-                        st.session_state.usuarios_db[nuevo_user] = {
-                            "pwd": nuevo_pwd,
-                            "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
-                            "telegram_id": nuevo_chat_id.strip() if nuevo_chat_id else "No configurado",
-                            "telegram_token": nuevo_token
-                        }
+                        st.session_state.usuarios_db[user_recu]["pwd"] = nueva_pwd1
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                        st.success("¡Contraseña actualizada con éxito! Ya puedes iniciar sesión.")
+                        st.session_state.modo_recuperacion = False
+                        st.rerun()
+            
+            if st.button("⬅️ Volver a Iniciar Sesión", use_container_width=True):
+                st.session_state.modo_recuperacion = False
+                st.rerun()
 
-                        if nuevo_user not in st.session_state.db_privada:
-                            st.session_state.db_privada[nuevo_user] = {}
-                        st.session_state.db_privada[nuevo_user][nombre_parcela] = {
-                            "lat": lat_inicial, "lon": lon_inicial, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
-                        }
-                        guardar_json(FINCAS_FILE, st.session_state.db_privada)
-
-                        st.success("¡Cuenta creada con éxito! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
     st.stop()
 
 user = st.session_state.usuario_autenticado
@@ -383,6 +419,24 @@ with col_menu:
         lista_menu.append("👥 Gestión de Usuarios Registrados")
 
     menu = st.radio("Menú:", lista_menu, label_visibility="collapsed")
+
+    # --- BOTONES DE COMPARTIR (WHATSAPP Y TELEGRAM) EN EL MENÚ ---
+    st.markdown("<br><hr>", unsafe_allow_html=True)
+    st.markdown("##### 📢 ¡Comparte AgroAlert!")
+    st.write("Comparte esta herramienta gratuita con otros agricultores:")
+    
+    texto_compartir = urllib.parse.quote("¡Échale un vistazo a AgroAlert! Una app gratuita para agricultores que te avisa del tiempo para sulfatar, controla el Cuaderno PAC y manda avisos por Telegram. Pruébala aquí:")
+    url_app = "https://share.streamlit.io" # (Puedes cambiar esto por tu enlace definitivo)
+    
+    link_whatsapp = f"https://api.whatsapp.com/send?text={texto_compartir}%20{url_app}"
+    link_telegram = f"https://t.me/share/url?url={url_app}&text={texto_compartir}"
+
+    st.markdown(f"""
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <a href="{link_whatsapp}" target="_blank" style="flex: 1; background-color: #25d366; color: white; padding: 10px 12px; border-radius: 10px; text-align: center; text-decoration: none; font-weight: 700; font-size: 0.9rem;">💬 WhatsApp</a>
+            <a href="{link_telegram}" target="_blank" style="flex: 1; background-color: #0088cc; color: white; padding: 10px 12px; border-radius: 10px; text-align: center; text-decoration: none; font-weight: 700; font-size: 0.9rem;">✈️ Telegram</a>
+        </div>
+    """, unsafe_allow_html=True)
 
 meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.46), datos_parcela.get("lon", -2.44))
 viento_hoy = meteo_actual["viento"]
