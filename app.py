@@ -199,13 +199,12 @@ if "fitos_db" not in st.session_state:
 if "almacen_db" not in st.session_state:
     st.session_state.almacen_db = cargar_json(ALMACEN_FILE, DEFAULT_ALMACEN)
 
-# --- CONexión METEOROLÓGICA DINÁMICA POR COORDENADAS EXACTAS ---
+# --- CONEXIÓN METEOROLÓGICA EN TIEMPO REAL CON ESTACIÓN CERCANA ---
 def consultar_meteo_openmeteo(lat, lon):
     try:
         lat_f = float(lat if lat is not None else 42.4658)
         lon_f = float(lon if lon is not None else -2.4499)
         
-        # Consultamos los datos actuales y la previsión horaria vinculada a la estación más cercana
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat_f}&longitude={lon_f}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
         
         req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
@@ -220,7 +219,6 @@ def consultar_meteo_openmeteo(lat, lon):
             viento_val = current.get("wind_speed_10m")
             w_code = current.get("weather_code", 0)
             
-            # Traducción sencilla del código meteorológico para mostrar el estado real del cielo
             estado_cielo = "Despejado / Buen tiempo"
             if w_code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
                 estado_cielo = "🌧️ Lloviendo en la zona"
@@ -253,8 +251,8 @@ def consultar_meteo_openmeteo(lat, lon):
                     fecha_hora_str = dt_obj.strftime("%d/%m %H:00")
                     horas_prevision.append({
                         "Fecha y Hora": fecha_hora_str, 
-                        "Viento (km/h)": round(float(w or 0), 1), 
-                        "Lluvia (mm)": round(float(p or 0), 1)
+                        "Viento (km/h)": round(float(w if w is not None else 5.0), 1), 
+                        "Lluvia (mm)": round(float(p if p is not None else 0.0), 1)
                     })
 
             return {
@@ -267,6 +265,7 @@ def consultar_meteo_openmeteo(lat, lon):
             }
     except Exception:
         return {"temp": 21.0, "humedad": 55.0, "lluvia": 0.0, "viento": 6.0, "estado_cielo": "Despejado", "horaria": []}
+
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
     remitente = "agroalertsoporte@gmail.com"
     password_app = "lcawcqgcsvxfyahk"
@@ -452,18 +451,26 @@ fincas_usuario = st.session_state.db_privada.get(user, {
 hora_aviso_usuario = info_user.get("hora_aviso", "08:00")
 email_usuario = info_user.get("email", "")
 
-# --- CABECERA SUPERIOR PROFESIONAL CON SELECTOR RÁPIDO DE FINCA Y LOGO OFICIAL ---
+# --- CABECERA SUPERIOR PROFESIONAL CON SELECTOR RÁPIDO DE FINCA Y RECARGA INSTANTÁNEA ---
 col_head_izq, col_head_centro, col_head_der = st.columns([1.2, 2.2, 1])
 
 with col_head_izq:
     st.markdown(f"<h4 style='margin-top: 10px; color: #1e293b;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h4>", unsafe_allow_html=True)
     nombres_fincas = list(fincas_usuario.keys())
     if nombres_fincas:
-        parcela_activa = st.selectbox("📍 Parcela activa en España:", nombres_fincas, label_visibility="visible")
-        datos_parcela = fincas_usuario.get(parcela_activa, {"lat": 42.46, "lon": -2.44, "ha": 1.0})
+        def on_change_finca():
+            pass
+        parcela_activa = st.selectbox(
+            "📍 Parcela activa en España:", 
+            nombres_fincas, 
+            key="select_parcela_activa", 
+            on_change=on_change_finca,
+            label_visibility="visible"
+        )
+        datos_parcela = fincas_usuario.get(parcela_activa, {"lat": 42.4658, "lon": -2.4499, "ha": 1.0})
     else:
         parcela_activa = "Sin fincas"
-        datos_parcela = {"lat": 42.46, "lon": -2.44, "ha": 1.0}
+        datos_parcela = {"lat": 42.4658, "lon": -2.4499, "ha": 1.0}
 
 with col_head_centro:
     if logo_path and os.path.exists(logo_path):
@@ -517,12 +524,13 @@ with col_menu:
         </div>
     """, unsafe_allow_html=True)
 
-# --- CONEXIÓN METEOROLÓGICA EN TIEMPO REAL USANDO LAS COORDENADAS DE LA FINCA ACTIVA ---
-meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.46), datos_parcela.get("lon", -2.44))
+# --- CONSULTA CLIMÁTICA EN TIEMPO REAL VINCULADA EXCLUSIVAMENTE A LA FINCA SELECCIONADA ---
+meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.4658), datos_parcela.get("lon", -2.4499))
 viento_hoy = meteo_actual["viento"]
 lluvia_hoy = meteo_actual["lluvia"]
 temp_hoy = meteo_actual["temp"]
 humedad_hoy = meteo_actual["humedad"]
+estado_cielo_hoy = meteo_actual.get("estado_cielo", "Despejado")
 horaria_24h = meteo_actual["horaria"]
 
 with col_contenido:
@@ -530,14 +538,17 @@ with col_contenido:
     st.markdown(f"""
     <div class="tarjeta-bienvenida">
         <h3 style="margin: 0; color: #065f46; font-weight: 800;">🌾 Panel de Acceso Rápido - AgroAlert España</h3>
-        <p style="margin: 8px 0 14px 0; color: #047857; font-size: 1.05rem;">
-            Consulta al instante si el tiempo es favorable en <b>{parcela_activa}</b> (Coordenadas: {datos_parcela.get('lat')}, {datos_parcela.get('lon')}) para planificar tus labores de campo sin riesgos.
+        <p style="margin: 8px 0 6px 0; color: #047857; font-size: 1.05rem;">
+            Consulta al instante si el tiempo es favorable en <b>{parcela_activa}</b> (Coordenadas: {datos_parcela.get('lat')}, {datos_parcela.get('lon')}).
+        </p>
+        <p style="margin: 0; color: #065f46; font-size: 0.95rem; font-weight: 600;">
+            📡 Estado del cielo en directo: {estado_cielo_hoy}
         </p>
     </div>
     """, unsafe_allow_html=True)
 
     if st.button("▶️ VER RESUMEN DE HOY DE MIS FINCAS", use_container_width=True, type="primary"):
-        st.success(f"¡Cargando el parte meteorológico y fitosanitario actualizado para {parcela_activa}!")
+        st.success(f"¡Cargando el parte meteorológico actualizado para {parcela_activa}!")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -707,7 +718,7 @@ with col_contenido:
 
     elif "Cuaderno de Campo" in menu:
         st.markdown("### 📋 Tu Cuaderno de Explotación (Normativa PAC España)")
-        st.write("Registra tus tratamientos fitosanitarios para cumplirกับการ legislación vigente en España y evitar sanciones ante inspecciones.")
+        st.write("Registra tus tratamientos fitosanitarios para cumplir con la legislación vigente en España y evitar sanciones ante inspecciones.")
         
         with st.form("form_cuaderno"):
             f_apli = st.date_input("Fecha de aplicación:", date.today())
@@ -1008,14 +1019,12 @@ with col_contenido:
                     
                 st.session_state.db_privada[user][nombre_nueva] = {
                     "lat": lat_nueva, 
-                    "lon": lon_newData if 'lon_newData' in locals() else lon_nueva,
+                    "lon": lon_nueva,
                     "variedad": variedad_nueva, 
                     "ha": ha_nueva, 
                     "poligono": pol_nuevo, 
                     "parcela": parc_nueva
                 }
-                # Asegurando la asignación limpia de lat y lon
-                st.session_state.db_privada[user][nombre_nueva]["lon"] = lon_nueva
                 guardar_json(FINCAS_FILE, st.session_state.db_privada)
                 st.success(f"¡Finca '{nombre_nueva}' añadida con éxito y geolocalizada en España!")
                 st.rerun()
