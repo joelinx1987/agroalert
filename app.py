@@ -12,7 +12,7 @@ import hashlib
 from PIL import Image
 
 st.set_page_config(
-    page_title="AgroAlert Pro | Explotación de Precisión",
+    page_title="AgroAlert | Explotación de Precisión",
     page_icon="🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -320,7 +320,7 @@ if not st.session_state.usuario_autenticado:
         st.markdown("""
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
-            <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Pro</h1>
+            <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert</h1>
             <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
         </div>
         """, unsafe_allow_html=True)
@@ -790,7 +790,7 @@ with col_contenido:
         else:
             st.info("Aún no hay tratamientos oficiales registrados.")
 
-    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON OPCIÓN DE MODIFICAR Y ELIMINAR)
+    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS
     elif "Geofotos y Focos" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📸 Registro de Geofotos y Focos de Plaga</h2>", unsafe_allow_html=True)
         
@@ -1008,7 +1008,7 @@ with col_contenido:
 
         semaforo_estado_txt = "🟢 ÓPTIMO PARA SULFATAR" if (viento_hoy <= 15 and lluvia_hoy <= 2.0 and max_hoy < 32) else "🔴 NO RECOMENDADO SULFATAR"
 
-        msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT PRO*
+        msg_parte = f"""🚜 *PARTE MATUTINO AGROALERT*
 📍 *Parcela:* {nombre_parcela} ({superficie_ha} ha)
 
 {semaforo_estado_txt}
