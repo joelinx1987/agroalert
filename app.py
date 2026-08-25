@@ -9,7 +9,7 @@ import urllib.parse
 import json
 import hashlib
 
-logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else ("fondo_logo.jpg.jpg" if os.path.exists("fondo_logo.jpg.jpg") else None))
+logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else ("fondo_logo.jpg.jpg" if os.path.exists("fondo_logo.jpg.jpg" else None))
 
 st.set_page_config(
     page_title="AgroAlert | Asistente Agrícola Profesional",
@@ -288,19 +288,19 @@ fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat":
 telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
 telegram_id = info_user.get("telegram_id", "5473461038")
 
-# --- CABECERA SUPERIOR EN 3 COLUMNAS CON LOGO AMPLIADO A 480px ---
-c_h1, c_h_logo, c_h2 = st.columns([1.5, 3.2, 1])
+# --- CABECERA SUPERIOR PROFESIONAL CON LOGO OFICIAL CENTRADO Y GRANDE ---
+col_head_izq, col_head_centro, col_head_der = st.columns([1, 2.2, 1])
 
-with c_h1:
-    st.markdown(f"<h3 style='margin-top: 25px;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h3>", unsafe_allow_html=True)
+with col_head_izq:
+    st.markdown(f"<h4 style='margin-top: 15px; color: #1e293b;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h4>", unsafe_allow_html=True)
 
-with c_h_logo:
+with col_head_centro:
     if logo_path and os.path.exists(logo_path):
-        st.image(logo_path, width=480)
+        st.image(logo_path, use_container_width=True)
 
-with c_h2:
-    st.markdown("<div style='margin-top: 20px;'>", unsafe_allow_html=True)
-    if st.button("🚪 Salir", use_container_width=True):
+with col_head_der:
+    st.markdown("<div style='display: flex; justify-content: flex-end; margin-top: 15px;'>", unsafe_allow_html=True)
+    if st.button("🚪 Salir", use_container_width=False):
         st.session_state.usuario_autenticado = None
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
