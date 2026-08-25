@@ -159,6 +159,7 @@ USERS_FILE = "usuarios_db.json"
 FINCAS_FILE = "fincas_db.json"
 FITOS_FILE = "fitosanitarios_db.json"
 LABORES_FILE = "labores_db.json"
+PLAGAS_FILE = "plagas_geolocalizadas_db.json"
 
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
@@ -221,7 +222,15 @@ DEFAULT_USERS = {
         "pwd": make_hash("admin123"),
         "nombre": "Joel (Mi Explotación)",
         "telefono": "+34626665232",
-        "apikey": "3443251"
+        "apikey": "3443251",
+        "rol": "Propietario"
+    },
+    "tecnico_agronomo": {
+        "pwd": make_hash("tecnico123"),
+        "nombre": "Carlos (Técnico Asesor)",
+        "telefono": "+34600111222",
+        "apikey": "9998887",
+        "rol": "Técnico / Asesor"
     }
 }
 
@@ -229,6 +238,12 @@ DEFAULT_FINCAS = {
     "admin": {
         "🍇 Viña": {
             "Frontón Jaime": {"lat": 42.3659, "lon": -2.4235, "variedad": "Tempranillo", "suelo": "Cascajo / Calcáreo", "ha": 2.0, "poligono": "12", "parcela": "104", "riego": "Goteo"}
+        },
+        "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
+    },
+    "tecnico_agronomo": {
+        "🍇 Viña": {
+            "Finca El Encinar": {"lat": 42.4512, "lon": -2.4589, "variedad": "Graciano", "suelo": "Arcillo-calcáreo", "ha": 4.5, "poligono": "8", "parcela": "42", "riego": "Secano"}
         },
         "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}
     }
@@ -245,6 +260,9 @@ if "fitos_db" not in st.session_state:
 
 if "labores_db" not in st.session_state:
     st.session_state.labores_db = cargar_json(LABORES_FILE, {})
+
+if "plagas_db" not in st.session_state:
+    st.session_state.plagas_db = cargar_json(PLAGAS_FILE, {})
 
 if "modo_contraste" not in st.session_state:
     st.session_state.modo_contraste = False
@@ -278,7 +296,7 @@ if not st.session_state.usuario_autenticado:
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Pro</h1>
-            <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
+            <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación de Precisión, SIEX/PAC, Multi-Usuario y IA</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -287,7 +305,7 @@ if not st.session_state.usuario_autenticado:
         
         if modo_acceso == "🔑 Iniciar Sesión":
             with st.form("form_auth"):
-                u = st.text_input("Usuario", value="admin").strip().lower()
+                u = st.text_input("Usuario (ej: admin o tecnico_agronomo)", value="admin").strip().lower()
                 p = st.text_input("Contraseña", type="password", value="admin123")
                 b_in = st.form_submit_button("🚜 ENTRAR AL PANEL DE PRECISIÓN", use_container_width=True, type="primary")
                 if b_in:
@@ -298,36 +316,11 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
-            st.markdown("""
-            <div style="background: #ffffff; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
-                <div style="font-size: 1.05rem; font-weight: 800; color: #15803d; margin-bottom: 6px;">
-                    🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
-                </div>
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.5;">
-                    <b>1.</b> Abre un chat en WhatsApp con el número: 
-                    <span style="background: #fef3c7; color: #92400e; font-weight: 800; padding: 2px 6px; border-radius: 4px;">+34 623 91 22 04</span><br>
-                    <b>2.</b> Envía este mensaje exacto:
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            render_copy_box("I allow callmebot to send me messages")
-
-            st.markdown("""
-            <div style="margin-top: -6px; margin-bottom: 14px;">
-                <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.95rem;">
-                        📲 TOCAR PARA ABRIR WHATSAPP DIRECTO
-                    </div>
-                </a>
-            </div>
-            """, unsafe_allow_html=True)
-
             with st.form("form_reg"):
                 nu = st.text_input("Usuario").strip()
                 nn = st.text_input("Tu Nombre o Explotación").strip()
                 ntel = st.text_input("📱 Teléfono Móvil (+34)").strip()
-                napi = st.text_input("🔑 APIKey WhatsApp (código recibido del bot)").strip()
+                napi = st.text_input("🔑 APIKey WhatsApp").strip()
                 np = st.text_input("Contraseña", type="password")
                 
                 b_up = st.form_submit_button("🚀 CREAR CUENTA", use_container_width=True, type="primary")
@@ -339,23 +332,19 @@ if not st.session_state.usuario_autenticado:
                         st.error("Por favor, completa todos los campos.")
                     elif any(k.lower() == nu_clean for k in st.session_state.usuarios_db.keys()):
                         st.error(f"El usuario '{nu}' ya existe.")
-                    elif any(normalizar_telefono(u_data.get("telefono", "")) == tel_clean for u_data in st.session_state.usuarios_db.values() if u_data.get("telefono")):
-                        st.error(f"El teléfono '{ntel}' ya está registrado.")
                     else:
                         st.session_state.usuarios_db[nu] = {
                             "pwd": make_hash(np),
                             "nombre": nn if nn else nu,
                             "telefono": tel_clean,
-                            "apikey": napi
+                            "apikey": napi,
+                            "rol": "Propietario"
                         }
                         if nu not in st.session_state.db_privada:
                             st.session_state.db_privada[nu] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
                         
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                        
-                        msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu cuenta ha quedado vinculada."
-                        disparar_whatsapp_servidor(tel_clean, napi, msg)
                         
                         st.session_state.usuario_autenticado = nu
                         st.success("¡Cuenta creada con éxito!")
@@ -368,13 +357,22 @@ if not st.session_state.usuario_autenticado:
 user_activo = st.session_state.usuario_autenticado
 datos_usuario = st.session_state.usuarios_db.get(user_activo, {})
 nombre_cliente = datos_usuario.get("nombre", "Agricultor")
+rol_usuario = datos_usuario.get("rol", "Propietario")
 user_telefono = datos_usuario.get("telefono", "+34626665232")
 user_apikey = datos_usuario.get("apikey", "3443251")
 
 if user_activo not in st.session_state.db_privada:
     st.session_state.db_privada[user_activo] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
 
-fincas_usuario = st.session_state.db_privada[user_activo]
+# Si es técnico, puede supervisar a otros usuarios
+if rol_usuario == "Técnico / Asesor":
+    lista_explotaciones = list(st.session_state.db_privada.keys())
+    explotacion_seleccionada = st.selectbox("👔 Panel de Asesor - Seleccionar Explotación de Socio:", lista_explotaciones, index=0 if user_activo in lista_explotaciones else 0)
+    fincas_usuario = st.session_state.db_privada[explotacion_seleccionada]
+    nombre_cliente = f"{st.session_state.usuarios_db.get(explotacion_seleccionada, {}).get('nombre', explotacion_seleccionada)} (Asesorado)"
+else:
+    fincas_usuario = st.session_state.db_privada[user_activo]
+    explotacion_seleccionada = user_activo
 
 # Selectores superiores y Modo Contraste
 c_top1, c_top2, c_top3, c_top4 = st.columns([1.1, 1.3, 0.6, 0.6])
@@ -478,6 +476,7 @@ with col_menu:
         "🚜 Semáforo y Satélite (NDVI & Riego)",
         "🧪 Calculadora de Costes (€/ha) y Cuba",
         "📋 Cuaderno SIEX / PAC Oficial",
+        "📸 Geofotos y Focos de Plagas",
         "🌾 Labores, Riegos y Cosecha",
         "📲 Bot de Alertas WhatsApp",
         "🌾 Gestión de Fincas y SIGPAC",
@@ -591,7 +590,7 @@ with col_contenido:
         """, unsafe_allow_html=True)
 
         # Cuenta atrás de Plazos de Seguridad
-        hist_fitos_alerta = st.session_state.fitos_db.get(user_activo, [])
+        hist_fitos_alerta = st.session_state.fitos_db.get(explotacion_seleccionada, [])
         if hist_fitos_alerta:
             ultimo_fito = hist_fitos_alerta[-1]
             try:
@@ -703,8 +702,8 @@ with col_contenido:
             b_guardar_fito = st.form_submit_button("💾 GUARDAR EN EL CUADERNO SIEX", use_container_width=True, type="primary")
 
             if b_guardar_fito and producto_fito.strip():
-                if user_activo not in st.session_state.fitos_db:
-                    st.session_state.fitos_db[user_activo] = []
+                if explotacion_seleccionada not in st.session_state.fitos_db:
+                    st.session_state.fitos_db[explotacion_seleccionada] = []
                 
                 registro_nuevo = {
                     "Fecha": str(fecha_fito),
@@ -718,26 +717,64 @@ with col_contenido:
                     "Plazo Seg.": f"{plazo_seg} días",
                     "Aplicador": aplicador_fito
                 }
-                st.session_state.fitos_db[user_activo].append(registro_nuevo)
+                st.session_state.fitos_db[explotacion_seleccionada].append(registro_nuevo)
                 guardar_json(FITOS_FILE, st.session_state.fitos_db)
                 st.success("¡Tratamiento registrado y sincronizado con el formato oficial SIEX!")
                 st.rerun()
 
         st.markdown("### 📜 Historial Oficial Registrado:")
-        hist_fitos = st.session_state.fitos_db.get(user_activo, [])
+        hist_fitos = st.session_state.fitos_db.get(explotacion_seleccionada, [])
         if hist_fitos:
             df_fitos = pd.DataFrame(hist_fitos)
             st.dataframe(df_fitos, use_container_width=True, hide_index=True)
             
             csv_data = df_fitos.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 DESCARGAR INFORME OFICIAL (FORMATO SIEX / PAC)", data=csv_data, file_name=f"cuaderno_siess_{user_activo}.csv", mime="text/csv", use_container_width=True)
+            st.download_button("📥 DESCARGAR INFORME OFICIAL (FORMATO SIEX / PAC)", data=csv_data, file_name=f"cuaderno_siess_{explotacion_seleccionada}.csv", mime="text/csv", use_container_width=True)
         else:
             st.info("Aún no hay tratamientos oficiales registrados.")
 
-    # SECCIÓN 4: LABORES Y COSECHA
+    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS
+    elif "Geofotos y Focos" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📸 Registro de Geofotos y Focos de Plaga</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #64748b;'>Registra incidencias de campo con geolocalización GPS automática para justificar inspecciones o controles.</p>", unsafe_allow_html=True)
+
+        with st.form("form_geofoto"):
+            desc_incidencia = st.text_input("Descripción del síntoma / plaga (ej: Foco de Mildiu en zona norte):", value="Mancha aislada en hoja")
+            sev_incidencia = st.selectbox("Severidad:", ["🟢 Leve / Preventivo", "🟡 Moderado", "🔴 Severo / Urgente"])
+            c_g1, c_g2 = st.columns(2)
+            with c_g1:
+                lat_geo = st.number_input("Latitud GPS:", value=float(lat), format="%.4f")
+            with c_g2:
+                lon_geo = st.number_input("Longitud GPS:", value=float(lon), format="%.4f")
+            
+            b_guarda_geo = st.form_submit_button("📸 GUARDAR GEOFOTO Y COORDENADAS", use_container_width=True, type="primary")
+            if b_guarda_geo:
+                if explotacion_seleccionada not in st.session_state.plagas_db:
+                    st.session_state.plagas_db[explotacion_seleccionada] = []
+                
+                reg_g = {
+                    "Fecha": str(date.today()),
+                    "Parcela": nombre_parcela,
+                    "Incidencia": desc_incidencia,
+                    "Severidad": sev_incidencia,
+                    "GPS": f"{lat_geo}, {lon_geo}"
+                }
+                st.session_state.plagas_db[explotacion_seleccionada].append(reg_g)
+                guardar_json(PLAGAS_FILE, st.session_state.plagas_db)
+                st.success("¡Incidencia geolocalizada registrada correctamente!")
+                st.rerun()
+
+        st.markdown("### 🗺️ Incidencias Registradas en Campo:")
+        hist_plagas = st.session_state.plagas_db.get(explotacion_seleccionada, [])
+        if hist_plagas:
+            st.dataframe(pd.DataFrame(hist_plagas), use_container_width=True, hide_index=True)
+        else:
+            st.info("Sin incidencias geolocalizadas registradas.")
+
+    # SECCIÓN 5: LABORES, RIEGOS Y COSECHA (CON RENTABILIDAD NETA)
     elif "Labores, Riegos y Cosecha" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>🌾 Labores de Campo, Riegos y Cosecha</h2>", unsafe_allow_html=True)
-        sub_lab1, sub_lab2 = st.tabs(["🚜 REGISTRAR LABOR / RIEGO", "🍇 REGISTRAR COSECHA / LIQUIDACIÓN"])
+        sub_lab1, sub_lab2, sub_lab3 = st.tabs(["🚜 REGISTRAR LABOR / RIEGO", "🍇 REGISTRAR COSECHA / VENTA", "📊 RENTABILIDAD NETA (€/ha)"])
         
         with sub_lab1:
             with st.form("form_labor"):
@@ -753,14 +790,14 @@ with col_contenido:
 
                 b_guarda_labor = st.form_submit_button("💾 GUARDAR LABOR DE CAMPO", use_container_width=True, type="primary")
                 if b_guarda_labor:
-                    if user_activo not in st.session_state.labores_db:
-                        st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
+                    if explotacion_seleccionada not in st.session_state.labores_db:
+                        st.session_state.labores_db[explotacion_seleccionada] = {"labores": [], "cosechas": []}
                     
                     reg_l = {
                         "Fecha": str(fecha_lab), "Cultivo": tipo_cultivo, "Parcela": nombre_parcela,
                         "Labor": tipo_labor, "Horas": horas_maq, "Aporte": abono_aporte, "Gasoil (L)": gasoil_litros, "Coste (€)": coste_mano_obra
                     }
-                    st.session_state.labores_db[user_activo]["labores"].append(reg_l)
+                    st.session_state.labores_db[explotacion_seleccionada]["labores"].append(reg_l)
                     guardar_json(LABORES_FILE, st.session_state.labores_db)
                     st.success("¡Labor guardada!")
                     st.rerun()
@@ -783,21 +820,42 @@ with col_contenido:
 
                 b_guarda_cosecha = st.form_submit_button("💾 GUARDAR REGISTRO DE COSECHA", use_container_width=True, type="primary")
                 if b_guarda_cosecha:
-                    if user_activo not in st.session_state.labores_db:
-                        st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
+                    if explotacion_seleccionada not in st.session_state.labores_db:
+                        st.session_state.labores_db[explotacion_seleccionada] = {"labores": [], "cosechas": []}
                     
                     reg_c = {
                         "Fecha": str(fecha_cos), "Cultivo": tipo_cultivo, "Parcela": nombre_parcela,
                         "Kilos": kilos_totales, "Rdto (kg/ha)": round(rendimiento_ha, 1), "Calidad": calidad_param,
                         "Comprador": comprador_dest, "Precio (€/kg)": precio_kilo_venta, "Total (€)": round(ingreso_bruto, 2)
                     }
-                    st.session_state.labores_db[user_activo]["cosechas"].append(reg_c)
+                    st.session_state.labores_db[explotacion_seleccionada]["cosechas"].append(reg_c)
                     guardar_json(LABORES_FILE, st.session_state.labores_db)
                     st.success("¡Cosecha guardada!")
                     st.rerun()
 
-        st.markdown("### 📋 Histórico de Labores y Cosechas:")
-        datos_lab_all = st.session_state.labores_db.get(user_activo, {"labores": [], "cosechas": []})
+        with sub_lab3:
+            st.markdown("### 📊 Balance Financiero y Beneficio Neto por Hectárea:")
+            datos_lab_all = st.session_state.labores_db.get(explotacion_seleccionada, {"labores": [], "cosechas": []})
+            
+            total_ingresos = sum([c.get("Total (€)", 0) for c in datos_lab_all.get("cosechas", [])])
+            total_gastos_labores = sum([l.get("Coste (€)", 0) for l in datos_lab_all.get("labores", [])])
+            
+            beneficio_neto = total_ingresos - total_gastos_labores
+            beneficio_ha = beneficio_neto / superficie_ha if superficie_ha > 0 else 0
+
+            st.markdown(f"""
+            <div style="background: #ffffff; border-radius: 16px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+                <div style="font-size: 1.15rem; font-weight: 800; color: #15803d; margin-bottom: 10px;">📈 Resumen de Campaña ({nombre_parcela}):</div>
+                <div style="font-size: 1rem; color: #334155; margin-bottom: 6px;">💵 Ingresos Brutos Totales: <b>{total_ingresos:.2f} €</b></div>
+                <div style="font-size: 1rem; color: #334155; margin-bottom: 6px;">🛠️ Gastos Totales en Labores: <b>{total_gastos_labores:.2f} €</b></div>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 12px 0;">
+                <div style="font-size: 1.3rem; font-weight: 900; color: {'#16a34a' if beneficio_neto >= 0 else '#dc2626'};">
+                    💎 Beneficio Neto: {beneficio_neto:.2f} € ({beneficio_ha:.2f} €/ha)
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br><h3>📋 Histórico de Labores y Cosechas:</h3>", unsafe_allow_html=True)
         c_tabl1, c_tabl2 = st.columns(2)
         with c_tabl1:
             st.markdown("#### 🚜 Labores registradas:")
@@ -812,9 +870,9 @@ with col_contenido:
             else:
                 st.caption("Sin cosechas aún.")
 
-    # SECCIÓN 5: BOT WHATSAPP
+    # SECCIÓN 6: BOT WHATSAPP
     elif "Bot de Alertas" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp (Automatizado)</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Alertas vinculadas a: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
 
         if "Viña" in tipo_cultivo:
@@ -841,7 +899,9 @@ with col_contenido:
 ⚠️ *Riesgo Inminente:* Previsión de temperatura crítica de *{min_hoy:.1f}°C*.
 🛡️ *Acción:* Activar sistemas antihelada inmediatamente."""
 
-        if st.button("📲 DISPARAR PARTE MATUTINO", use_container_width=True, type="primary"):
+        st.info("🤖 **Automatización Activa:** El script `bot_diario.py` (ejecutado vía GitHub Actions cada mañana a las 6:00) procesará de forma totalmente autónoma las coordenadas de tus parcelas para enviar estos avisos a tu WhatsApp sin intervención manual.")
+
+        if st.button("📲 DISPARAR PARTE MATUTINO MANUAL", use_container_width=True, type="primary"):
             if not user_apikey:
                 st.error("No tienes configurada tu APIKey de WhatsApp.")
             else:
@@ -851,7 +911,7 @@ with col_contenido:
                 else:
                     st.error(res)
 
-        if st.button("🚨 DISPARAR ALERTA HELADA", use_container_width=True):
+        if st.button("🚨 DISPARAR ALERTA HELADA MANUAL", use_container_width=True):
             if not user_apikey:
                 st.error("No tienes configurada tu APIKey de WhatsApp.")
             else:
@@ -861,7 +921,7 @@ with col_contenido:
                 else:
                     st.error(res)
 
-    # SECCIÓN 6: GESTIÓN DE FINCAS Y MAPA SATÉLITE
+    # SECCIÓN 7: GESTIÓN DE FINCAS Y MAPA SATÉLITE
     elif "Gestión de Fincas" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>🌾 Gestión de Fincas y SIGPAC ({tipo_cultivo})</h2>", unsafe_allow_html=True)
         fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
@@ -897,12 +957,12 @@ with col_contenido:
                 btn_crear_primera = st.form_submit_button("💾 CREAR Y GUARDAR ESTA PARCELA", use_container_width=True, type="primary")
 
                 if btn_crear_primera and nom_finca.strip():
-                    if user_activo not in st.session_state.db_privada:
-                        st.session_state.db_privada[user_activo] = {}
-                    if tipo_cultivo not in st.session_state.db_privada[user_activo]:
-                        st.session_state.db_privada[user_activo][tipo_cultivo] = {}
+                    if explotacion_seleccionada not in st.session_state.db_privada:
+                        st.session_state.db_privada[explotacion_seleccionada] = {}
+                    if tipo_cultivo not in st.session_state.db_privada[explotacion_seleccionada]:
+                        st.session_state.db_privada[explotacion_seleccionada][tipo_cultivo] = {}
 
-                    st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
+                    st.session_state.db_privada[explotacion_seleccionada][tipo_cultivo][nom_finca.strip()] = {
                         "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca,
                         "poligono": pol_finca, "parcela": parc_finca, "riego": riego_finca
                     }
@@ -957,8 +1017,8 @@ with col_contenido:
                     
                     if guardar_edicion:
                         if nuevo_nombre.strip() != finca_a_editar:
-                            del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
-                        st.session_state.db_privada[user_activo][tipo_cultivo][nuevo_nombre.strip()] = {
+                            del st.session_state.db_privada[explotacion_seleccionada][tipo_cultivo][finca_a_editar]
+                        st.session_state.db_privada[explotacion_seleccionada][tipo_cultivo][nuevo_nombre.strip()] = {
                             "lat": nueva_lat, "lon": nueva_lon, "variedad": nueva_var, "suelo": nuevo_suelo, "ha": nueva_ha,
                             "poligono": nuevo_pol, "parcela": nuevo_parc, "riego": nuevo_riego
                         }
@@ -967,7 +1027,7 @@ with col_contenido:
                         st.rerun()
                         
                     if borrar_finca:
-                        del st.session_state.db_privada[user_activo][tipo_cultivo][finca_a_editar]
+                        del st.session_state.db_privada[explotacion_seleccionada][tipo_cultivo][finca_a_editar]
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
                         st.warning("¡Finca eliminada!")
                         st.rerun()
@@ -1013,7 +1073,7 @@ with col_contenido:
                     btn_guardar_f = st.form_submit_button("💾 CREAR NUEVA PARCELA", use_container_width=True, type="primary")
 
                     if btn_guardar_f and nom_finca.strip():
-                        st.session_state.db_privada[user_activo][tipo_cultivo][nom_finca.strip()] = {
+                        st.session_state.db_privada[explotacion_seleccionada][tipo_cultivo][nom_finca.strip()] = {
                             "lat": lat_finca, "lon": lon_finca, "variedad": var_finca, "suelo": suelo_finca, "ha": ha_finca,
                             "poligono": pol_finca, "parcela": parc_finca, "riego": riego_finca
                         }
@@ -1037,7 +1097,7 @@ with col_contenido:
             if tabla_fincas:
                 st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
-    # SECCIÓN 7: LEYENDA Y FUENTES
+    # SECCIÓN 8: LEYENDA Y FUENTES
     elif "Leyenda Técnica" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
         
@@ -1063,14 +1123,14 @@ with col_contenido:
         </div>
 
         <div class="legend-card">
-            <div class="legend-header">📋 3. Cuaderno de Explotación SIEX / PAC</div>
+            <div class="legend-header">📋 3. Cuaderno de Explotación SIEX / PAC y Multi-Usuario</div>
             <div class="legend-body">
-                Cumplimiento estricto con los requisitos de la Política Agrícola Común para el registro obligatorio de aplicaciones fitosanitarias, plazos de seguridad y trazabilidad.
+                Soporte completo para agricultores independientes y técnicos asesores que gestionan múltiples explotaciones y necesitan trazabilidad conforme a la PAC.
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-    # SECCIÓN 8: PANEL ADMINISTRADOR
+    # SECCIÓN 9: PANEL ADMINISTRADOR
     elif "Panel Administrador" in seccion_activa and user_activo == "admin":
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
         
@@ -1085,7 +1145,7 @@ with col_contenido:
             usuario_a_borrar = st.selectbox("Selecciona el usuario que quieres eliminar:", usuarios_borrables)
             datos_u_borrar = st.session_state.usuarios_db[usuario_a_borrar]
             
-            st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}). Sus fincas, labores y cuaderno también se borrarán.")
+            st.warning(f"⚠️ Vas a eliminar a **{usuario_a_borrar}** ({datos_u_borrar.get('nombre', '')} | Tel: {datos_u_borrar.get('telefono', '')}).")
             
             if st.button(f"❌ CONFIRMAR Y ELIMINAR A '{usuario_a_borrar}'", type="primary"):
                 del st.session_state.usuarios_db[usuario_a_borrar]
@@ -1109,7 +1169,7 @@ with col_contenido:
         st.write("---")
         st.markdown("### 👥 Todos los Usuarios Registrados:")
         resumen_users = [
-            {"Usuario": k, "Nombre / Explotación": v.get("nombre", ""), "Teléfono": v.get("telefono", ""), "Tiene APIKey": "✅ Sí" if v.get("apikey") else "❌ No"}
+            {"Usuario": k, "Nombre / Explotación": v.get("nombre", ""), "Rol": v.get("rol", "Propietario"), "Teléfono": v.get("telefono", "")}
             for k, v in st.session_state.usuarios_db.items()
         ]
         st.dataframe(pd.DataFrame(resumen_users), use_container_width=True, hide_index=True)
