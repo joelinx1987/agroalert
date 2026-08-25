@@ -790,7 +790,7 @@ with col_contenido:
         else:
             st.info("Aún no hay tratamientos oficiales registrados.")
 
-    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON SUBIDA REAL DE FOTO)
+    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON TAMAÑO AMPLIADO Y BOTÓN DE EXPANSIÓN)
     elif "Geofotos y Focos" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📸 Registro de Geofotos y Focos de Plaga</h2>", unsafe_allow_html=True)
         st.markdown("<p style='color: #64748b;'>Sube o haz una foto de campo con geolocalización GPS automática para justificar inspecciones o controles.</p>", unsafe_allow_html=True)
@@ -799,8 +799,7 @@ with col_contenido:
             desc_incidencia = st.text_input("Descripción del síntoma / plaga (ej: Foco de Mildiu en zona norte):", value="Mancha aislada en hoja")
             sev_incidencia = st.selectbox("Severidad:", ["🟢 Leve / Preventivo", "🟡 Moderado", "🔴 Severo / Urgente"])
             
-            # Selector de archivo de imagen
-            foto_subida = st.file_uploader("📷 Adjuntar Fotografía (Cámara o Archivo):", type=["jpg", "jpeg", "png"])
+            foto_subida = st.file_uploader("📷 Adjuntar Fotografía (Cámara o Archivo en Alta Resolución):", type=["jpg", "jpeg", "png"])
 
             c_g1, c_g2 = st.columns(2)
             with c_g1:
@@ -812,7 +811,6 @@ with col_contenido:
             if b_guarda_geo:
                 nombre_archivo_foto = "Sin imagen"
                 if foto_subida is not None:
-                    # Guardar la imagen física en la carpeta de uploads
                     timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
                     nombre_archivo_foto = f"{timestamp_str}_{foto_subida.name}"
                     ruta_guardado = os.path.join(UPLOADS_DIR, nombre_archivo_foto)
@@ -839,10 +837,10 @@ with col_contenido:
         hist_plagas = st.session_state.plagas_db.get(explotacion_seleccionada, [])
         if hist_plagas:
             for p in hist_plagas:
-                c_p1, c_p2 = st.columns([2, 1])
+                c_p1, c_p2 = st.columns([1.5, 1])
                 with c_p1:
                     st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.9); border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                    <div style="background: rgba(255,255,255,0.9); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
                         <b>📅 Fecha:</b> {p['Fecha']} | <b>Parcela:</b> {p['Parcela']}<br>
                         <b>📝 Incidencia:</b> {p['Incidencia']}<br>
                         <b>⚠️ Severidad:</b> {p['Severidad']} | <b>📍 GPS:</b> {p['GPS']}
@@ -852,7 +850,8 @@ with col_contenido:
                     if p.get('Foto') and p['Foto'] != "Sin imagen":
                         path_img = os.path.join(UPLOADS_DIR, p['Foto'])
                         if os.path.exists(path_img):
-                            st.image(path_img, caption="Evidencia de campo", width=160)
+                            # Muestra la imagen en tamaño grande (ancho 400) y expandible
+                            st.image(path_img, caption="Evidencia en alta resolución", width=380, use_container_width=True)
                         else:
                             st.caption("Imagen no disponible localmente")
                     else:
