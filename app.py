@@ -3,7 +3,7 @@ os.environ.pop("SSLKEYLOGFILE", None)
 
 import streamlit as st
 import pandas as pd
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 import urllib.request
 import urllib.parse
 import json
@@ -166,7 +166,8 @@ DEFAULT_USERS = {
         "nombre": "Joel (La Rioja)", 
         "email": "joel@agroalert.es",
         "telegram_id": "5473461038", 
-        "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
+        "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs",
+        "hora_aviso": "04:45"
     }
 }
 DEFAULT_FINCAS = {
@@ -340,7 +341,8 @@ if not st.session_state.usuario_autenticado:
                                 "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
                                 "email": nuevo_email if nuevo_email else "",
                                 "telegram_id": nuevo_chat_id.strip() if nuevo_chat_id else "No configurado",
-                                "telegram_token": nuevo_token
+                                "telegram_token": nuevo_token,
+                                "hora_aviso": "04:45"
                             }
                             guardar_json(USERS_FILE, st.session_state.usuarios_db)
 
@@ -385,6 +387,7 @@ info_user = st.session_state.usuarios_db.get(user, {})
 fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat": 42.46, "lon": -2.44, "ha": 2.0}})
 telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
 telegram_id = info_user.get("telegram_id", "No configurado")
+hora_aviso_usuario = info_user.get("hora_aviso", "04:45")
 
 # --- CABECERA SUPERIOR PROFESIONAL CON SELECTOR RÁPIDO DE FINCA Y LOGO OFICIAL ---
 col_head_izq, col_head_centro, col_head_der = st.columns([1.2, 2.2, 1])
@@ -421,7 +424,7 @@ with col_menu:
         "🧪 Calculadora de Fitosanitarios",
         "📦 Almacén de Fitosanitarios",
         "📋 Cuaderno de Campo (PAC sin multas)",
-        "📲 Avisos Automáticos a las 4:45",
+        "📲 Avisos Automáticos y Programación",
         "⚙️ Gestión de Fincas y Parcelas",
         "👤 Ajustes de la Cuenta"
     ]
@@ -658,19 +661,36 @@ with col_contenido:
             st.markdown("#### Historial de Tratamientos Registrados:")
             st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
 
-    elif "Avisos Automáticos" in menu:
-        st.markdown("### 📲 Aviso Diario en tu Telegram a las 4:45")
-        st.write("Recibirás un aviso automático diario en Telegram con el parte meteorológico estructurado de **todas** tus fincas y su acción obligatoria.")
-        st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
+    elif "Avisos Automáticos y Programación" in menu:
+        st.markdown(f"### 📲 Configuración de Avisos Diarios en Telegram")
+        st.write("Elige la hora exacta a la que deseas recibir automáticamente el parte meteorológico y las recomendaciones fitosanitarias de todas tus fincas.")
+        st.info(f"🤖 Chat ID de Telegram configurado: **{telegram_id}**")
         
+        with st.form("form_hora_aviso"):
+            # Convertimos la hora guardada (string 'HH:MM') a objeto time para el selector
+            h_parts = hora_aviso_usuario.split(":")
+            t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(4, 45)
+            
+            nueva_hora_sel = st.st_time_input = st.time_input("⏰ Hora preferida para recibir el aviso diario:", value=t_default)
+            guardar_hora = st.form_submit_button("💾 GUARDAR HORA DE AVISO", use_container_width=True, type="primary")
+            
+            if guardar_hora:
+                hora_str = nueva_hora_sel.strftime("%H:%M")
+                st.session_state.usuarios_db[user]["hora_aviso"] = hora_str
+                guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                st.success(f"¡Hora de aviso actualizada con éxito a las {hora_str}!")
+                st.rerun()
+
+        st.markdown("---")
+        st.markdown("#### 🚀 Comprobación Manual del Parte")
         if telegram_id == "No configurado":
             st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Puedes añadirlo en la sección '👤 Ajustes de la Cuenta'.")
         
-        if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
+        if st.button("📲 PROBAR ENVÍO INMEDIATO A TELEGRAM", use_container_width=True, type="primary"):
             if telegram_id == "No configurado":
                 st.error("No se puede enviar porque no hay un Chat ID de Telegram asociado a esta cuenta.")
             else:
-                msg_partes = [f"🚜 *AGROALERT • PARTE DIARIO DE EXPLOTACIÓN*\n👤 *Agricultor:* {info_user.get('nombre', 'Agricultor')}\n"]
+                msg_partes = [f"🚜 *AGROALERT • PARTE DIARIO (Programado a las {hora_aviso_usuario})*\n👤 *Agricultor:* {info_user.get('nombre', 'Agricultor')}\n"]
                 
                 for nombre_f, d_finca in fincas_usuario.items():
                     m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
@@ -773,6 +793,7 @@ with col_contenido:
                 "Nombre y Apellidos": udata.get("nombre", "N/A"),
                 "Correo": udata.get("email", "N/A"),
                 "Telegram Chat ID": udata.get("telegram_id", "N/A"),
+                "Hora Aviso": udata.get("hora_aviso", "04:45"),
                 "Contraseña": udata.get("pwd", "N/A")
             })
             
