@@ -305,11 +305,11 @@ if not st.session_state.usuario_autenticado:
             with tab_registro:
                 st.markdown("""
                 <div class="guia-caja">
-                    <b>🌾 ¿Cómo conectar los avisos a tu móvil paso a paso?</b> (Opcional)<br><br>
-                    1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
-                    2️⃣ Busca arriba en la lupa nuestro bot oficial: <b>@TuAgroAlert_bot</b><br>
-                    3️⃣ Escríbele cualquier mensaje (por ejemplo: <i>Hola</i>).<br>
-                    4️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo abajo si deseas recibir avisos diarios!
+                    <b>📱 ¿Cómo obtener tu código de Telegram (Chat ID) paso a paso?</b><br><br>
+                    1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil u ordenador.<br>
+                    2️⃣ Busca en la lupa superior nuestro bot oficial: <b>@TuAgroAlert_bot</b><br>
+                    3️⃣ Entra en el chat y pulsa en <b>"Iniciar"</b> (o envíale un mensaje como <i>Hola</i>).<br>
+                    4️⃣ El bot te responderá al instante con tu número de identificación (Chat ID). ¡Cópialo y pégalo abajo!
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -318,7 +318,7 @@ if not st.session_state.usuario_autenticado:
                     nuevo_email = st.text_input("Correo electrónico").strip()
                     nuevo_pwd = st.text_input("Contraseña", type="password")
                     nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                    nuevo_chat_id = st.text_input("Tu Código de Telegram (Opcional)")
+                    nuevo_chat_id = st.text_input("Tu Código de Telegram (Chat ID Opcional)")
                     
                     st.markdown("---")
                     st.markdown("##### 📍 Datos de tu parcela principal")
@@ -664,8 +664,18 @@ with col_contenido:
 
     elif "Avisos Automáticos y Programación" in menu:
         st.markdown(f"### 📲 Configuración de Avisos Diarios en Telegram")
-        st.write("Elige la hora exacta a la que deseas recibir automáticamente el parte meteorológico y las recomendaciones fitosanitarias de todas tus fincas.")
+        st.write("Elige la hora exacta a la vez que configuras tu parte meteorológico automatizado.")
         st.info(f"🤖 Chat ID de Telegram configurado: **{telegram_id}**")
+        
+        # --- CAJA GUÍA ACLARATORIA EN CONFIGURACIÓN DE AVISOS ---
+        st.markdown("""
+        <div class="guia-caja">
+            <b>📱 ¿Cómo obtener tu código de Telegram (Chat ID)?</b><br>
+            1. Abre Telegram y busca: <b>@TuAgroAlert_bot</b><br>
+            2. Envíale cualquier mensaje (ej. <i>Hola</i>).<br>
+            3. Copia el número (Chat ID) que te responda el bot y ponlo en <b>👤 Ajustes de la Cuenta</b>.
+        </div>
+        """, unsafe_allow_html=True)
         
         with st.form("form_hora_aviso"):
             h_parts = hora_aviso_usuario.split(":")
@@ -684,7 +694,7 @@ with col_contenido:
         st.markdown("---")
         st.markdown("#### 🚀 Comprobación Manual del Parte")
         if telegram_id == "No configurado":
-            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Puedes añadirlo en la sección '👤 Ajustes de la Cuenta'.")
+            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Sigue los pasos de arriba y añádelo en '👤 Ajustes de la Cuenta'.")
         
         if st.button("📲 PROBAR ENVÍO INMEDIATO A TELEGRAM", use_container_width=True, type="primary"):
             if telegram_id == "No configurado":
