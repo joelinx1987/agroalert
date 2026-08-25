@@ -13,6 +13,7 @@ from streamlit_folium import st_folium
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import pytz
 
 # --- COMPROBACIÓN SEGURA DE LA RUTA DEL LOGO ---
 logo_path = None
@@ -266,9 +267,17 @@ def enviar_correo_electronico(destinatario, asunto, cuerpo):
     except Exception as e:
         return False, f"Error al enviar el correo: {str(e)}"
 
-# --- FUNCIÓN DE PROCESAMIENTO AUTOMÁTICO HORARIO ---
+# --- FUNCIÓN DE PROCESAMIENTO AUTOMÁTICO HORARIO (HORA ESPAÑA) ---
 def verificar_y_enviar_automatizaciones():
-    ahora_h_m = datetime.now().strftime("%H:%M")
+    try:
+        zona_espana = pytz.timezone('Europe/Madrid')
+        ahora_espana = datetime.now(zona_espana)
+        ahora_h_m = ahora_espana.strftime("%H:%M")
+    except Exception:
+        ahora_utc = datetime.utcnow()
+        ahora_espana_utc = ahora_utc + timedelta(hours=2)
+        ahora_h_m = ahora_espana_utc.strftime("%H:%M")
+
     usuarios = cargar_json(USERS_FILE, {})
     fincas_db = cargar_json(FINCAS_FILE, {})
     
