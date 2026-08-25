@@ -15,6 +15,21 @@ def cargar_json(archivo, por_defecto):
             return por_defecto
     return por_defecto
 
+def consultar_meteo_openmeteo(lat, lon):
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto"
+        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            current = data.get("current", {})
+            return {
+                "temp": current.get("temperature_2m", 22.0),
+                "lluvia": current.get("precipitation", 0.0),
+                "viento": current.get("wind_speed_10m", 8.0)
+            }
+    except Exception:
+        return {"temp": 22.0, "lluvia": 0.0, "viento": 8.0}
+
 def enviar_telegram(token, chat_id, mensaje):
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -25,7 +40,6 @@ def enviar_telegram(token, chat_id, mensaje):
         }).encode('utf-8')
         req = urllib.request.Request(url, data=data, headers={'User-Agent': 'AgroAlert/1.0'})
         with urllib.request.urlopen(req, timeout=10) as resp:
-            print(f"Mensaje enviado con éxito al chat {chat_id}")
             return True
     except Exception as e:
         print(f"Error al enviar a {chat_id}: {e}")
@@ -44,32 +58,29 @@ def ejecutar_alertas_diarias():
         chat_id = info.get("telegram_id")
         nombre = info.get("nombre", username)
         
-        # Si el usuario no tiene configurado su token o chat_id, saltamos
-        if not token or not chat_id or token == "TU_TOKEN_BOT" or chat_id == "TU_CHAT_ID":
-            print(f"El usuario {username} no tiene Telegram configurado.")
+        if not token or not chat_id:
             continue
             
-        # Buscamos las fincas específicas de este usuario
         fincas_usuario = fincas_db.get(username, {})
         if not fincas_usuario:
-            print(f"El usuario {username} no tiene fincas registradas.")
             continue
             
-        # Cogemos su primera parcela por defecto para el parte diario
-        nombre_finca, datos_finca = list(fincas_usuario.items())[0]
-        superficie = datos_finca.get("ha", 0)
+        # Construir mensaje con TODAS las fincas del usuario
+        msg_partes = [f"🚜 *AGROALERT - PARTE DIARIO (4:45)*\n👤 *Agricultor:* {nombre}"]
         
-        # Mensaje personalizado con sus datos
-        mensaje = (
-            f"🚜 *AGROALERT - PARTE DIARIO DE LAS 4:45*\n"
-            f"👤 *Agricultor:* {nombre}\n"
-            f"📍 *Parcela:* {nombre_finca} ({superficie} ha)\n"
-            f"🟢 *Estado:* Día perfecto para sulfatar.\n"
-            f"💨 *Viento:* 8 km/h (Calma).\n"
-            f"🌧️ *Lluvia:* 0.0 L/m²."
-        )
-        
-        enviar_telegram(token, chat_id, mensaje)
+        for nombre_finca, d_finca in fincas_usuario.items():
+            meteo = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
+            estado = "⛔ No recomendado" if meteo["viento"] > 15 or meteo["lluvia"] > 2.0 else "✅ Perfecto para sulfatar"
+            
+            msg_partes.append(
+                f"\n📍 *Finca:* {nombre_finca} ({d_finca.get('ha', 0)} ha)\n"
+                f"   • *Estado:* {estado}\n"
+                f"   • *Viento:* {meteo['viento']:.1f} km/h\n"
+                f"   • *Lluvia:* {meteo['lluvia']:.1f} mm"
+            )
+            
+        mensaje_final = "\n".join(msg_partes)
+        enviar_telegram(token, chat_id, mensaje_final)
 
 if __name__ == "__main__":
     ejecutar_alertas_diarias()
