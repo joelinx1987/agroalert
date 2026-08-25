@@ -344,8 +344,17 @@ humedad_hoy = meteo_actual["humedad"]
 with col_contenido:
     if "Puedo Sulfatar" in menu:
         st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
+        
+        # Construir razones dinámicas del estado del tiempo
+        razones = []
+        if viento_hoy > 15:
+            razones.append(f"• Viento fuerte a {viento_hoy:.1f} km/h (Límite máximo recomendado: 15 km/h)")
+        if lluvia_hoy > 2.0:
+            razones.append(f"• Riesgo de precipitaciones de {lluvia_hoy:.1f} mm (Riesgo de lavado)")
+
         if viento_hoy > 15 or lluvia_hoy > 2.0:
-            st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ HOY NO ES BUEN DÍA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento fuerte a {viento_hoy:.1f} km/h o riesgo de lluvia ({lluvia_hoy:.1f} mm).</p></div>', unsafe_allow_html=True)
+            razones_texto = "<br>".join(razones)
+            st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ CONDICIONES NO APTAS PARA TRATAR</h2><p style="font-size:1.1rem; margin-top:12px; line-height:1.6;"><b>Motivos meteorológicos:</b><br>{razones_texto}</p></div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ VÍA LIBRE PARA TRATAR LA FINCA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento suave ({viento_hoy:.1f} km/h) y sin precipitaciones.</p></div>', unsafe_allow_html=True)
         
@@ -416,7 +425,7 @@ with col_contenido:
                 m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
                 
                 if m_finca["viento"] > 15:
-                    estado_f = "⛔ PROHIBIDO SULFATAR (Mucho viento)"
+                    estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
                     accion_obligatoria = "👉 *Frenar actividad en campo.* Viento excesivo: alto riesgo de deriva y contaminación."
                     consejos = (
                         "💡 *Consejos profesionales de valor:*\n"
@@ -425,7 +434,7 @@ with col_contenido:
                         "   3️⃣ *Seguridad:* Evita cualquier aplicación que incumpla la normativa local."
                     )
                 elif m_finca["lluvia"] > 2.0:
-                    estado_f = "⛔ PROHIBIDO SULFATAR (Riesgo de lluvia)"
+                    estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Riesgo de lluvia)"
                     accion_obligatoria = "👉 *Frenar actividad en campo.* Riesgo de lavado inmediato del caldo aplicado."
                     consejos = (
                         "💡 *Consejos profesionales de valor:*\n"
