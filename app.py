@@ -33,7 +33,6 @@ st.markdown("""
     .semaforo-ok { background: #dcfce7; border: 3px solid #22c55e; border-radius: 20px; padding: 24px; text-align: center; color: #064e3b; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
     .semaforo-bad { background: #fee2e2; border: 3px solid #ef4444; border-radius: 20px; padding: 24px; text-align: center; color: #7f1d1d; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15); }
     .stButton>button { font-size: 1.1rem !important; font-weight: 800 !important; padding: 14px 20px !important; border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important; }
-    .guia-caja { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 16px; margin-bottom: 15px; color: #065f46; font-size: 1rem; line-height: 1.5; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -122,43 +121,35 @@ if not st.session_state.usuario_autenticado:
                         st.error("Usuario o contraseña incorrectos.")
 
         with tab_registro:
-            st.markdown("""
-            <div class="guia-caja">
-                <b>🌾 ¿Cómo conseguir tu código de Telegram?</b><br><br>
-                1️⃣ Abre Telegram en tu móvil y busca nuestro bot: <b>@ActualizacionAgroAlert_bot</b><br>
-                2️⃣ Escríbele cualquier cosa (por ejemplo: <i>Hola</i>).<br>
-                3️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo aquí abajo!
-            </div>
-            """, unsafe_allow_html=True)
-
             with st.form("form_registro_nuevo"):
-                nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
+                nuevo_user = st.text_input("Elige un nombre de usuario").strip().lower()
                 nuevo_pwd = st.text_input("Contraseña", type="password")
                 nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                nuevo_chat_id = st.text_input("Tu Código de Telegram (que te acaba de dar el bot)")
-                
-                nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
+                nuevo_chat_id = st.text_input("Tu Telegram Chat ID (ej. 5473461038)")
+                nuevo_token = st.text_input("Token de tu Bot de Telegram", value="8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
                 
                 st.markdown("---")
-                st.markdown("##### 📍 Datos de tu parcela")
-                nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
-                superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
+                st.markdown("##### 📍 Datos de tu primera parcela")
+                nombre_parcela = st.text_input("Nombre de la parcela (ej: Viñedo Norte)", value="🍇 Mi Viña")
+                superficie_ha = st.number_input("Superficie en hectáreas (ha)", value=2.0, step=0.5)
 
-                registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
+                registrarse = st.form_submit_button("✨ CREAR CUENTA Y PARCELA", use_container_width=True, type="primary")
                 if registrarse:
                     if not nuevo_user or not nuevo_pwd or not nuevo_chat_id:
-                        st.error("Por favor, rellena tu usuario, contraseña y número de Telegram.")
+                        st.error("Por favor, rellena usuario, contraseña y Chat ID.")
                     elif nuevo_user in st.session_state.usuarios_db:
                         st.error("Ese usuario ya existe. Elige otro.")
                     else:
+                        # Guardar usuario
                         st.session_state.usuarios_db[nuevo_user] = {
                             "pwd": nuevo_pwd,
                             "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
                             "telegram_id": nuevo_chat_id.strip(),
-                            "telegram_token": nuevo_token
+                            "telegram_token": nuevo_token.strip()
                         }
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
 
+                        # Guardar su finca inicial
                         if nuevo_user not in st.session_state.db_privada:
                             st.session_state.db_privada[nuevo_user] = {}
                         st.session_state.db_privada[nuevo_user][nombre_parcela] = {
@@ -166,7 +157,7 @@ if not st.session_state.usuario_autenticado:
                         }
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
 
-                        st.success("¡Cuenta creada con éxito! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
+                        st.success("¡Cuenta y parcela creadas con éxito! Ya puedes iniciar sesión en la pestaña de al lado.")
     st.stop()
 
 user = st.session_state.usuario_autenticado
