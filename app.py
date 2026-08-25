@@ -28,7 +28,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS CSS PREMIUM Y DISEÑO MODERNO ---
+# --- ESTILOS CSS PREMIUM Y DISEÑO MODERNO (BOTONES GRANDES Y ACCESIBLES) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -50,6 +50,15 @@ st.markdown("""
         padding: 24px;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         margin-bottom: 20px;
+    }
+
+    .tarjeta-bienvenida {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 2px solid #22c55e;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 20px rgba(34, 197, 94, 0.1);
     }
 
     div[data-testid="stRadio"] > div {
@@ -77,7 +86,7 @@ st.markdown("""
     }
     
     div[data-testid="stRadio"] label div p {
-        font-size: 1.05rem !important;
+        font-size: 1.1rem !important;
         font-weight: 700 !important;
         color: #15803d !important;
     }
@@ -103,9 +112,9 @@ st.markdown("""
     }
 
     .stButton>button {
-        font-size: 1.1rem !important;
+        font-size: 1.15rem !important;
         font-weight: 800 !important;
-        padding: 14px 24px !important;
+        padding: 16px 26px !important;
         border-radius: 14px !important;
         border: none !important;
         background: linear-gradient(135deg, #16a34a 0%, #15803d 100% ) !important;
@@ -118,17 +127,6 @@ st.markdown("""
         background: linear-gradient(135deg, #15803d 0%, #166534 100% ) !important;
         box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4) !important;
         transform: translateY(-1px);
-    }
-
-    .guia-caja {
-        background: #f0fdf4;
-        border-left: 5px solid #16a34a;
-        border-radius: 0 16px 16px 0;
-        padding: 20px;
-        margin-bottom: 20px;
-        color: #065f46;
-        font-size: 1.05rem;
-        line-height: 1.6;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -495,6 +493,22 @@ humedad_hoy = meteo_actual["humedad"]
 horaria_24h = meteo_actual["horaria"]
 
 with col_contenido:
+    # --- TARJETA DE BIENVENIDA FIJA EN LA PARTE SUPERIOR CON ACCESO RÁPIDO ---
+    st.markdown(f"""
+    <div class="tarjeta-bienvenida">
+        <h3 style="margin: 0; color: #065f46; font-weight: 800;">🌾 Panel de Acceso Rápido - AgroAlert</h3>
+        <p style="margin: 8px 0 14px 0; color: #047857; font-size: 1.05rem;">
+            Consulta al instante si el tiempo es favorable en <b>{parcela_activa}</b> para planificar tus labores de campo de hoy sin riesgos.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("▶️ VER RESUMEN DE HOY DE MIS FINCAS", use_container_width=True, type="primary"):
+        # Al pulsar el botón, forzamos la vista directa a "¿Puedo Sulfatar Hoy?"
+        st.success("¡Cargando el parte meteorológico y fitosanitario actualizado para hoy!")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
     if "Puedo Sulfatar" in menu:
         st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
         
@@ -697,15 +711,12 @@ with col_contenido:
             h_parts = hora_aviso_usuario.split(":")
             t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(8, 0)
             
-            # Generamos las opciones limpias de media hora en media hora para que sea súper intuitivo
             horas_opciones = [time(h, m) for h in range(24) for m in (0, 30)]
             
-            # Buscar índice por defecto si coincide
             idx_default = 0
             if t_default in horas_opciones:
                 idx_default = horas_opciones.index(t_default)
             else:
-                # Si tuviera una hora rara previa, la acercamos al bloque de media hora más cercano
                 m_cercano = 30 if t_default.minute >= 15 else 0
                 t_cercano = time(t_default.hour, m_cercano)
                 if t_cercano in horas_opciones:
