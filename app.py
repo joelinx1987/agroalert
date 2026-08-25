@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS Y ANIMACIONES SUTILES PARA LAS TARJETAS ---
+# --- ESTILOS VISUALES CON FOTOGRAFÍAS DE FONDO PROFESIONALES ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -95,102 +95,72 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* --- TARJETAS METEOROLÓGICAS SEGURAS --- */
-    .card-base {
+    /* --- TARJETAS METEOROLÓGICAS CON FOTOGRAFÍA Y CONTRASTE --- */
+    .card-photo {
         position: relative;
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0;
         border-radius: 16px;
-        padding: 18px 16px;
+        padding: 20px 16px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         margin-bottom: 14px;
         overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        background-size: cover;
+        background-position: center;
+    }
+
+    /* Capa de oscurecimiento inteligente para garantizar 100% de legibilidad */
+    .card-photo::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(255, 255, 255, 0.88) 100%);
+        z-index: 1;
+    }
+
+    .card-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* 1. Fondo de Temperatura: Sol / Atardecer agrícola */
+    .card-temp {
+        background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=600&auto=format&fit=crop');
+    }
+
+    /* 2. Fondo de Viento: Espigas en movimiento */
+    .card-wind {
+        background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop');
+    }
+
+    /* 3. Fondo de Lluvia: Gotas sobre hoja */
+    .card-rain {
+        background-image: url('https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=600&auto=format&fit=crop');
+    }
+
+    /* 4. Fondo de Hongos: Hoja sana macro */
+    .card-shield {
+        background-image: url('https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?q=80&w=600&auto=format&fit=crop');
     }
 
     .card-title {
         font-size: 0.85rem;
         font-weight: 800;
-        color: #475569;
+        color: #334155;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
-        position: relative;
-        z-index: 3;
+        letter-spacing: 0.05em;
     }
     .card-value {
         font-size: 1.85rem;
         font-weight: 900;
         color: #0f172a;
         margin-top: 4px;
-        position: relative;
-        z-index: 3;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
     }
     .card-unit {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #64748b;
-    }
-
-    /* EFECTOS ANIMADOS SUTILES */
-    .anim-rain {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(59, 130, 246, 0.1) 10px, rgba(59, 130, 246, 0.1) 13px);
-        animation: animRain 1.2s linear infinite;
-        z-index: 1;
-        pointer-events: none;
-    }
-    @keyframes animRain {
-        0% { background-position: 0 0; }
-        100% { background-position: 0 26px; }
-    }
-
-    .anim-wind {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.15) 50%, transparent 100%);
-        background-size: 200% 100%;
-        animation: animWind 2.2s ease-in-out infinite;
-        z-index: 1;
-        pointer-events: none;
-    }
-    @keyframes animWind {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-
-    .anim-temp {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 30%, rgba(251, 146, 60, 0.14) 0%, transparent 75%);
-        animation: animTemp 3.5s ease-in-out infinite alternate;
-        z-index: 1;
-        pointer-events: none;
-    }
-    @keyframes animTemp {
-        0% { transform: scale(0.9); opacity: 0.4; }
-        100% { transform: scale(1.1); opacity: 0.8; }
-    }
-
-    .anim-shield-ok {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 70%, rgba(34, 197, 94, 0.12) 0%, transparent 75%);
-        z-index: 1;
-        pointer-events: none;
-    }
-
-    .anim-shield-alert {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 70%, rgba(239, 68, 68, 0.16) 0%, transparent 75%);
-        animation: animAlert 1.8s ease-in-out infinite alternate;
-        z-index: 1;
-        pointer-events: none;
-    }
-    @keyframes animAlert {
-        0% { opacity: 0.3; }
-        100% { opacity: 0.8; }
+        color: #475569;
     }
 
     .recipe-box {
@@ -230,7 +200,7 @@ st.markdown("""
         font-size: 1.05rem !important;
         font-weight: 800 !important;
         padding: 12px 18px !important;
-        border-radius: 12px !important;
+        border-radius: 14px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -546,7 +516,7 @@ with col_menu:
 # CONTENIDO EN PANEL DERECHO
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS SEGURAS
+    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS FOTOGRÁFICAS
     if "Puedo sulfatar hoy" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
@@ -584,20 +554,48 @@ with col_contenido:
         else:
             riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
 
-        # Fondos animados seguros vía HTML inyectado de una sola línea por tarjeta
-        layer_rain = '<div class="anim-rain"></div>' if lluvia_hoy > 0 else ''
-        layer_wind = '<div class="anim-wind"></div>' if viento_hoy > 4 else ''
-        layer_temp = '<div class="anim-temp"></div>'
-        layer_shield = '<div class="anim-shield-alert"></div>' if ('ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt) else '<div class="anim-shield-ok"></div>'
-
         c_m1, c_m2 = st.columns(2)
         with c_m1:
-            st.markdown(f'<div class="card-base">{layer_temp}<div class="card-title">🌡️ Tª Hoy</div><div class="card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="card-unit">C</span></div></div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="card-base">{layer_wind}<div class="card-title">💨 Viento</div><div class="card-value">{viento_hoy:.0f} <span class="card-unit">km/h</span></div></div>', unsafe_allow_html=True)
+            # 1. Temperatura
+            st.markdown(f'''
+            <div class="card-photo card-temp">
+                <div class="card-content">
+                    <div class="card-title">🌡️ Tª Hoy</div>
+                    <div class="card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="card-unit">C</span></div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
+            
+            # 2. Viento
+            st.markdown(f'''
+            <div class="card-photo card-wind">
+                <div class="card-content">
+                    <div class="card-title">💨 Viento</div>
+                    <div class="card-value">{viento_hoy:.0f} <span class="card-unit">km/h</span></div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
         with c_m2:
-            st.markdown(f'<div class="card-base">{layer_rain}<div class="card-title">🌧️ Lluvia</div><div class="card-value">{lluvia_hoy:.1f} <span class="card-unit">L</span></div></div>', unsafe_allow_html=True)
+            # 3. Lluvia
+            st.markdown(f'''
+            <div class="card-photo card-rain">
+                <div class="card-content">
+                    <div class="card-title">🌧️ Lluvia</div>
+                    <div class="card-value">{lluvia_hoy:.1f} <span class="card-unit">L</span></div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
+            
+            # 4. Hongos
             color_hongos = '#dc2626' if ('ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt) else '#15803d'
-            st.markdown(f'<div class="card-base">{layer_shield}<div class="card-title">🛡️ Hongos</div><div class="card-value" style="font-size:1.5rem; color: {color_hongos};">{riesgo_txt}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'''
+            <div class="card-photo card-shield">
+                <div class="card-content">
+                    <div class="card-title">🛡️ Hongos</div>
+                    <div class="card-value" style="font-size:1.5rem; color: {color_hongos};">{riesgo_txt}</div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
 
         st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 15px;'>📅 Previsión Semanal:</h3>", unsafe_allow_html=True)
         df_dias = []
