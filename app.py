@@ -199,6 +199,20 @@ if "fitos_db" not in st.session_state:
 if "almacen_db" not in st.session_state:
     st.session_state.almacen_db = cargar_json(ALMACEN_FILE, DEFAULT_ALMACEN)
 
+def buscar_coordenadas_localidad(nombre_lugar):
+    try:
+        query = urllib.parse.quote(nombre_lugar + ", España")
+        url = f"https://geocoding-api.open-meteo.com/v1/search?name={query}&count=1&language=es&format=json"
+        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            if "results" in data and len(data["results"]) > 0:
+                res = data["results"][0]
+                return float(res["latitude"]), float(res["longitude"])
+    except Exception:
+        pass
+    return None, None
+
 def consultar_meteo_openmeteo(lat, lon):
     try:
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
@@ -363,34 +377,37 @@ if not st.session_state.usuario_autenticado:
                     c_rp1, c_rp2 = st.columns(2)
                     with c_rp1:
                         nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca España")
-                        superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
+                        pueblo_inicial = st.text_input("Pueblo o Municipio en España", value="Logroño")
                     with c_rp2:
-                        lat_inicial = st.number_input("Latitud en España (ej: 42.4658)", value=42.4658, format="%.4f")
-                        lon_inicial = st.number_input("Longitud en España (ej: -2.4499)", value=-2.4499, format="%.4f")
+                        superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
 
                     registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
                     if registrarse:
-                        if not nuevo_user or not nuevo_pwd or not nuevo_email:
-                            st.error("Por favor, rellena tu usuario, contraseña y correo electrónico.")
+                        if not nuevo_user or not nuevo_pwd or not nuevo_email or not pueblo_inicial:
+                            st.error("Por favor, rellena tu usuario, contraseña, correo y municipio.")
                         elif nuevo_user in st.session_state.usuarios_db:
                             st.error("Ese usuario ya existe. Elige otro.")
                         else:
-                            st.session_state.usuarios_db[nuevo_user] = {
-                                "pwd": nuevo_pwd,
-                                "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
-                                "email": nuevo_email,
-                                "hora_aviso": "08:00"
-                            }
-                            guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                            lat_enc, lon_enc = buscar_coordenadas_localidad(pueblo_inicial)
+                            if lat_enc and lon_enc:
+                                st.session_state.usuarios_db[nuevo_user] = {
+                                    "pwd": nuevo_pwd,
+                                    "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
+                                    "email": nuevo_email,
+                                    "hora_aviso": "08:00"
+                                }
+                                guardar_json(USERS_FILE, st.session_state.usuarios_db)
 
-                            if nuevo_user not in st.session_state.db_privada:
-                                st.session_state.db_privada[nuevo_user] = {}
-                            st.session_state.db_privada[nuevo_user][nombre_parcela] = {
-                                "lat": lat_inicial, "lon": lon_inicial, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
-                            }
-                            guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                                if nuevo_user not in st.session_state.db_privada:
+                                    st.session_state.db_privada[nuevo_user] = {}
+                                st.session_state.db_privada[nuevo_user][nombre_parcela] = {
+                                    "lat": lat_enc, "lon": lon_enc, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
+                                }
+                                guardar_json(FINCAS_FILE, st.session_state.db_privada)
 
-                            st.success("¡Cuenta creada con éxito! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
+                                st.success("¡Cuenta creada con éxito! Ya puedes iniciar sesión.")
+                            else:
+                                st.error("No se ha podido localizar ese municipio en España.")
         else:
             st.markdown("### 🔒 Recuperación de Contraseña")
             st.write("Introduce tu nombre de usuario para verificar tu identidad y crear una nueva contraseña.")
@@ -508,7 +525,7 @@ with col_contenido:
     <div class="tarjeta-bienvenida">
         <h3 style="margin: 0; color: #065f46; font-weight: 800;">🌾 Panel de Acceso Rápido - AgroAlert España</h3>
         <p style="margin: 8px 0 14px 0; color: #047857; font-size: 1.05rem;">
-            Consulta al instante si el tiempo es favorable en <b>{parcela_activa}</b> (Coordenadas: {datos_parcela.get('lat')}, {datos_parcela.get('lon')}) para planificar tus labores de campo sin riesgos.
+            Consulta al instante si el tiempo es favorable en <b>{parcela_activa}</b> para planificar tus labores de campo sin riesgos.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -866,7 +883,7 @@ with col_contenido:
 
     elif "Gestión de Fincas" in menu:
         st.markdown("### ⚙️ Gestión, Edición y Borrado de Fincas en España")
-        st.write("Añade nuevas parcelas, edita las existentes o elimina aquellas que ya no cultives.")
+        st.write("Añade nuevas parcelas escribiendo el municipio, edita las existentes o elimina aquellas que ya no cultives.")
         
         if fincas_usuario:
             st.markdown("#### 🛰️ Vista de Satélite de Parcelas")
@@ -896,7 +913,6 @@ with col_contenido:
             st.markdown(f"📌 *Mostrando vista de satélite en España de:* **{finca_seleccionada_mapa}** (Lat: {lat_sel}, Lon: {lon_sel})")
             st.markdown("---")
 
-        # --- SECCIÓN NUEVA: ELIMINAR FINCA ---
         if fincas_usuario:
             st.markdown("#### 🗑️ Eliminar una Finca")
             with st.form("form_eliminar_finca"):
@@ -923,13 +939,7 @@ with col_contenido:
                     nueva_variedad = st.text_input("Variedad o cultivo", value=datos_actuales.get("variedad", "General"))
                     nueva_ha = st.number_input("Hectáreas de la finca", value=float(datos_actuales.get("ha", 1.0)), step=0.5)
                 with c_ed2:
-                    st.write("Ubicación exacta en España (Coordenadas):")
-                    c_eco1, c_eco2 = st.columns(2)
-                    with c_eco1:
-                        nueva_lat = st.number_input("Latitud", value=float(datos_actuales.get("lat", 42.4658)), format="%.4f")
-                    with c_eco2:
-                        nueva_lon = st.number_input("Longitud", value=float(datos_actuales.get("lon", -2.4499)), format="%.4f")
-                        
+                    pueblo_ed = st.text_input("Municipio en España (para reubicar si lo deseas)", value="")
                     st.write("Datos Catastrales:")
                     c_ecat1, c_ecat2 = st.columns(2)
                     with c_ecat1:
@@ -940,12 +950,19 @@ with col_contenido:
                 guardar_cambios = st.form_submit_button("💾 ACTUALIZAR DATOS DE LA FINCA", use_container_width=True, type="primary")
                 
                 if guardar_cambios:
+                    lat_final = datos_actuales.get("lat", 42.4658)
+                    lon_final = datos_actuales.get("lon", -2.4499)
+                    if pueblo_ed.strip():
+                        lat_busc, lon_busc = buscar_coordenadas_localidad(pueblo_ed)
+                        if lat_busc and lon_busc:
+                            lat_final, lon_final = lat_busc, lon_busc
+
                     if finca_a_editar != nuevo_nombre_finca:
                         del st.session_state.db_privada[user][finca_a_editar]
                     
                     st.session_state.db_privada[user][nuevo_nombre_finca] = {
-                        "lat": nueva_lat,
-                        "lon": nueva_lon,
+                        "lat": lat_final,
+                        "lon": lon_final,
                         "variedad": nueva_variedad,
                         "ha": nueva_ha,
                         "poligono": nuevo_pol,
@@ -956,21 +973,15 @@ with col_contenido:
                     st.rerun()
             st.markdown("---")
 
-        st.markdown("#### ➕ Añade una nueva parcela en España")
+        st.markdown("#### ➕ Añade una nueva parcela en España por Municipio")
         with st.form("form_nueva_finca"):
             c_f1, c_f2 = st.columns(2)
             with c_f1:
-                nombre_nueva = st.text_input("Nombre de la nueva finca (ej: Olivar Bajo)")
+                nombre_nueva = st.text_input("Nombre de la finca (ej: Olivar Bajo)")
+                localidad_nueva = st.text_input("Pueblo o Municipio en España (ej: Haro, Logroño, Calahorra)")
                 variedad_nueva = st.text_input("Variedad o cultivo (ej: Picual)", value="Picual")
-                ha_nueva = st.number_input("Hectáreas de la finca", value=1.0, step=0.5)
             with c_f2:
-                st.write("Ubicación exacta para Meteorología:")
-                c_coord1, c_coord2 = st.columns(2)
-                with c_coord1:
-                    lat_nueva = st.number_input("Latitud", value=42.4658, format="%.4f")
-                with c_coord2:
-                    lon_nueva = st.number_input("Longitud", value=-2.4499, format="%.4f")
-                    
+                ha_nueva = st.number_input("Hectáreas de la finca", value=1.0, step=0.5)
                 st.write("Datos Catastrales:")
                 c_cat1, c_cat2 = st.columns(2)
                 with c_cat1:
@@ -980,21 +991,25 @@ with col_contenido:
 
             guardar_parcela = st.form_submit_button("💾 GUARDAR NUEVA FINCA", use_container_width=True, type="primary")
             
-            if guardar_parcela and nombre_nueva:
-                if user not in st.session_state.db_privada:
-                    st.session_state.db_privada[user] = {}
-                    
-                st.session_state.db_privada[user][nombre_nueva] = {
-                    "lat": lat_nueva, 
-                    "lon": lon_nueva,
-                    "variedad": variedad_nueva, 
-                    "ha": ha_nueva, 
-                    "poligono": pol_nuevo, 
-                    "parcela": parc_nueva
-                }
-                guardar_json(FINCAS_FILE, st.session_state.db_privada)
-                st.success(f"¡Finca '{nombre_nueva}' añadida con éxito y geolocalizada en España!")
-                st.rerun()
+            if guardar_parcela and nombre_nueva and localidad_nueva:
+                lat_enc, lon_enc = buscar_coordenadas_localidad(localidad_nueva)
+                if lat_enc and lon_enc:
+                    if user not in st.session_state.db_privada:
+                        st.session_state.db_privada[user] = {}
+                        
+                    st.session_state.db_privada[user][nombre_nueva] = {
+                        "lat": lat_enc, 
+                        "lon": lon_enc,
+                        "variedad": variedad_nueva, 
+                        "ha": ha_nueva, 
+                        "poligono": pol_nuevo, 
+                        "parcela": parc_nueva
+                    }
+                    guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    st.success(f"¡Finca '{nombre_nueva}' añadida con éxito en {localidad_nueva}!")
+                    st.rerun()
+                else:
+                    st.error("No se ha podido encontrar ese municipio en España. Revisa el nombre.")
 
 if __name__ == "__main__":
     verificar_y_enviar_automatizaciones()
