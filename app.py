@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES CON FOTOGRAFÍAS AGRÍCOLAS ESPECÍFICAS ---
+# --- ESTILOS VISUALES: DISEÑO SUAVE SIN BORDES NÍTIDOS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -31,26 +31,26 @@ st.markdown("""
         color: var(--text-main, #0f172a);
     }
 
-    /* BOTONES DE SECCIÓN VERTICALES */
+    /* BOTONES DE SECCIÓN VERTICALES SUAVES */
     div[data-testid="stRadio"] > div {
         flex-direction: column !important;
-        gap: 8px !important;
+        gap: 10px !important;
     }
     
     div[data-testid="stRadio"] label {
         background: var(--card-bg, #ffffff) !important;
-        border: 2px solid var(--border-color, #cbd5e1) !important;
-        border-radius: 14px !important;
-        padding: 14px 18px !important;
+        border: none !important;
+        border-radius: 18px !important;
+        padding: 16px 20px !important;
         width: 100% !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
-        transition: all 0.15s ease !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+        transition: all 0.2s ease !important;
     }
     
     div[data-testid="stRadio"] label:hover {
-        border-color: #15803d !important;
         background-color: #f0fdf4 !important;
+        box-shadow: 0 6px 24px rgba(21, 128, 61, 0.08) !important;
     }
 
     div[data-testid="stRadio"] label div p {
@@ -59,90 +59,89 @@ st.markdown("""
         color: var(--text-main, #0f172a) !important;
     }
 
-    /* SEMÁFOROS */
+    /* SEMÁFOROS SUAVES */
     .traffic-ok {
         background-color: #dcfce7;
-        border: 3px solid #16a34a;
-        border-radius: 16px;
-        padding: 20px 22px;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12);
+        border: none;
+        border-radius: 20px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 24px rgba(22, 163, 74, 0.1);
         color: #064e3b;
     }
     .traffic-danger {
         background-color: #fee2e2;
-        border: 3px solid #dc2626;
-        border-radius: 16px;
-        padding: 20px 22px;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+        border: none;
+        border-radius: 20px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 24px rgba(220, 38, 38, 0.1);
         color: #7f1d1d;
     }
     .traffic-warning {
         background-color: #fef3c7;
-        border: 3px solid #d97706;
-        border-radius: 16px;
-        padding: 20px 22px;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+        border: none;
+        border-radius: 20px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 24px rgba(217, 119, 6, 0.1);
         color: #78350f;
     }
 
     .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
     .traffic-sub { font-size: 1.05rem; font-weight: 600; }
 
-    /* --- TARJETAS CON FOTOGRAFÍA AGRÍCOLA ESPECÍFICA --- */
+    /* --- TARJETAS FOTOGRÁFICAS SIN BORDES NÍTIDOS (SOFT-SHADOW) --- */
     .card-photo {
         position: relative;
-        border-radius: 16px;
-        padding: 20px 16px;
+        border-radius: 20px;
+        padding: 22px 18px;
         text-align: center;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
         overflow: hidden;
-        border: 2px solid rgba(255, 255, 255, 0.25);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
         background-size: cover;
         background-position: center;
     }
     
-    /* Capa translúcida blanca para asegurar legibilidad perfecta */
     .card-photo::before {
         content: "";
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.86) 100%);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.88) 100%);
         z-index: 1;
     }
 
     .card-content { position: relative; z-index: 2; }
 
-    /* FOTOGRAFÍAS ESPECÍFICAS SOLICITADAS */
-    .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); } /* 🌡️ Sol al amanecer */
-    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); } /* 💨 Trigo / cereal meciéndose en el campo */
-    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); } /* 🌧️ Gotas de agua sobre hojas verdes */
-    .card-shield { background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); } /* 🛡️ Racimo de vid / brote limpio y saludable */
+    .card-temp { background-image: url('https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=700&auto=format&fit=crop'); }
+    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); }
+    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); }
+    .card-shield { background-image: url('https://images.unsplash.com/photo-1537640538966-79f369143f8f?q=80&w=700&auto=format&fit=crop'); }
 
-    .card-title { font-size: 0.85rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card-title { font-size: 0.85rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
     .card-value { font-size: 1.85rem; font-weight: 900; color: #0f172a; margin-top: 4px; }
-    .card-unit { font-size: 0.95rem; font-weight: 600; color: #475569; }
+    .card-unit { font-size: 0.95rem; font-weight: 600; color: #64748b; }
 
     .recipe-box {
         background-color: #ecfdf5;
-        border: 3px solid #059669;
-        border-radius: 16px;
-        padding: 20px;
-        margin-top: 14px;
+        border: none;
+        border-radius: 20px;
+        padding: 22px;
+        margin-top: 16px;
+        box-shadow: 0 10px 30px rgba(5, 150, 105, 0.1);
         color: #065f46;
     }
     .recipe-big { font-size: 1.95rem; font-weight: 900; color: #047857; }
 
     .legend-card {
         background-color: #ffffff;
-        border: 2px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 18px 20px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        border: none;
+        border-radius: 18px;
+        padding: 20px 22px;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
     }
     .legend-header { font-size: 1.1rem; font-weight: 800; color: #15803d; margin-bottom: 6px; }
     .legend-body { font-size: 0.95rem; color: #334155; line-height: 1.55; }
@@ -152,6 +151,8 @@ st.markdown("""
         font-weight: 800 !important;
         padding: 12px 18px !important;
         border-radius: 14px !important;
+        border: none !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -193,7 +194,7 @@ def guardar_json(archivo, datos):
 def render_google_map(latitud, longitud, zoom=16, height=360):
     gmaps_url = f"https://maps.google.com/maps?q={latitud},{longitud}&hl=es&z={zoom}&t=k&output=embed"
     iframe_html = f"""
-    <div style="border-radius: 14px; overflow: hidden; border: 2px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+    <div style="border-radius: 18px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
         <iframe width="100%" height="{height}" src="{gmaps_url}" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
     </div>
     """
@@ -201,9 +202,9 @@ def render_google_map(latitud, longitud, zoom=16, height=360):
 
 def render_copy_box(texto_a_copiar):
     html_code = f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border-radius: 14px; padding: 10px 14px; margin: 8px 0 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
         <span style="font-style: italic; font-size: 1rem; color: #0f172a; font-weight: 700;">{texto_a_copiar}</span>
-        <button onclick="copiarTexto()" style="background: #15803d; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+        <button onclick="copiarTexto()" style="background: #15803d; color: #ffffff; border: none; border-radius: 10px; padding: 8px 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
             <span id="btn-lbl">📋 Copiar texto</span>
         </button>
     </div>
@@ -301,7 +302,7 @@ if not st.session_state.usuario_autenticado:
                         st.error("Usuario o contraseña incorrectos.")
         else:
             st.markdown("""
-            <div style="background: #ffffff; border: 2px solid #16a34a; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px;">
+            <div style="background: #ffffff; border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.04);">
                 <div style="font-size: 1.05rem; font-weight: 800; color: #15803d; margin-bottom: 6px;">
                     🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
                 </div>
@@ -318,7 +319,7 @@ if not st.session_state.usuario_autenticado:
             st.markdown("""
             <div style="margin-top: -6px; margin-bottom: 14px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.95rem;">
+                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(22,163,74,0.2);">
                         📲 TOCAR PARA ABRIR WHATSAPP DIRECTO
                     </div>
                 </a>
@@ -424,9 +425,9 @@ if st.session_state.modo_contraste:
         .card-title { color: #86EFAC !important; }
         .card-value { color: #FFFFFF !important; }
         .card-unit { color: #CBD5E1 !important; }
-        div[data-testid="stRadio"] label { background: #1E293B !important; border-color: #475569 !important; }
+        div[data-testid="stRadio"] label { background: #1E293B !important; }
         div[data-testid="stRadio"] label div p { color: #FFFFFF !important; }
-        .legend-card { background-color: #1E293B !important; border-color: #475569 !important; color: #FFFFFF !important; }
+        .legend-card { background-color: #1E293B !important; color: #FFFFFF !important; }
         .legend-header { color: #4ADE80 !important; }
         .legend-body { color: #E2E8F0 !important; }
     </style>
@@ -581,13 +582,13 @@ with col_contenido:
                 
                 if dias_restantes > 0:
                     st.markdown(f"""
-                    <div style="background: #fef3c7; border: 2px solid #d97706; border-radius: 14px; padding: 14px 18px; margin-top: 15px; color: #78350f; font-weight: 700;">
+                    <div style="background: #fef3c7; border-radius: 16px; padding: 16px 20px; margin-top: 16px; color: #78350f; font-weight: 700; box-shadow: 0 6px 20px rgba(217,119,6,0.08);">
                         ⏳ <b>Plazo de Seguridad Activo:</b> Quedan <b>{dias_restantes} días</b> para poder recolectar en la última parcela tratada ({ultimo_fito['Producto']} - Libre el {f_librecosecha.strftime('%d/%m/%Y')}).
                     </div>
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown("""
-                    <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 14px; padding: 12px 16px; margin-top: 15px; color: #064e3b; font-weight: 700;">
+                    <div style="background: #dcfce7; border-radius: 16px; padding: 14px 18px; margin-top: 16px; color: #064e3b; font-weight: 700; box-shadow: 0 6px 20px rgba(22,163,74,0.08);">
                         ✅ <b>Parcela Libre:</b> Plazo de seguridad superado. Apta para recolección o laboreo.
                     </div>
                     """, unsafe_allow_html=True)
@@ -947,7 +948,7 @@ with col_contenido:
                 url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
                 st.markdown(f"""
                 <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
+                    <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
                         🚗 ABRIR EN APP DE GOOGLE MAPS (GPS / NAVEGACIÓN)
                     </div>
                 </a>
