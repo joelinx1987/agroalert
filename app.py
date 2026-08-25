@@ -344,14 +344,22 @@ col_menu, col_contenido = st.columns([1.1, 2.5], gap="large")
 
 with col_menu:
     st.markdown("##### 🧭 MENÚ PRINCIPAL DE GESTIÓN:")
-    menu = st.radio("Menú:", [
+    
+    # Lista base del menú
+    lista_menu = [
         "🟢 ¿Puedo Sulfatar Hoy?",
         "🧪 Calculadora de Fitosanitarios",
         "📦 Almacén de Fitosanitarios",
         "📋 Cuaderno de Campo (PAC sin multas)",
         "📲 Avisos Automáticos a las 4:45",
         "⚙️ Gestión de Fincas y Parcelas"
-    ], label_visibility="collapsed")
+    ]
+    
+    # Si el usuario es el administrador principal (admin1987), añadimos la opción de control total de usuarios
+    if user == "admin1987":
+        lista_menu.append("👥 Gestión de Usuarios Registrados")
+
+    menu = st.radio("Menú:", lista_menu, label_visibility="collapsed")
 
 meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.46), datos_parcela.get("lon", -2.44))
 viento_hoy = meteo_actual["viento"]
@@ -548,6 +556,37 @@ with col_contenido:
             if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
             else: st.error(res)
 
+    elif "Gestión de Usuarios Registrados" in menu:
+        st.markdown("### 👥 Panel de Control y Control de Nuevos Usuarios")
+        st.write("Aquí puedes supervisar todos los agricultores que se han dado de alta en la plataforma, sus datos de contacto y gestionar sus cuentas.")
+        
+        usuarios_registrados = st.session_state.usuarios_db
+        tabla_usuarios = []
+        for username, udata in usuarios_registrados.items():
+            tabla_usuarios.append({
+                "Usuario (Login)": username,
+                "Nombre y Apellidos": udata.get("nombre", "N/A"),
+                "Telegram Chat ID": udata.get("telegram_id", "N/A"),
+                "Contraseña": udata.get("pwd", "N/A")
+            })
+            
+        st.dataframe(pd.DataFrame(tabla_usuarios), use_container_width=True, hide_index=True)
+        
+        st.markdown("---")
+        st.markdown("#### ⚙️ Gestión de Cuentas")
+        with st.form("form_borrar_usuario"):
+            user_a_borrar = st.selectbox("Selecciona un usuario para dar de baja:", [u for u in usuarios_registrados.keys() if u != "admin1987"])
+            borrar_btn = st.form_submit_button("🗑️ DAR DE BAJA A ESTE USUARIO", use_container_width=True, type="primary")
+            if borrar_btn:
+                if user_a_borrar in st.session_state.usuarios_db:
+                    del st.session_state.usuarios_db[user_a_borrar]
+                    guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                    if user_a_borrar in st.session_state.db_privada:
+                        del st.session_state.db_privada[user_a_borrar]
+                        guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    st.success(f"¡El usuario '{user_a_borrar}' ha sido eliminado correctamente del sistema!")
+                    st.rerun()
+
     elif "Gestión de Fincas" in menu:
         st.markdown("### ⚙️ Gestión de Fincas y Parcelas")
         st.write("Selecciona una parcela para verla en vista de satélite con todo detalle o edita sus datos.")
@@ -561,7 +600,6 @@ with col_contenido:
             lat_sel = float(d_mapa.get("lat", 42.4658))
             lon_sel = float(d_mapa.get("lon", -2.4499))
             
-            # Crear mapa interactivo con Folium en modo Satélite (Esri World Imagery)
             m = folium.Map(location=[lat_sel, lon_sel], zoom_start=15)
             folium.TileLayer(
                 tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
