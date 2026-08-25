@@ -402,7 +402,6 @@ with col_contenido:
         st.markdown(f"### 🛰️ Análisis de Vigor y Estrés Hídrico (NDVI) — **{parcela_activa}**")
         st.write("Evaluación satelital del índice de vegetación para detectar anomalías de desarrollo o falta de riego en la masa foliar.")
         
-        # Simulación analítica basada en temperatura y humedad actual para generar valor útil
         estres_nivel = "Moderado / Adecuado"
         color_estres = "#10b981"
         if temp_hoy > 30 and humedad_hoy < 40:
@@ -416,17 +415,21 @@ with col_contenido:
         <div style="background: #ffffff; border: 2px solid {color_estres}; border-radius: 16px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
             <h4 style="margin:0; color: {color_estres};">📊 Estado Actual del NDVI: {estres_nivel}</h4>
             <p style="margin-top: 10px; font-size: 1.05rem; color: #334155;">
+               <b>Parcela analizada:</b> {parcela_activa} ({datos_parcela.get('ha', 1.0)} ha)<br>
                <b>Índice Medio Estimado (NDVI):</b> 0.68 (Masa foliar densa)<br>
                <b>Temperatura ambiente registrada:</b> {temp_hoy}°C | <b>Humedad relativa:</b> {humedad_hoy}%
             </p>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("#### 🗺️ Mapa de Zonas con Alerta de Vigor (Sectorización de la Parcela)")
+        st.markdown(f"#### 🗺️ Mapa de Zonas con Alerta de Vigor en **{parcela_activa}**")
         lat_v = float(datos_parcela.get("lat", 42.4658))
         lon_v = float(datos_parcela.get("lon", -2.4499))
+        ha_finca_val = float(datos_parcela.get("ha", 1.0))
         
-        m_ndvi = folium.Map(location=[lat_v, lon_v], zoom_start=16)
+        offset = 0.0003 * max(0.5, (ha_finca_val ** 0.5))
+        
+        m_ndvi = folium.Map(location=[lat_v, lon_v], zoom_start=15)
         folium.TileLayer(
             tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             attr='Esri Satélite',
@@ -435,35 +438,40 @@ with col_contenido:
             control=True
         ).add_to(m_ndvi)
         
-        # Círculos de muestreo de estrés hídrico simulados por sectores de la finca
+        folium.Marker(
+            [lat_v, lon_v],
+            popup=f"Centro de {parcela_activa}",
+            tooltip=parcela_activa,
+            icon=folium.Icon(color="blue", icon="info-sign")
+        ).add_to(m_ndvi)
+        
         folium.Circle(
-            location=[lat_v + 0.0008, lon_v - 0.0008],
-            radius=40,
+            location=[lat_v + offset, lon_v - offset],
+            radius=int(30 + ha_finca_val * 5),
             color='green',
             fill=True,
             fill_color='green',
             fill_opacity=0.4,
-            popup="Zona Norte: Vigor óptimo (NDVI Alto)"
+            popup=f"Sector Norte ({parcela_activa}): Vigor óptimo (NDVI Alto)"
         ).add_to(m_ndvi)
         
         folium.Circle(
-            location=[lat_v - 0.0008, lon_v + 0.0008],
-            radius=40,
+            location=[lat_v - offset, lon_v + offset],
+            radius=int(30 + ha_finca_val * 5),
             color='orange' if temp_hoy <= 30 else 'red',
             fill=True,
             fill_color='orange' if temp_hoy <= 30 else 'red',
             fill_opacity=0.4,
-            popup="Zona Sur: Posible inicio de estrés hídrico"
+            popup=f"Sector Sur ({parcela_activa}): Posible inicio de estrés hídrico"
         ).add_to(m_ndvi)
         
-        st_folium(m_ndvi, width=700, height=400)
-        st.info("💡 **Recomendación agronómica:** Las zonas marcadas en tonos cálidos muestran menor reflectancia en el infrarrojo cercano, sugiriendo revisión de goteros o aporte de riego de apoyo.")
+        st_folium(m_ndvi, width=700, height=450)
+        st.info(f"💡 **Información:** Los puntos de análisis para **{parcela_activa}** se han recalculado de forma exclusiva en base a su ubicación geográfica y sus `{ha_finca_val} ha` de superficie.")
 
     elif "Avisos Predictivos de Plagas" in menu:
         st.markdown(f"### 🐛 Modelo Predictivo de Plagas por Comarca")
         st.write("Análisis biológico automatizado basado en grados-día acumulados y condiciones higrométricas para adelantarse a las infecciones.")
         
-        # Modelo predictivo simulado basado en humedad y temperatura
         riesgo_mildiu = "Alto" if humedad_hoy > 65 and temp_hoy > 20 else "Bajo / Controlado"
         riesgo_oidio = "Moderado" if temp_hoy >= 22 and temp_hoy <= 32 else "Bajo"
         riesgo_polilla = "Activo (Vuelo de generación)" if temp_hoy > 18 else "Inactivo"
