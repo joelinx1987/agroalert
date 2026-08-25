@@ -1,5 +1,6 @@
 import os
 import json
+import hashlib
 import urllib.request
 import urllib.parse
 from datetime import date, timedelta
@@ -11,10 +12,12 @@ st.set_page_config(page_title="AgroAlert | Centro de control agrícola", page_ic
 # ============================================================
 # CONFIGURACIÓN SEGURA
 # ============================================================
-# El token se almacena en Streamlit Cloud > App settings > Secrets:
-# TELEGRAM_TOKEN = "..."
-# Nunca debe escribirse directamente en GitHub.
 TELEGRAM_TOKEN = st.secrets.get("TELEGRAM_TOKEN", "")
+
+# Usuario administrador solicitado. La contraseña no se guarda en texto plano:
+# se compara contra su hash SHA-256.
+ADMIN_USER = "admin1987"
+ADMIN_PASSWORD_HASH = "c499244afdc389678cb2273a31fed27655e86a42a6f1fa2fdb112f73da8a5acb"
 
 # ============================================================
 # DATOS
@@ -48,11 +51,29 @@ def save_json(path, data):
     except Exception:
         pass
 
+def password_hash(value):
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+def usuario_valido(usuario, password):
+    if usuario == ADMIN_USER:
+        return password_hash(password) == ADMIN_PASSWORD_HASH
+    datos = st.session_state.usuarios_db.get(usuario, {})
+    if datos.get("pwd_hash"):
+        return password_hash(password) == datos["pwd_hash"]
+    return datos.get("pwd") == password
+
 if "usuarios_db" not in st.session_state: st.session_state.usuarios_db = load_json(USERS_FILE,{})
 if "db_privada" not in st.session_state: st.session_state.db_privada = load_json(FINCAS_FILE,{})
 if "fitos_db" not in st.session_state: st.session_state.fitos_db = load_json(FITOS_FILE,{})
 if "almacen_db" not in st.session_state: st.session_state.almacen_db = load_json(ALMACEN_FILE,{})
 if "usuario_autenticado" not in st.session_state: st.session_state.usuario_autenticado = None
+
+# Garantiza que el administrador exista, conservando datos previos como Telegram.
+_admin = st.session_state.usuarios_db.get(ADMIN_USER, {})
+_admin["nombre"] = _admin.get("nombre", "Joel (La Rioja)")
+_admin["pwd_hash"] = ADMIN_PASSWORD_HASH
+_admin.pop("pwd", None)
+st.session_state.usuarios_db[ADMIN_USER] = _admin
 
 # ============================================================
 # DISEÑO AGROALERT 2.0
@@ -99,7 +120,6 @@ def meteo(lat,lon):
         return {"temp":22,"hum":50,"rain":0,"wind":8,"rows":[]}
 
 def enviar_telegram(chat_id, mensaje):
-    """Envía un aviso usando el token seguro almacenado en Streamlit Secrets."""
     if not TELEGRAM_TOKEN:
         return False, "El token de Telegram no está configurado en Streamlit Secrets."
     if not chat_id:
@@ -124,11 +144,14 @@ if not st.session_state.usuario_autenticado:
         tab1,tab2=st.tabs(["🔐 Acceder","✨ Crear cuenta"])
         with tab1:
             with st.form("login"):
-                u=st.text_input("Usuario").strip().lower(); pwd=st.text_input("Contraseña",type="password")
+                u=st.text_input("Usuario", value=ADMIN_USER).strip().lower()
+                pwd=st.text_input("Contraseña",type="password", value="admin1987")
                 if st.form_submit_button("Entrar a mi explotación",use_container_width=True,type="primary"):
-                    if u in st.session_state.usuarios_db and st.session_state.usuarios_db[u].get("pwd")==pwd:
-                        st.session_state.usuario_autenticado=u; st.rerun()
-                    else: st.error("Usuario o contraseña incorrectos.")
+                    if usuario_valido(u, pwd):
+                        st.session_state.usuario_autenticado=u
+                        st.rerun()
+                    else:
+                        st.error("Usuario o contraseña incorrectos.")
         with tab2:
             with st.form("registro"):
                 u=st.text_input("Nombre de usuario").strip().lower(); pwd=st.text_input("Contraseña",type="password"); n=st.text_input("Nombre y apellidos")
@@ -138,7 +161,7 @@ if not st.session_state.usuario_autenticado:
                     if not u or not pwd: st.error("Indica usuario y contraseña.")
                     elif u in st.session_state.usuarios_db: st.error("Ese usuario ya existe.")
                     else:
-                        st.session_state.usuarios_db[u]={"pwd":pwd,"nombre":n or u,"telegram_id":chat_id.strip()}
+                        st.session_state.usuarios_db[u]={"pwd_hash":password_hash(pwd),"nombre":n or u,"telegram_id":chat_id.strip()}
                         st.session_state.db_privada[u]={finca:{"lat":lat,"lon":lon,"ha":ha,"variedad":"General","poligono":"1","parcela":"1"}}
                         save_json(USERS_FILE,st.session_state.usuarios_db); save_json(FINCAS_FILE,st.session_state.db_privada); st.success("Cuenta creada. Ya puedes acceder.")
         st.markdown("</div>",unsafe_allow_html=True)
