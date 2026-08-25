@@ -303,7 +303,7 @@ elif "Cuaderno de Campo" in menu:
 
 elif "Avisos Automáticos" in menu:
     st.markdown("### 📲 Aviso Diario en tu Telegram a las 4:45")
-    st.write("Recibirás un aviso automático diario en Telegram con el parte meteorológico de **todas** tus fincas registradas.")
+    st.write("Recibirás un aviso automático diario en Telegram con el parte meteorológico de **todas** tus fincas registradas y 3 consejos profesionales de alto valor.")
     st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
     
     if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
@@ -313,21 +313,40 @@ elif "Avisos Automáticos" in menu:
             
             if m_finca["viento"] > 15:
                 estado_f = "⛔ PROHIBIDO SULFATAR (Mucho viento)"
+                consejos = (
+                    "💡 *Consejos profesionales para hoy:*\n"
+                    "   1️⃣ *Evita la deriva:* Con este viento el producto se dispersa y contamina zonas colindantes.\n"
+                    "   2️⃣ *Aprovecha en caseta:* Revisa boquillas, limpia filtros y calibra la maquinaria.\n"
+                    "   3️⃣ *Planifica stock:* Revisa el almacén de fitosanitarios para anticiparte a las compras."
+                )
             elif m_finca["lluvia"] > 2.0:
                 estado_f = "⛔ PROHIBIDO SULFATAR (Riesgo de lluvia)"
+                consejos = (
+                    "💡 *Consejos profesionales para hoy:*\n"
+                    "   1️⃣ *Cero lavado:* La lluvia eliminará el caldo aplicado antes de que sea absorbido.\n"
+                    "   2️⃣ *Vigila encharcamientos:* Revisa drenajes y accesos principales a la parcela.\n"
+                    "   3️⃣ *Ordena el Cuaderno:* Pon al día tus apuntes fitosanitarios para evitar sanciones de la PAC."
+                )
             else:
                 estado_f = "✅ DÍA BUENO PARA ENTRAR"
+                consejos = (
+                    "💡 *Consejos profesionales para hoy:*\n"
+                    "   1️⃣ *Velocidad de avance:* Mantén una marcha constante (4-6 km/h) para un reparto uniforme.\n"
+                    "   2️⃣ *Revisa la presión:* Comprueba el manómetro para asegurar el tamaño óptimo de gota.\n"
+                    "   3️⃣ *Anota al terminar:* Registra inmediatamente el tratamiento en tu Cuaderno de Explotación."
+                )
 
             msg_partes.append(
                 f"\n📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
                 f"   • *Consejo:* {estado_f}\n"
                 f"   • *Viento:* {m_finca['viento']:.1f} km/h *(Límite: 15)*\n"
-                f"   • *Lluvia:* {m_finca['lluvia']:.1f} mm"
+                f"   • *Lluvia:* {m_finca['lluvia']:.1f} mm\n"
+                f"{consejos}\n"
             )
         msg_prueba_total = "\n".join(msg_partes)
         
         ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
-        if ok: st.success("¡Parte claro y detallado enviado con éxito a tu Telegram!")
+        if ok: st.success("¡Parte y consejos profesionales enviados con éxito a tu Telegram!")
         else: st.error(res)
 
 elif "Gestión de Fincas" in menu:
