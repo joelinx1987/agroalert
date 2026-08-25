@@ -8,6 +8,8 @@ import urllib.request
 import urllib.parse
 import json
 import hashlib
+import folium
+from streamlit_folium import st_folium
 
 # --- COMPROBACIÓN SEGURA DE LA RUTA DEL LOGO ---
 logo_path = None
@@ -476,7 +478,6 @@ with col_contenido:
                 })
                 guardar_json(FITOS_FILE, st.session_state.fitos_db)
                 
-                # Descuento automático en Almacén
                 if user in st.session_state.almacen_db and reg_mapa in st.session_state.almacen_db[user]:
                     stock_actual = st.session_state.almacen_db[user][reg_mapa]["stock_kg_l"]
                     st.session_state.almacen_db[user][reg_mapa]["stock_kg_l"] = max(0.0, stock_actual - dosis_aplicada)
@@ -549,10 +550,10 @@ with col_contenido:
 
     elif "Gestión de Fincas" in menu:
         st.markdown("### ⚙️ Gestión de Fincas y Parcelas")
-        st.write("Selecciona una parcela para verla enfocada en el mapa con todo detalle o edita sus datos.")
+        st.write("Selecciona una parcela para verla en vista de satélite con todo detalle o edita sus datos.")
         
         if fincas_usuario:
-            st.markdown("#### 🗺️ Localizador Interactivo de Parcelas")
+            st.markdown("#### 🛰️ Vista de Satélite de Parcelas")
             
             finca_seleccionada_mapa = st.selectbox("🔍 Elige una parcela para centrar el mapa:", list(fincas_usuario.keys()), key="select_mapa_finca")
             d_mapa = fincas_usuario[finca_seleccionada_mapa]
@@ -560,23 +561,26 @@ with col_contenido:
             lat_sel = float(d_mapa.get("lat", 42.4658))
             lon_sel = float(d_mapa.get("lon", -2.4499))
             
-            df_mapa_individual = pd.DataFrame([{"Finca": finca_seleccionada_mapa, "lat": lat_sel, "lon": lon_sel}])
-            st.map(df_mapa_individual, zoom=12, use_container_width=True)
+            # Crear mapa interactivo con Folium en modo Satélite (Esri World Imagery)
+            m = folium.Map(location=[lat_sel, lon_sel], zoom_start=15)
+            folium.TileLayer(
+                tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attr='Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                name='Satélite',
+                overlay=False,
+                control=True
+            ).add_to(m)
             
-            st.markdown(f"📌 *Mostrando mapa enfocado en:* **{finca_seleccionada_mapa}** (Lat: {lat_sel}, Lon: {lon_sel})")
-            st.markdown("---")
-                
-            st.markdown("#### 📋 Resumen de datos de todas tus fincas")
-            datos_tabla = []
-            for nombre, d in fincas_usuario.items():
-                datos_tabla.append({
-                    "Nombre": nombre,
-                    "Superficie (ha)": d.get("ha", 0),
-                    "Variedad": d.get("variedad", "N/A"),
-                    "Polígono": d.get("poligono", "N/A"),
-                    "Parcela": d.get("parcela", "N/A")
-                })
-            st.dataframe(pd.DataFrame(datos_tabla), use_container_width=True, hide_index=True)
+            folium.Marker(
+                [lat_sel, lon_sel],
+                popup=finca_seleccionada_mapa,
+                tooltip=finca_seleccionada_mapa,
+                icon=folium.Icon(color="green", icon="leaf", prefix="fa")
+            ).add_to(m)
+            
+            st_folium(m, width=700, height=450)
+            
+            st.markdown(f"📌 *Mostrando vista de satélite de:* **{finca_seleccionada_mapa}** (Lat: {lat_sel}, Lon: {lon_sel})")
             st.markdown("---")
 
         if fincas_usuario:
