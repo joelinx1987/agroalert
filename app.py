@@ -199,66 +199,128 @@ if "fitos_db" not in st.session_state:
 if "almacen_db" not in st.session_state:
     st.session_state.almacen_db = cargar_json(ALMACEN_FILE, DEFAULT_ALMACEN)
 
-# --- CONEXIÓN METEOROLÓGICA EN TIEMPO REAL CON ESTACIÓN CERCANA ---
+# --- CONEXIÓN METEOROLÓGICA EN TIEMPO REAL VINCULADA A CADA FINCA ---
+def descripcion_codigo_tiempo(codigo):
+    mapa = {
+        0: "Despejado",
+        1: "Principalmente despejado",
+        2: "Parcialmente nublado",
+        3: "Nublado",
+        45: "Niebla",
+        48: "Niebla con escarcha",
+        51: "Llovizna ligera",
+        53: "Llovizna moderada",
+        55: "Llovizna intensa",
+        56: "Llovizna helada ligera",
+        57: "Llovizna helada intensa",
+        61: "Lluvia ligera",
+        63: "Lluvia moderada",
+        65: "Lluvia intensa",
+        66: "Lluvia helada ligera",
+        67: "Lluvia helada intensa",
+        71: "Nieve ligera",
+        73: "Nieve moderada",
+        75: "Nieve intensa",
+        77: "Granos de nieve",
+        80: "Chubascos ligeros",
+        81: "Chubascos moderados",
+        82: "Chubascos fuertes",
+        85: "Chubascos de nieve ligeros",
+        86: "Chubascos de nieve fuertes",
+        95: "Tormenta",
+        96: "Tormenta con granizo ligero",
+        99: "Tormenta con granizo fuerte",
+    }
+    return mapa.get(codigo, "Estado no disponible")
+
 def consultar_meteo_openmeteo(lat, lon):
     try:
-        lat_f = float(lat if lat is not None else 42.4658)
-        lon_f = float(lon if lon is not None else -2.4499)
-        
-        # URL limpia y directa con los datos esenciales en tiempo real
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat_f}&longitude={lon_f}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
-        
-        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-            current = data.get("current", {})
-            hourly = data.get("hourly", {})
-            
-            # Leemos directamente los valores actuales que devuelve la estación cercana
-            temp_val = current.get("temperature_2m")
-            hum_val = current.get("relative_humidity_2m")
-            lluvia_val = current.get("precipitation")
-            viento_val = current.get("wind_speed_10m")
-            
-            horas_prevision = []
-            if "time" in hourly:
-                t_list = hourly["time"]
-                w_list = hourly["wind_speed_10m"]
-                p_list = hourly["precipitation"]
-                
-                ahora_str = datetime.now().strftime("%Y-%m-%dT%H:00")
-                idx_inicio = 0
-                for i, t in enumerate(t_list):
-                    if t >= ahora_str:
-                        idx_inicio = i
-                        break
-                
-                t_24h = t_list[idx_inicio : idx_inicio + 24]
-                w_24h = w_list[idx_inicio : idx_inicio + 24]
-                p_24h = p_list[idx_inicio : idx_inicio + 24]
-                
-                for t, w, p in zip(t_24h, w_24h, p_24h):
-                    dt_obj = datetime.fromisoformat(t)
-                    fecha_hora_str = dt_obj.strftime("%d/%m %H:00")
-                    horas_prevision.append({
-                        "Fecha y Hora": fecha_hora_str, 
-                        "Viento (km/h)": round(float(w if w is not None else 0.0), 1), 
-                        "Lluvia (mm)": round(float(p if p is not None else 0.0), 1)
-                    })
+        if lat is None or lon is None:
+            raise ValueError("La finca no tiene coordenadas válidas.")
 
-            return {
-                "temp": float(temp_val) if temp_val is not None else 20.0,
-                "humedad": float(hum_val) if hum_val is not None else 50.0,
-                "lluvia": float(lluvia_val) if lluvia_val is not None else 0.0,
-                "viento": float(viento_val) if viento_val is not None else 5.0,
-                "horaria": horaria_24h if 'horaria_24h' in locals() else horas_prevision
-            }
+        lat_f = float(lat)
+        lon_f = float(lon)
+
+        if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
+            raise ValueError(f"Coordenadas fuera de rango: {lat_f}, {lon_f}")
+
+        params = urllib.parse.urlencode({
+            "latitude": lat_f,
+            "longitude": lon_f,
+            "current": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code",
+            "hourly": "temperature_2m,precipitation,wind_speed_10m",
+            "timezone": "auto",
+            "forecast_days": 2,
+        })
+        url = f"https://api.open-meteo.com/v1/forecast?{params}"
+
+        req = urllib.request.Request(url, headers={"User-Agent": "AgroAlert/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        current = data.get("current") or {}
+        hourly = data.get("hourly") or {}
+
+        temp_val = current.get("temperature_2m")
+        hum_val = current.get("relative_humidity_2m")
+        lluvia_val = current.get("precipitation")
+        viento_val = current.get("wind_speed_10m")
+        weather_code = current.get("weather_code")
+
+        if temp_val is None or hum_val is None or lluvia_val is None or viento_val is None:
+            raise ValueError("Open-Meteo no ha devuelto todos los datos meteorológicos actuales.")
+
+        t_list = hourly.get("time", [])
+        w_list = hourly.get("wind_speed_10m", [])
+        p_list = hourly.get("precipitation", [])
+        horas_prevision = []
+
+        if t_list and w_list and p_list:
+            ahora_str = datetime.now().strftime("%Y-%m-%dT%H:00")
+            idx_inicio = next((i for i, t in enumerate(t_list) if t >= ahora_str), 0)
+
+            for t, w, p in zip(
+                t_list[idx_inicio:idx_inicio + 24],
+                w_list[idx_inicio:idx_inicio + 24],
+                p_list[idx_inicio:idx_inicio + 24],
+            ):
+                dt_obj = datetime.fromisoformat(t)
+                horas_prevision.append({
+                    "Fecha y Hora": dt_obj.strftime("%d/%m %H:00"),
+                    "Viento (km/h)": round(float(w or 0.0), 1),
+                    "Lluvia (mm)": round(float(p or 0.0), 1),
+                })
+
+        return {
+            "temp": float(temp_val),
+            "humedad": float(hum_val),
+            "lluvia": float(lluvia_val),
+            "viento": float(viento_val),
+            "weather_code": weather_code,
+            "estado_cielo": descripcion_codigo_tiempo(weather_code),
+            "horaria": horas_prevision,
+            "lat_api": data.get("latitude"),
+            "lon_api": data.get("longitude"),
+            "error": None,
+        }
+
     except Exception as e:
-        # Si hubiera algún problema de red, mostramos un error controlado en consola pero la app sigue funcionando
-        return {"temp": 15.0, "humedad": 60.0, "lluvia": 0.0, "viento": 4.0, "horaria": []}
+        return {
+            "temp": None,
+            "humedad": None,
+            "lluvia": None,
+            "viento": None,
+            "weather_code": None,
+            "estado_cielo": "No disponible",
+            "horaria": [],
+            "lat_api": None,
+            "lon_api": None,
+            "error": str(e),
+        }
+
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
     remitente = "agroalertsoporte@gmail.com"
-    password_app = "lcawcqgcsvxfyahk"
+    password_app = st.secrets.get("GMAIL_APP_PASSWORD", os.environ.get("GMAIL_APP_PASSWORD", ""))
     
     try:
         msg = MIMEMultipart()
@@ -268,6 +330,9 @@ def enviar_correo_electronico(destinatario, asunto, cuerpo):
         
         msg.attach(MIMEText(cuerpo, 'plain', 'utf-8'))
         
+        if not password_app:
+            return False, "Falta configurar GMAIL_APP_PASSWORD en los secretos de la aplicación."
+
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(remitente, password_app)
@@ -295,8 +360,18 @@ def verificar_y_enviar_automatizaciones():
                 cuerpo_partes = [f"AGROALERT - PARTE DIARIO AUTOMÁTICO (ESPAÑA)\nAgricultor: {udata.get('nombre', 'Agricultor')}\n"]
                 
                 for nombre_f, d_finca in fincas_del_usuario.items():
-                    m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
-                    
+                    m_finca = consultar_meteo_openmeteo(d_finca.get("lat"), d_finca.get("lon"))
+
+                    if m_finca.get("error"):
+                        cuerpo_partes.append(
+                            f"----------------------------------------\n"
+                            f"Finca: {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
+                            f"ESTADO: ⚠️ DATOS METEOROLÓGICOS NO DISPONIBLES\n"
+                            f"Coordenadas: {d_finca.get('lat')}, {d_finca.get('lon')}\n"
+                            f"Error: {m_finca['error']}\n"
+                        )
+                        continue
+
                     if m_finca["viento"] > 15:
                         estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
                         accion = "Frenar actividad en campo. Viento excesivo."
@@ -515,13 +590,14 @@ with col_menu:
     """, unsafe_allow_html=True)
 
 # --- CONSULTA CLIMÁTICA EN TIEMPO REAL VINCULADA EXCLUSIVAMENTE A LA FINCA SELECCIONADA ---
-meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.4658), datos_parcela.get("lon", -2.4499))
-viento_hoy = meteo_actual["viento"]
-lluvia_hoy = meteo_actual["lluvia"]
-temp_hoy = meteo_actual["temp"]
-humedad_hoy = meteo_actual["humedad"]
-estado_cielo_hoy = meteo_actual.get("estado_cielo", "Despejado")
-horaria_24h = meteo_actual["horaria"]
+meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat"), datos_parcela.get("lon"))
+error_meteo = meteo_actual.get("error")
+viento_hoy = meteo_actual.get("viento")
+lluvia_hoy = meteo_actual.get("lluvia")
+temp_hoy = meteo_actual.get("temp")
+humedad_hoy = meteo_actual.get("humedad")
+estado_cielo_hoy = meteo_actual.get("estado_cielo", "No disponible")
+horaria_24h = meteo_actual.get("horaria", [])
 
 with col_contenido:
     # --- TARJETA DE BIENVENIDA FIJA EN LA PARTE SUPERIOR CON ACCESO RÁPIDO ---
@@ -547,25 +623,38 @@ with col_contenido:
             st.warning("⚠️ No tienes ninguna finca registrada. Ve a 'Gestión de Fincas en España' para añadir una.")
         else:
             st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
-            
+
+            if error_meteo:
+                st.error(f"❌ No se han podido obtener datos meteorológicos reales para {parcela_activa}: {error_meteo}")
+                st.info(f"📍 Coordenadas consultadas: {datos_parcela.get('lat')}, {datos_parcela.get('lon')}")
+            else:
+                st.caption(
+                    f"📡 Datos reales para {parcela_activa} · "
+                    f"Finca: {datos_parcela.get('lat')}, {datos_parcela.get('lon')} · "
+                    f"Punto devuelto por Open-Meteo: {meteo_actual.get('lat_api')}, {meteo_actual.get('lon_api')}"
+                )
+
             razones = []
-            if viento_hoy > 15:
+            if not error_meteo and viento_hoy > 15:
                 razones.append(f"• Viento fuerte a {viento_hoy:.1f} km/h (Límite máximo recomendado: 15 km/h)")
-            if lluvia_hoy > 2.0:
+            if not error_meteo and lluvia_hoy > 2.0:
                 razones.append(f"• Riesgo de precipitaciones de {lluvia_hoy:.1f} mm (Riesgo de lavado)")
 
-            if viento_hoy > 15 or lluvia_hoy > 2.0:
+            if error_meteo:
+                st.warning("No se emite recomendación de tratamiento porque no hay datos meteorológicos válidos.")
+            elif viento_hoy > 15 or lluvia_hoy > 2.0:
                 razones_texto = "<br>".join(razones)
                 st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ CONDICIONES NO APTAS PARA TRATAR</h2><p style="font-size:1.1rem; margin-top:12px; line-height:1.6;"><b>Motivos meteorológicos:</b><br>{razones_texto}</p></div>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ VÍA LIBRE PARA TRATAR LA FINCA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento suave ({viento_hoy:.1f} km/h) y sin precipitaciones.</p></div>', unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
-            c_m1, c_m2, c_m3, c_m4 = st.columns(4)
-            with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.1f} km/h", "Ideal < 15")
-            with c_m2: st.metric("🌧️ Lluvia", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
-            with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
-            with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
+            if not error_meteo:
+                c_m1, c_m2, c_m3, c_m4 = st.columns(4)
+                with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.1f} km/h", "Ideal < 15")
+                with c_m2: st.metric("🌧️ Lluvia", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
+                with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
+                with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
 
             if horaria_24h:
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -584,12 +673,19 @@ with col_contenido:
             lon_f = datos_parcela.get("lon", -2.4499)
             
             meteo_comarca = consultar_meteo_openmeteo(lat_f, lon_f)
-            temp_comarca = meteo_comarca["temp"]
-            humedad_comarca = meteo_comarca["humedad"]
-            
-            riesgo_mildiu = "Alto" if humedad_comarca > 65 and temp_comarca > 20 else "Bajo / Controlado"
-            riesgo_oidio = "Moderado" if temp_comarca >= 22 and temp_comarca <= 32 else "Bajo"
-            riesgo_polilla = "Activo (Vuelo de generación)" if temp_comarca > 18 else "Inactivo"
+            if meteo_comarca.get("error"):
+                st.error(f"No se puede calcular el riesgo de plagas sin meteorología válida: {meteo_comarca['error']}")
+                temp_comarca = None
+                humedad_comarca = None
+                riesgo_mildiu = "No disponible"
+                riesgo_oidio = "No disponible"
+                riesgo_polilla = "No disponible"
+            else:
+                temp_comarca = meteo_comarca["temp"]
+                humedad_comarca = meteo_comarca["humedad"]
+                riesgo_mildiu = "Alto" if humedad_comarca > 65 and temp_comarca > 20 else "Bajo / Controlado"
+                riesgo_oidio = "Moderado" if 22 <= temp_comarca <= 32 else "Bajo"
+                riesgo_polilla = "Activo (Vuelo de generación)" if temp_comarca > 18 else "Inactivo"
             
             st.markdown(f"""
             <div style="display: flex; gap: 15px; margin-bottom: 20px;">
@@ -793,8 +889,18 @@ with col_contenido:
                 cuerpo_partes = [f"AGROALERT - PARTE DIARIO DE EXPLOTACIÓN\nAgricultor: {info_user.get('nombre', 'Agricultor')}\n"]
                 
                 for nombre_f, d_finca in fincas_del_usuario.items():
-                    m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
-                    
+                    m_finca = consultar_meteo_openmeteo(d_finca.get("lat"), d_finca.get("lon"))
+
+                    if m_finca.get("error"):
+                        cuerpo_partes.append(
+                            f"----------------------------------------\n"
+                            f"Finca: {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
+                            f"ESTADO: ⚠️ DATOS METEOROLÓGICOS NO DISPONIBLES\n"
+                            f"Coordenadas: {d_finca.get('lat')}, {d_finca.get('lon')}\n"
+                            f"Error: {m_finca['error']}\n"
+                        )
+                        continue
+
                     if m_finca["viento"] > 15:
                         estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
                         accion = "Frenar actividad en campo. Viento excesivo: alto riesgo de deriva."
@@ -980,6 +1086,7 @@ with col_contenido:
             st.markdown("---")
 
         st.markdown("#### ➕ Añade una nueva parcela en España por Coordenadas")
+        st.info("Introduce las coordenadas reales de cada finca. Si repites las mismas coordenadas, las fincas mostrarán la misma meteorología.")
         with st.form("form_nueva_finca"):
             c_f1, c_f2 = st.columns(2)
             with c_f1:
