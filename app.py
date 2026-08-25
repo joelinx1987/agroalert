@@ -1,3 +1,6 @@
+
+
+
 import os
 import json
 import hashlib
@@ -198,10 +201,6 @@ if menu=="🏠 Inicio":
     ok=w['wind']<=15 and w['rain']<=2
     if ok: st.markdown(f"<div class='ok'><div class='status'>✅ PUEDES VALORAR UN TRATAMIENTO</div><div>Condiciones actuales favorables en <b>{parcela}</b>: viento {w['wind']:.1f} km/h y lluvia {w['rain']:.1f} mm.</div></div>",unsafe_allow_html=True)
     else: st.markdown(f"<div class='bad'><div class='status'>⛔ MEJOR NO TRATAR AHORA</div><div>Revisa las condiciones antes de aplicar. Viento {w['wind']:.1f} km/h · lluvia {w['rain']:.1f} mm.</div></div>",unsafe_allow_html=True)
-    st.markdown("<div class='section'>Acciones rápidas</div>",unsafe_allow_html=True)
-    qs=st.columns(4)
-    for c,ico,txt in zip(qs,["🧪","🌦️","📋","📦"],["Calcular tratamiento","Ver previsión","Añadir tratamiento","Revisar almacén"]):
-        with c: st.markdown(f"<div class='quick'><div>{ico}</div><div>{txt}</div></div>",unsafe_allow_html=True)
     st.markdown("<div class='section'>Estado de la explotación</div>",unsafe_allow_html=True)
     a,b=st.columns([1.2,1])
     with a:
