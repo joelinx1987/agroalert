@@ -131,6 +131,7 @@ st.markdown("""
 USERS_FILE = "usuarios_db.json"
 FINCAS_FILE = "fincas_db.json"
 FITOS_FILE = "fitosanitarios_db.json"
+ALMACEN_FILE = "almacen_db.json"
 
 CATALOGO_MAPA = {
     "ES-00123": {"producto": "Oxicloruro de Cobre 50% (Preventivo Mildiu)", "plazo": 14},
@@ -166,6 +167,13 @@ DEFAULT_FINCAS = {
         "🫒 Olivar": {"lat": 42.4500, "lon": -2.4300, "variedad": "Arbequina", "ha": 1.5, "poligono": "8", "parcela": "42"}
     }
 }
+DEFAULT_ALMACEN = {
+    "admin1987": {
+        "ES-00123": {"nombre": "Oxicloruro de Cobre 50%", "stock_kg_l": 25.0},
+        "ES-00456": {"nombre": "Azufre Mojable 80%", "stock_kg_l": 40.0},
+        "ES-00789": {"nombre": "Cipermetrina 10%", "stock_kg_l": 10.0}
+    }
+}
 
 if "usuarios_db" not in st.session_state:
     st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
@@ -175,22 +183,37 @@ if "db_privada" not in st.session_state:
     st.session_state.db_privada = cargar_json(FINCAS_FILE, DEFAULT_FINCAS)
 if "fitos_db" not in st.session_state:
     st.session_state.fitos_db = cargar_json(FITOS_FILE, {})
+if "almacen_db" not in st.session_state:
+    st.session_state.almacen_db = cargar_json(ALMACEN_FILE, DEFAULT_ALMACEN)
 
 def consultar_meteo_openmeteo(lat, lon):
     try:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto"
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
         req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode('utf-8'))
             current = data.get("current", {})
+            hourly = data.get("hourly", {})
+            
+            # Extraer próximas 6 horas de previsión
+            horas_prevision = []
+            if "time" in hourly:
+                t_list = hourly["time"][:6]
+                w_list = hourly["wind_speed_10m"][:6]
+                p_list = hourly["precipitation"][:6]
+                for t, w, p in zip(t_list, w_list, p_list):
+                    hora_str = t.split("T")[-1]
+                    horas_prevision.append({"hora": hora_str, "viento": w, "lluvia": p})
+
             return {
                 "temp": current.get("temperature_2m", 22.0),
                 "humedad": current.get("relative_humidity_2m", 50.0),
                 "lluvia": current.get("precipitation", 0.0),
-                "viento": current.get("wind_speed_10m", 8.0)
+                "viento": current.get("wind_speed_10m", 8.0),
+                "horaria": horas_prevision
             }
     except Exception:
-        return {"temp": 22.0, "humedad": 50.0, "lluvia": 0.0, "viento": 8.0}
+        return {"temp": 22.0, "humedad": 50.0, "lluvia": 0.0, "viento": 8.0, "horaria": []}
 
 def disparar_telegram(token, chat_id, mensaje):
     try:
@@ -293,18 +316,22 @@ fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat":
 telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
 telegram_id = info_user.get("telegram_id", "5473461038")
 
-# --- CABECERA SUPERIOR PROFESIONAL CON LOGO OFICIAL CENTRADO Y GRANDE ---
-col_head_izq, col_head_centro, col_head_der = st.columns([1, 2.2, 1])
+# --- CABECERA SUPERIOR PROFESIONAL CON SELECTOR RÁPIDO DE FINCA Y LOGO OFICIAL ---
+col_head_izq, col_head_centro, col_head_der = st.columns([1.2, 2.2, 1])
 
 with col_head_izq:
-    st.markdown(f"<h4 style='margin-top: 15px; color: #1e293b;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h4>", unsafe_allow_html=True)
+    st.markdown(f"<h4 style='margin-top: 10px; color: #1e293b;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h4>", unsafe_allow_html=True)
+    nombres_fincas = list(fincas_usuario.keys())
+    # Selector rápido de finca integrado en la cabecera
+    parcela_activa = st.selectbox("📍 Parcela activa:", nombres_fincas, label_visibility="visible")
+    datos_parcela = fincas_usuario.get(parcela_activa, {"lat": 42.46, "lon": -2.44, "ha": 1.0})
 
 with col_head_centro:
     if logo_path and os.path.exists(logo_path):
         st.image(logo_path, use_container_width=True)
 
 with col_head_der:
-    st.markdown("<div style='display: flex; justify-content: flex-end; margin-top: 15px;'>", unsafe_allow_html=True)
+    st.markdown("<div style='display: flex; justify-content: flex-end; margin-top: 25px;'>", unsafe_allow_html=True)
     if st.button("🚪 Salir", use_container_width=False):
         st.session_state.usuario_autenticado = None
         st.rerun()
@@ -316,20 +343,11 @@ st.write("---")
 col_menu, col_contenido = st.columns([1.1, 2.5], gap="large")
 
 with col_menu:
-    st.markdown("##### 📍 SELECCIONA TU PARCELA:")
-    nombres_fincas = list(fincas_usuario.keys())
-    if nombres_fincas:
-        parcela_activa = st.selectbox("Parcela activa", nombres_fincas, label_visibility="collapsed")
-        datos_parcela = fincas_usuario[parcela_activa]
-    else:
-        parcela_activa = "Sin Finca"
-        datos_parcela = {"lat": 42.46, "lon": -2.44, "ha": 0}
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("##### 🧭 MENÚ PRINCIPAL:")
+    st.markdown("##### 🧭 MENÚ PRINCIPAL DE GESTIÓN:")
     menu = st.radio("Menú:", [
         "🟢 ¿Puedo Sulfatar Hoy?",
         "🧪 Calculadora de Fitosanitarios",
+        "📦 Almacén de Fitosanitarios",
         "📋 Cuaderno de Campo (PAC sin multas)",
         "📲 Avisos Automáticos a las 4:45",
         "⚙️ Gestión de Fincas y Parcelas"
@@ -340,12 +358,12 @@ viento_hoy = meteo_actual["viento"]
 lluvia_hoy = meteo_actual["lluvia"]
 temp_hoy = meteo_actual["temp"]
 humedad_hoy = meteo_actual["humedad"]
+horaria_24h = meteo_actual["horaria"]
 
 with col_contenido:
     if "Puedo Sulfatar" in menu:
         st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
         
-        # Construir razones dinámicas del estado del tiempo
         razones = []
         if viento_hoy > 15:
             razones.append(f"• Viento fuerte a {viento_hoy:.1f} km/h (Límite máximo recomendado: 15 km/h)")
@@ -364,6 +382,14 @@ with col_contenido:
         with c_m2: st.metric("🌧️ Lluvia", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
         with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
         with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
+
+        # MEJORA 1: Previsión Horaria (Próximas horas)
+        if horaria_24h:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("#### ⏱️ Evolución y Previsión Horaria en Parcela:")
+            df_horaria = pd.DataFrame(horaria_24h)
+            df_horaria.columns = ["Hora", "Viento (km/h)", "Lluvia (mm)"]
+            st.dataframe(df_horaria, use_container_width=True, hide_index=True)
 
     elif "Calculadora de Fitosanitarios" in menu:
         st.markdown("### 🧪 Calculadora de Fitosanitarios")
@@ -384,6 +410,40 @@ with col_contenido:
                 total_producto = dosis_ha * ha_finca
                 st.markdown(f'<div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 16px; padding: 20px; margin-top: 15px; color: #065f46;"><h3 style="margin:0; color:#047857;">📌 RESULTADO:</h3><p style="font-size: 1.3rem; font-weight: 800; margin: 10px 0;">👉 Echa <b>{producto_por_cuba:.2f} kg/L</b> por cuba de {litros_cuba} L.</p><p style="font-size: 1rem; margin: 0;">🚜 Total para {ha_finca} ha: <b>{total_cubas:.1f} cubas</b> ({total_producto:.2f} kg/L totales).</p></div>', unsafe_allow_html=True)
 
+    elif "Almacén de Fitosanitarios" in menu:
+        st.markdown("### 📦 Control de Stock en Almacén")
+        st.write("Gestiona el inventario disponible de tus productos fitosanitarios para anticiparte a las compras.")
+        
+        # Mostrar stock actual
+        stock_usuario = st.session_state.almacen_db.get(user, {})
+        if stock_usuario:
+            tabla_stock = []
+            for cod, info in stock_usuario.items():
+                tabla_stock.append({
+                    "Nº Registro MAPA": cod,
+                    "Producto": info["nombre"],
+                    "Stock Disponible (kg / L)": info["stock_kg_l"]
+                })
+            st.dataframe(pd.DataFrame(tabla_stock), use_container_width=True, hide_index=True)
+        else:
+            st.info("No tienes productos registrados en el almacén.")
+
+        st.markdown("#### ➕ Añadir producto o reponer stock")
+        with st.form("form_almacen"):
+            mapa_sel = st.selectbox("Selecciona producto fitosanitario:", list(CATALOGO_MAPA.keys()), format_func=lambda x: f"{x} - {CATALOGO_MAPA[x]['producto']}")
+            cantidad_anadir = st.number_input("Cantidad a sumar al stock (kg o L):", value=10.0, step=5.0)
+            guardar_stock = st.form_submit_button("💾 ACTUALIZAR STOCK", use_container_width=True, type="primary")
+            if guardar_stock:
+                if user not in st.session_state.almacen_db:
+                    st.session_state.almacen_db[user] = {}
+                nombre_prod = CATALOGO_MAPA[mapa_sel]["producto"]
+                actual = st.session_state.almacen_db[user].get(mapa_sel, {}).get("stock_kg_l", 0.0)
+                nuevo_total = actual + cantidad_anadir
+                st.session_state.almacen_db[user][mapa_sel] = {"nombre": nombre_prod, "stock_kg_l": nuevo_total}
+                guardar_json(ALMACEN_FILE, st.session_state.almacen_db)
+                st.success(f"¡Stock actualizado! Nuevo total de {nombre_prod}: {nuevo_total} kg/L.")
+                st.rerun()
+
     elif "Cuaderno de Campo" in menu:
         st.markdown("### 📋 Tu Cuaderno de Explotación (Normativa PAC)")
         st.write("Registra tus tratamientos fitosanitarios para cumplir con la legislación vigente y evitar sanciones ante inspecciones.")
@@ -392,7 +452,8 @@ with col_contenido:
             f_apli = st.date_input("Fecha de aplicación:", date.today())
             motivo = st.text_input("Plaga o enfermedad tratada:", value="Mildiu preventivo")
             reg_mapa = st.selectbox("Producto comercial (Nº Registro MAPA):", list(CATALOGO_MAPA.keys()), format_func=lambda x: f"{x} - {CATALOGO_MAPA[x]['producto']}")
-            guardar_fito = st.form_submit_button("💾 GUARDAR APUNTE EN EL CUADERNO", use_container_width=True, type="primary")
+            dosis_aplicada = st.number_input("Cantidad total gastada (kg o L):", value=5.0, step=1.0)
+            guardar_fito = st.form_submit_button("💾 GUARDAR APUNTE Y DESCONTAR STOCK", use_container_width=True, type="primary")
             if guardar_fito:
                 if user not in st.session_state.fitos_db: st.session_state.fitos_db[user] = []
                 plazo_dias = CATALOGO_MAPA[reg_mapa]["plazo"]
@@ -406,7 +467,14 @@ with col_contenido:
                     "Libre recolección": str(librede)
                 })
                 guardar_json(FITOS_FILE, st.session_state.fitos_db)
-                st.success("¡Apuntado y guardado correctamente en tu cuaderno oficial!")
+                
+                # MEJORA 3: Descuento automático en Almacén
+                if user in st.session_state.almacen_db and reg_mapa in st.session_state.almacen_db[user]:
+                    stock_actual = st.session_state.almacen_db[user][reg_mapa]["stock_kg_l"]
+                    st.session_state.almacen_db[user][reg_mapa]["stock_kg_l"] = max(0.0, stock_actual - dosis_aplicada)
+                    guardar_json(ALMACEN_FILE, st.session_state.almacen_db)
+
+                st.success("¡Apuntado en el cuaderno oficial y descontado del almacén con éxito!")
                 
         mis_datos = st.session_state.fitos_db.get(user, [])
         if mis_datos:
