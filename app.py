@@ -9,7 +9,6 @@ import urllib.request
 import urllib.parse
 import json
 import hashlib
-import io
 
 st.set_page_config(
     page_title="AgroAlert Pro | Explotación Inteligente",
@@ -18,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS VISUALES Y SOPORTE DE MODO ALTO CONTRASTE ---
+# --- ESTILOS VISUALES CON FOTOGRAFÍAS AGRÍCOLAS DE FONDO ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -92,7 +91,7 @@ st.markdown("""
     .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
     .traffic-sub { font-size: 1.05rem; font-weight: 600; }
 
-    /* TARJETAS FOTOGRÁFICAS */
+    /* --- TARJETAS CON FOTOGRAFÍA AGRÍCOLA PURA --- */
     .card-photo {
         position: relative;
         border-radius: 16px;
@@ -100,23 +99,28 @@ st.markdown("""
         text-align: center;
         margin-bottom: 14px;
         overflow: hidden;
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.25);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         background-size: cover;
         background-position: center;
     }
+    
+    /* Capa translúcida blanca para asegurar legibilidad perfecta sobre la foto agrícola */
     .card-photo::before {
         content: "";
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(255, 255, 255, 0.88) 100%);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.86) 100%);
         z-index: 1;
     }
+
     .card-content { position: relative; z-index: 2; }
-    .card-temp { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=600&auto=format&fit=crop'); }
-    .card-wind { background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop'); }
-    .card-rain { background-image: url('https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=600&auto=format&fit=crop'); }
-    .card-shield { background-image: url('https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?q=80&w=600&auto=format&fit=crop'); }
+
+    /* FOTOGRAFÍAS 100% DE AGRICULTURA */
+    .card-temp { background-image: url('https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=700&auto=format&fit=crop'); } /* Viñedos / Campo abierto soleado */
+    .card-wind { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=700&auto=format&fit=crop'); } /* Cereal / Espigas de trigo */
+    .card-rain { background-image: url('https://images.unsplash.com/photo-1534349762230-e8cadf3afab1?q=80&w=700&auto=format&fit=crop'); } /* Hojas verdes con rocío / lluvia */
+    .card-shield { background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=700&auto=format&fit=crop'); } /* Tractor / Agricultura de precisión */
 
     .card-title { font-size: 0.85rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.05em; }
     .card-value { font-size: 1.85rem; font-weight: 900; color: #0f172a; margin-top: 4px; }
@@ -488,7 +492,7 @@ with col_menu:
 # CONTENIDO EN PANEL DERECHO
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO CON FOTOS DE FONDO
+    # SECCIÓN 1: SEMÁFORO DIARIO CON FOTOS AGRÍCOLAS
     if "Puedo sulfatar hoy" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
@@ -565,7 +569,7 @@ with col_contenido:
             </div>
             ''', unsafe_allow_html=True)
 
-        # 4. CUENTA ATRÁS DE PLAZOS DE SEGURIDAD
+        # Cuenta atrás de Plazos de Seguridad
         hist_fitos_alerta = st.session_state.fitos_db.get(user_activo, [])
         if hist_fitos_alerta:
             ultimo_fito = hist_fitos_alerta[-1]
@@ -590,7 +594,7 @@ with col_contenido:
             except Exception:
                 pass
 
-        # 5. GRÁFICA CLIMÁTICA DE EVOLUCIÓN (30 DÍAS)
+        # Gráfica climática de evolución
         st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 20px;'>📈 Tendencia de Temperaturas y Previsión</h3>", unsafe_allow_html=True)
         df_grafica = pd.DataFrame({
             "Día": [f"Día {i+1}" for i in range(len(t_max))],
@@ -697,7 +701,6 @@ with col_contenido:
             df_fitos = pd.DataFrame(hist_fitos)
             st.dataframe(df_fitos, use_container_width=True, hide_index=True)
             
-            # Botón de exportación simulada oficial
             csv_data = df_fitos.to_csv(index=False).encode('utf-8')
             st.download_button("📥 DESCARGAR INFORME OFICIAL (CSV / FORMATO PAC)", data=csv_data, file_name=f"cuaderno_explotacion_{user_activo}.csv", mime="text/csv", use_container_width=True)
         else:
@@ -829,13 +832,13 @@ with col_contenido:
                 else:
                     st.error(res)
 
-    # SECCIÓN 6: GESTIÓN DE FINCAS Y MAPA SIGPAC
+    # SECCIÓN 6: GESTIÓN DE FINCAS Y MAPA SATÉLITE
     elif "Gestión de mis fincas" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>🌾 Gestión de Fincas ({tipo_cultivo})</h2>", unsafe_allow_html=True)
         fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
         
         if not fincas_actuales:
-            st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos o pincha en el mapa para añadir la primera:")
+            st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos para añadir la primera:")
             with st.form("form_alta_primera_finca"):
                 nom_finca = st.text_input("Nombre de la Parcela:", value="Mi Parcela 1")
                 c_lat, c_lon = st.columns(2)
