@@ -9,7 +9,7 @@ import urllib.parse
 import json
 import hashlib
 
-logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else None)
+logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else ("fondo_logo.jpg.jpg" if os.path.exists("fondo_logo.jpg.jpg") else None))
 
 st.set_page_config(
     page_title="AgroAlert | Asistente Agrícola Profesional",
@@ -33,7 +33,6 @@ st.markdown("""
         color: #1e293b;
     }
 
-    /* Tarjetas contenedoras generales */
     .agro-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -43,7 +42,6 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    /* Menú de navegación lateral/superior estilizado */
     div[data-testid="stRadio"] > div {
         display: flex;
         flex-direction: column;
@@ -74,7 +72,6 @@ st.markdown("""
         color: #15803d !important;
     }
 
-    /* Semáforos de éxito y error */
     .semaforo-ok {
         background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
         border: 2px solid #22c55e;
@@ -95,7 +92,6 @@ st.markdown("""
         box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
     }
 
-    /* Botones principales de acción */
     .stButton>button {
         font-size: 1.1rem !important;
         font-weight: 800 !important;
@@ -114,7 +110,6 @@ st.markdown("""
         transform: translateY(-1px);
     }
 
-    /* Cajas informativas de guías */
     .guia-caja {
         background: #f0fdf4;
         border-left: 5px solid #16a34a;
@@ -206,18 +201,20 @@ if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
 if not st.session_state.usuario_autenticado:
-    c1, col_login, c2 = st.columns([1, 1.8, 1])
+    c1, col_login, c2 = st.columns([1, 2.2, 1])
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
-        if logo_path and os.path.exists(logo_path):
-            st.image(logo_path, width=180)
         
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <h1 style="color: #15803d; font-weight: 900; font-size: 2.5rem; margin-bottom: 5px;">AgroAlert</h1>
-            <p style="font-weight: 600; color: #475569; font-size: 1.1rem;">Tu asistente de confianza para el campo y la PAC</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # MOSTRAR EL LOGO OFICIAL EN LA PANTALLA DE LOGIN
+        if logo_path and os.path.exists(logo_path):
+            st.image(logo_path, use_container_width=True)
+        else:
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h1 style="color: #15803d; font-weight: 900; font-size: 2.5rem; margin-bottom: 5px;">AgroAlert</h1>
+                <p style="font-weight: 600; color: #475569; font-size: 1.1rem;">Tu asistente de confianza para el campo y la PAC</p>
+            </div>
+            """, unsafe_allow_html=True)
 
         tab_entrar, tab_registro = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarse Nuevo"])
 
@@ -447,7 +444,7 @@ elif "Avisos Automáticos" in menu:
         msg_prueba_total = "\n".join(msg_partes)
         
         ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
-        if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
+        if ok: st.success("¡Parte maestro estructurado enviado con éxito à tu Telegram!")
         else: st.error(res)
 
 elif "Gestión de Fincas" in menu:
