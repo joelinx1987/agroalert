@@ -667,7 +667,6 @@ with col_contenido:
         st.write("Elige la hora exacta a la vez que configuras tu parte meteorológico automatizado.")
         st.info(f"🤖 Chat ID de Telegram configurado: **{telegram_id}**")
         
-        # --- CAJA GUÍA ACLARATORIA EN CONFIGURACIÓN DE AVISOS ---
         st.markdown("""
         <div class="guia-caja">
             <b>📱 ¿Cómo obtener tu código de Telegram (Chat ID)?</b><br>
@@ -700,57 +699,61 @@ with col_contenido:
             if telegram_id == "No configurado":
                 st.error("No se puede enviar porque no hay un Chat ID de Telegram asociado a esta cuenta.")
             else:
-                msg_partes = [f"🚜 *AGROALERT • PARTE DIARIO (Programado a las {hora_aviso_usuario})*\n👤 *Agricultor:* {info_user.get('nombre', 'Agricultor')}\n"]
-                
-                for nombre_f, d_finca in fincas_usuario.items():
-                    m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
+                fincas_del_usuario = st.session_state.db_privada.get(user, {})
+                if not fincas_del_usuario:
+                    st.warning("No tienes ninguna finca registrada para analizar.")
+                else:
+                    msg_partes = [f"🚜 *AGROALERT • PARTE DIARIO (Programado a las {hora_aviso_usuario})*\n👤 *Agricultor:* {info_user.get('nombre', 'Agricultor')}\n"]
                     
-                    if m_finca["viento"] > 15:
-                        estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
-                        accion_obligatoria = "👉 *Frenar actividad en campo.* Viento excesivo: alto riesgo de deriva y contaminación."
-                        consejos = (
-                            "💡 *Consejos profesionales de valor:*\n"
-                            "   1️⃣ *Mantenimiento:* Aprovecha en caseta para revisar boquillas, filtros y calibrar maquinaria.\n"
-                            "   2️⃣ *Stock:* Revisa el almacén de fitosanitarios para anticiparte a las próximas compras.\n"
-                            "   3️⃣ *Seguridad:* Evita cualquier aplicación que incumpla la normativa local."
-                        )
-                    elif m_finca["lluvia"] > 2.0:
-                        estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Riesgo de lluvia)"
-                        accion_obligatoria = "👉 *Frenar actividad en campo.* Riesgo de lavado inmediato del caldo aplicado."
-                        consejos = (
-                            "💡 *Consejos profesionales de valor:*\n"
-                            "   1️⃣ *Drenaje:* Vigila posibles encharcamientos y accesos principales a la parcela.\n"
-                            "   2️⃣ *PAC:* Pon al día tus apuntes fitosanitarios en el Cuaderno de Explotación.\n"
-                            "   3️⃣ *Planificación:* Revisa el estado sanitario general en cuanto amaine."
-                        )
-                    else:
-                        estado_f = "🟢 VÍA LIBRE PARA TRATAR"
-                        accion_obligatoria = "👉 *Ejecutar tratamiento en campo.* Mantén velocidad constante (4-6 km/h) y revisa la presión."
-                        consejos = (
-                            "💡 *Consejos profesionales de valor:*\n"
-                            "   1️⃣ *Calibración:* Comprueba que el manómetro asegure el tamaño óptimo de gota.\n"
-                            "   2️⃣ *Estrategia:* Asegura un reparto homogéneo en todo el volumen foliar.\n"
-                            "   3️⃣ *PAC:* Anota inmediatamente el número de registro MAPA y hectáreas tratadas al terminar."
-                        )
+                    for nombre_f, d_finca in fincas_del_usuario.items():
+                        m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
+                        
+                        if m_finca["viento"] > 15:
+                            estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
+                            accion_obligatoria = "👉 *Frenar actividad en campo.* Viento excesivo: alto riesgo de deriva y contaminación."
+                            consejos = (
+                                "💡 *Consejos profesionales de valor:*\n"
+                                "   1️⃣ *Mantenimiento:* Aprovecha en caseta para revisar boquillas, filtros y calibrar maquinaria.\n"
+                                "   2️⃣ *Stock:* Revisa el almacén de fitosanitarios para anticiparte a las próximas compras.\n"
+                                "   3️⃣ *Seguridad:* Evita cualquier aplicación que incumpla la normativa local."
+                            )
+                        elif m_finca["lluvia"] > 2.0:
+                            estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Riesgo de lluvia)"
+                            accion_obligatoria = "👉 *Frenar actividad en campo.* Riesgo de lavado inmediato del caldo aplicado."
+                            consejos = (
+                                "💡 *Consejos profesionales de valor:*\n"
+                                "   1️⃣ *Drenaje:* Vigila posibles encharcamientos y accesos principales a la parcela.\n"
+                                "   2️⃣ *PAC:* Pon al día tus apuntes fitosanitarios en el Cuaderno de Explotación.\n"
+                                "   3️⃣ *Planificación:* Revisa el estado sanitario general en cuanto amaine."
+                            )
+                        else:
+                            estado_f = "🟢 VÍA LIBRE PARA TRATAR"
+                            accion_obligatoria = "👉 *Ejecutar tratamiento en campo.* Mantén velocidad constante (4-6 km/h) y revisa la presión."
+                            consejos = (
+                                "💡 *Consejos profesionales de valor:*\n"
+                                "   1️⃣ *Calibración:* Comprueba que el manómetro asegure el tamaño óptimo de gota.\n"
+                                "   2️⃣ *Estrategia:* Asegura un reparto homogéneo en todo el volumen foliar.\n"
+                                "   3️⃣ *PAC:* Anota inmediatamente el número de registro MAPA y hectáreas tratadas al terminar."
+                            )
 
-                    msg_partes.append(
-                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
-                        f"📌 *ESTADO:* {estado_f}\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"🌤️ *Meteorología actual:*\n"
-                        f"   • Viento: {m_finca['viento']:.1f} km/h *(Límite seguro: < 15)*\n"
-                        f"   • Lluvia: {m_finca['lluvia']:.1f} mm *(Sin riesgo de lavado)*\n\n"
-                        f"🎯 *ACCIÓN OBLIGATORIA DE HOY:*\n"
-                        f"{accion_obligatoria}\n\n"
-                        f"{consejos}\n"
-                    )
+                        msg_partes.append(
+                            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                            f"📍 *Finca:* {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
+                            f"📌 *ESTADO:* {estado_f}\n"
+                            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                            f"🌤️ *Meteorología actual:*\n"
+                            f"   • Viento: {m_finca['viento']:.1f} km/h *(Límite seguro: < 15)*\n"
+                            f"   • Lluvia: {m_finca['lluvia']:.1f} mm *(Sin riesgo de lavado)*\n\n"
+                            f"🎯 *ACCIÓN OBLIGATORIA DE HOY:*\n"
+                            f"{accion_obligatoria}\n\n"
+                            f"{consejos}\n"
+                        )
+                        
+                    msg_prueba_total = "\n".join(msg_partes)
                     
-                msg_prueba_total = "\n".join(msg_partes)
-                
-                ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
-                if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
-                else: st.error(res)
+                    ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba_total)
+                    if ok: st.success("¡Parte maestro estructurado enviado con éxito a tu Telegram!")
+                    else: st.error(res)
 
     elif "Ajustes de la Cuenta" in menu:
         st.markdown("### 👤 Ajustes de la Cuenta y Datos Personales")
