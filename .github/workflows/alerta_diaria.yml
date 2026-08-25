@@ -1,16 +1,19 @@
-name: Alerta Matutina AgroAlert
+name: Bot WhatsApp Diario AgroAlert
 
 on:
   schedule:
-    # Se ejecuta todos los días a las 03:00 UTC (05:00 AM hora de España)
-    - cron: '0 3 * * *'
+    # 4:45 AM hora peninsular (España usa UTC+1 en invierno y UTC+2 en verano)
+    # Configurado en UTC (ej: 2:45 UTC en verano / 3:45 UTC en invierno). 
+    # O usa directamente el soporte de zona horaria de GitHub Actions:
+    - cron: '45 4 * * *'
+      timezone: 'Europe/Madrid'
   workflow_dispatch:
 
 jobs:
-  enviar_alertas:
+  enviar-alerta:
     runs-on: ubuntu-latest
     steps:
-      - name: Descargar repositorio
+      - name: Clonar repositorio
         uses: actions/checkout@v4
 
       - name: Configurar Python
@@ -18,5 +21,10 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Ejecutar script de WhatsApp
-        run: python bot_diario.py
+      - name: Instalar dependencias
+        run: |
+          pip install pandas
+
+      - name: Ejecutar bot matutino
+        run: |
+          python bot_diario.py
