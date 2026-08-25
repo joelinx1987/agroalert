@@ -225,17 +225,17 @@ def render_google_map(latitud, longitud, zoom=16, height=360):
 
 def render_copy_box(texto_a_copiar):
     html_code = f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(248,250,252,0.9); border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-        <span style="font-style: italic; font-size: 1rem; color: #0f172a; font-weight: 700;">{texto_a_copiar}</span>
+    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(248,250,252,0.9); border-radius: 12px; padding: 12px 16px; margin: 6px 0 10px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0;">
+        <span style="font-family: monospace; font-size: 1rem; color: #15803d; font-weight: 800;">{texto_a_copiar}</span>
         <button onclick="copiarTexto()" style="background: #15803d; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
-            <span id="btn-lbl">📋 Copiar texto</span>
+            <span id="btn-lbl">📋 Copiar frase</span>
         </button>
     </div>
     <script>
     function copiarTexto() {{
         navigator.clipboard.writeText("{texto_a_copiar}").then(function() {{
             document.getElementById('btn-lbl').innerText = '✅ ¡Copiado!';
-            setTimeout(function() {{ document.getElementById('btn-lbl').innerText = '📋 Copiar texto'; }}, 2500);
+            setTimeout(function() {{ document.getElementById('btn-lbl').innerText = '📋 Copiar frase'; }}, 2500);
         }});
     }}
     </script>
@@ -341,15 +341,14 @@ if not st.session_state.usuario_autenticado:
                     else:
                         st.error("Usuario o contraseña incorrectos.")
         else:
+            # INTERFAZ MUY INTUITIVA PASO A PASO
             st.markdown("""
-            <div style="background: rgba(255,255,255,0.9); border: 2px solid #16a34a; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-                <div style="font-size: 1.05rem; font-weight: 800; color: #15803d; margin-bottom: 6px;">
-                    🔑 CÓMO OBTENER TU APIKEY (PASO A PASO):
+            <div style="background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
+                <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 10px;">
+                    📲 PASO 1: VINCULA TU WHATSAPP
                 </div>
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.5;">
-                    <b>1.</b> Abre un chat en WhatsApp con el número: 
-                    <span style="background: #fef3c7; color: #92400e; font-weight: 800; padding: 2px 6px; border-radius: 4px;">+34 623 91 22 04</span><br>
-                    <b>2.</b> Envía este mensaje exacto:
+                <div style="font-size: 0.95rem; color: #334155; line-height: 1.6; margin-bottom: 10px;">
+                    Para recibir las alertas matutinas y de heladas, activa el bot oficial de CallMeBot enviando un mensaje de autorización:
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -357,29 +356,38 @@ if not st.session_state.usuario_autenticado:
             render_copy_box("I allow callmebot to send me messages")
 
             st.markdown("""
-            <div style="margin-top: -6px; margin-bottom: 14px;">
+            <div style="margin-top: -4px; margin-bottom: 22px;">
                 <a href="https://api.whatsapp.com/send?phone=34623912204&text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #16a34a; color: #ffffff; text-align: center; padding: 11px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(22,163,74,0.2);">
-                        📲 TOCAR PARA ABRIR WHATSAPP DIRECTO
+                    <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; text-align: center; padding: 13px; border-radius: 14px; font-weight: 900; font-size: 1rem; box-shadow: 0 6px 20px rgba(22,163,74,0.25);">
+                        🟢 1. PULSA AQUÍ PARA ABRIR WHATSAPP Y ENVIAR
                     </div>
                 </a>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
+                <div style="font-size: 1.1rem; font-weight: 900; color: #15803d; margin-bottom: 10px;">
+                    📝 PASO 2: CREA TU CUENTA
+                </div>
+                <div style="font-size: 0.95rem; color: #334155; line-height: 1.5; margin-bottom: 10px;">
+                    Una vez que el bot te responda en WhatsApp con tu <b>APIKey</b> (código numérico), rellena tus datos aquí abajo:
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
             with st.form("form_reg"):
-                nu = st.text_input("Usuario").strip()
+                nu = st.text_input("Usuario (nombre de acceso)").strip()
                 nn = st.text_input("Tu Nombre o Explotación").strip()
-                ntel = st.text_input("📱 Teléfono Móvil (+34)").strip()
-                napi = st.text_input("🔑 APIKey WhatsApp (código recibido del bot)").strip()
-                np = st.text_input("Contraseña", type="password")
+                ntel = st.text_input("📱 Tu Teléfono Móvil (+34)").strip()
+                napi = st.text_input("🔑 APIKey que te ha dado el bot por WhatsApp").strip()
+                np = st.text_input("Contraseña de acceso", type="password")
                 
-                b_up = st.form_submit_button("🚀 CREAR CUENTA", use_container_width=True, type="primary")
+                b_up = st.form_submit_button("🚀 FINALIZAR Y CREAR CUENTA", use_container_width=True, type="primary")
                 if b_up:
                     nu_clean = nu.lower()
                     tel_clean = normalizar_telefono(ntel) if ntel else ""
                     
                     if not nu_clean or not np.strip() or not ntel or not napi:
-                        st.error("Por favor, completa todos los campos.")
+                        st.error("Por favor, completa todos los campos obligatorios.")
                     elif any(k.lower() == nu_clean for k in st.session_state.usuarios_db.keys()):
                         st.error(f"El usuario '{nu}' ya existe.")
                     else:
