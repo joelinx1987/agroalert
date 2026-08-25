@@ -33,6 +33,7 @@ st.markdown("""
     .semaforo-ok { background: #dcfce7; border: 3px solid #22c55e; border-radius: 20px; padding: 24px; text-align: center; color: #064e3b; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
     .semaforo-bad { background: #fee2e2; border: 3px solid #ef4444; border-radius: 20px; padding: 24px; text-align: center; color: #7f1d1d; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15); }
     .stButton>button { font-size: 1.1rem !important; font-weight: 800 !important; padding: 14px 20px !important; border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important; }
+    .guia-caja { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 18px; margin-bottom: 15px; color: #065f46; font-size: 1.05rem; line-height: 1.6; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -41,9 +42,10 @@ FINCAS_FILE = "fincas_db.json"
 FITOS_FILE = "fitosanitarios_db.json"
 
 CATALOGO_MAPA = {
-    "ES-00123": {"producto": "Oxicloruro de Cobre 50%", "plazo": 14},
-    "ES-00456": {"producto": "Azufre Moable 80%", "plazo": 5},
-    "ES-00789": {"producto": "Cipermetrina 10%", "plazo": 21}
+    "ES-00123": {"producto": "Oxicloruro de Cobre 50% (Preventivo Mildiu)", "plazo": 14},
+    "ES-00456": {"producto": "Azufre Mojable 80% (Oídio)", "plazo": 5},
+    "ES-00789": {"producto": "Cipermetrina 10% (Insecticida Polilla)", "plazo": 21},
+    "ES-00999": {"producto": "Fosetil-Al 80% (Sistémico Antidion)", "plazo": 15}
 }
 
 def cargar_json(archivo, por_defecto):
@@ -79,6 +81,22 @@ if "db_privada" not in st.session_state:
 if "fitos_db" not in st.session_state:
     st.session_state.fitos_db = cargar_json(FITOS_FILE, {})
 
+def consultar_meteo_openmeteo(lat, lon):
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto"
+        req = urllib.request.Request(url, headers={'User-Agent': 'AgroAlert/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            current = data.get("current", {})
+            return {
+                "temp": current.get("temperature_2m", 22.0),
+                "humedad": current.get("relative_humidity_2m", 50.0),
+                "lluvia": current.get("precipitation", 0.0),
+                "viento": current.get("wind_speed_10m", 8.0)
+            }
+    except Exception:
+        return {"temp": 22.0, "humedad": 50.0, "lluvia": 0.0, "viento": 8.0}
+
 def disparar_telegram(token, chat_id, mensaje):
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -93,7 +111,7 @@ if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = None
 
 if not st.session_state.usuario_autenticado:
-    c1, col_login, c2 = st.columns([1, 1.6, 1])
+    c1, col_login, c2 = st.columns([1, 1.8, 1])
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         if logo_path and os.path.exists(logo_path):
@@ -102,7 +120,7 @@ if not st.session_state.usuario_autenticado:
         st.markdown("""
         <div style="text-align: center; margin-bottom: 20px;">
             <h1 style="color: #15803d; font-weight: 900;">AgroAlert</h1>
-            <p style="font-weight: 600; color: #475569;">Tu asistente de confianza para el campo</p>
+            <p style="font-weight: 600; color: #475569; font-size: 1.1rem;">Tu asistente de confianza para el campo y la PAC</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -121,43 +139,52 @@ if not st.session_state.usuario_autenticado:
                         st.error("Usuario o contraseña incorrectos.")
 
         with tab_registro:
+            st.markdown("""
+            <div class="guia-caja">
+                <b>🌾 ¿Cómo conectar los avisos a tu móvil paso a paso?</b><br><br>
+                1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
+                2️⃣ Busca arriba en la lupa nuestro bot oficial: <b>@ActualizacionAgroAlert_bot</b><br>
+                3️⃣ Escríbele cualquier mensaje (por ejemplo: <i>Hola</i>).<br>
+                4️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo aquí abajo!
+            </div>
+            """, unsafe_allow_html=True)
+
             with st.form("form_registro_nuevo"):
-                nuevo_user = st.text_input("Elige un nombre de usuario").strip().lower()
+                nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
                 nuevo_pwd = st.text_input("Contraseña", type="password")
                 nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                nuevo_chat_id = st.text_input("Tu Telegram Chat ID (ej. 5473461038)")
-                nuevo_token = st.text_input("Token de tu Bot de Telegram", value="8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
+                nuevo_chat_id = st.text_input("Tu Código de Telegram (que te acaba de dar el bot)")
+                
+                nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
                 
                 st.markdown("---")
-                st.markdown("##### 📍 Datos de tu primera parcela")
-                nombre_parcela = st.text_input("Nombre de la parcela (ej: Viñedo Norte)", value="🍇 Mi Viña")
-                superficie_ha = st.number_input("Superficie en hectáreas (ha)", value=2.0, step=0.5)
+                st.markdown("##### 📍 Datos de tu parcela principal")
+                nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
+                superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
 
-                registrarse = st.form_submit_button("✨ CREAR CUENTA Y PARCELA", use_container_width=True, type="primary")
+                registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
                 if registrarse:
                     if not nuevo_user or not nuevo_pwd or not nuevo_chat_id:
-                        st.error("Por favor, rellena usuario, contraseña y Chat ID.")
+                        st.error("Por favor, rellena tu usuario, contraseña y número de Telegram.")
                     elif nuevo_user in st.session_state.usuarios_db:
                         st.error("Ese usuario ya existe. Elige otro.")
                     else:
-                        # Guardar usuario
                         st.session_state.usuarios_db[nuevo_user] = {
                             "pwd": nuevo_pwd,
                             "nombre": nuevo_nombre if nuevo_nombre else nuevo_user,
                             "telegram_id": nuevo_chat_id.strip(),
-                            "telegram_token": nuevo_token.strip()
+                            "telegram_token": nuevo_token
                         }
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
 
-                        # Guardar su finca inicial
                         if nuevo_user not in st.session_state.db_privada:
                             st.session_state.db_privada[nuevo_user] = {}
                         st.session_state.db_privada[nuevo_user][nombre_parcela] = {
-                            "lat": 42.46, "lon": -2.44, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
+                            "lat": 42.4658, "lon": -2.4499, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
                         }
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
 
-                        st.success("¡Cuenta y parcela creadas con éxito! Ya puedes iniciar sesión en la pestaña de al lado.")
+                        st.success("¡Cuenta creada con éxito! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
     st.stop()
 
 user = st.session_state.usuario_autenticado
@@ -179,8 +206,12 @@ st.write("---")
 nombres_fincas = list(fincas_usuario.keys())
 parcela_activa = st.selectbox("📍 SELECCIONA TU PARCELA:", nombres_fincas)
 datos_parcela = fincas_usuario[parcela_activa]
-viento_hoy = 8.0
-lluvia_hoy = 0.0
+
+meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.46), datos_parcela.get("lon", -2.44))
+viento_hoy = meteo_actual["viento"]
+lluvia_hoy = meteo_actual["lluvia"]
+temp_hoy = meteo_actual["temp"]
+humedad_hoy = meteo_actual["humedad"]
 
 st.write("")
 
@@ -196,13 +227,16 @@ st.write("---")
 if "Puedo Sulfatar" in menu:
     st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
     if viento_hoy > 15 or lluvia_hoy > 2.0:
-        st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ HOY NO ES BUEN DÍA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento a {viento_hoy:.0f} km/h o previsión de lluvia.</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ HOY NO ES BUEN DÍA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento fuerte a {viento_hoy:.1f} km/h o riesgo de lluvia ({lluvia_hoy:.1f} mm).</p></div>', unsafe_allow_html=True)
     else:
-        st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ DÍA PERFECTO PARA ENTRAR</h2><p style="font-size:1.1rem; margin-top:8px;">Viento en calma ({viento_hoy:.0f} km/h) y sin lluvia.</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ DÍA PERFECTO PARA ENTRAR</h2><p style="font-size:1.1rem; margin-top:8px;">Viento suave ({viento_hoy:.1f} km/h) y sin precipitaciones.</p></div>', unsafe_allow_html=True)
+    
     st.markdown("<br>", unsafe_allow_html=True)
-    c_m1, c_m2 = st.columns(2)
-    with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.0f} km/h", "Ideal < 15")
-    with c_m2: st.metric("🌧️ Lluvia prevista", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
+    c_m1, c_m2, c_m3, c_m4 = st.columns(4)
+    with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.1f} km/h", "Ideal < 15")
+    with c_m2: st.metric("🌧️ Lluvia", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
+    with c_m3: st.metric("🌡️ Temperatura", f"{temp_hoy:.1f} °C", "Ambiente")
+    with c_m4: st.metric("💧 Humedad", f"{humedad_hoy:.0f}%", "Relativa")
 
 elif "Calculadora de Cuba" in menu:
     st.markdown("### 🧪 ¿Cuánto producto echo a la cuba?")
@@ -223,27 +257,39 @@ elif "Calculadora de Cuba" in menu:
             st.markdown(f'<div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 16px; padding: 20px; margin-top: 15px; color: #065f46;"><h3 style="margin:0; color:#047857;">📌 RESULTADO:</h3><p style="font-size: 1.3rem; font-weight: 800; margin: 10px 0;">👉 Echa <b>{producto_por_cuba:.2f} kg/L</b> por cuba de {litros_cuba} L.</p><p style="font-size: 1rem; margin: 0;">🚜 Total para {ha_finca} ha: <b>{total_cubas:.1f} cubas</b> ({total_producto:.2f} kg/L totales).</p></div>', unsafe_allow_html=True)
 
 elif "Cuaderno de Campo" in menu:
-    st.markdown("### 📋 Tu Cuaderno de Explotación")
+    st.markdown("### 📋 Tu Cuaderno de Explotación (Normativa PAC)")
+    st.write("Registra tus tratamientos fitosanitarios para cumplir con la legislación vigente y evitar sanciones.")
+    
     with st.form("form_cuaderno"):
         f_apli = st.date_input("Fecha de aplicación:", date.today())
-        motivo = st.text_input("¿Qué has tratado?:", value="Mildiu preventivo")
-        reg_mapa = st.text_input("Nº Registro MAPA:", value="ES-00123")
-        guardar_fito = st.form_submit_button("💾 GUARDAR APUNTE", use_container_width=True, type="primary")
+        motivo = st.text_input("Plaga o enfermedad tratada:", value="Mildiu preventivo")
+        reg_mapa = st.selectbox("Producto comercial (Nº Registro MAPA):", list(CATALOGO_MAPA.keys()), format_func=lambda x: f"{x} - {CATALOGO_MAPA[x]['producto']}")
+        guardar_fito = st.form_submit_button("💾 GUARDAR APUNTE EN EL CUADERNO", use_container_width=True, type="primary")
         if guardar_fito:
             if user not in st.session_state.fitos_db: st.session_state.fitos_db[user] = []
-            plazo_dias = CATALOGO_MAPA.get(reg_mapa.strip().upper(), {"plazo": 14})["plazo"]
+            plazo_dias = CATALOGO_MAPA[reg_mapa]["plazo"]
             librede = f_apli + timedelta(days=plazo_dias)
-            st.session_state.fitos_db[user].append({"Fecha": str(f_apli), "Parcela": parcela_activa, "Tratamiento": motivo, "MAPA": reg_mapa.upper(), "Libre recolección": str(librede)})
+            st.session_state.fitos_db[user].append({
+                "Fecha": str(f_apli), 
+                "Parcela": parcela_activa, 
+                "Tratamiento": motivo, 
+                "MAPA": reg_mapa, 
+                "Plazo seguridad": f"{plazo_dias} días",
+                "Libre recolección": str(librede)
+            })
             guardar_json(FITOS_FILE, st.session_state.fitos_db)
-            st.success("¡Apuntado correctamente!")
+            st.success("¡Apuntado y guardado correctamente en tu cuaderno oficial!")
+            
     mis_datos = st.session_state.fitos_db.get(user, [])
-    if mis_datos: st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
+    if mis_datos:
+        st.markdown("#### Historial de Tratamientos Registrados:")
+        st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
 
 elif "Avisos Automáticos" in menu:
     st.markdown("### 📲 Aviso Diario en tu Telegram a las 4:45")
     st.write("Recibirás un aviso automático en Telegram con los datos de tu parcela activa.")
     st.info(f"🤖 Chat ID configurado: **{telegram_id}**")
-    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 4:45*\n📍 *Parcela:* {parcela_activa} ({datos_parcela['ha']} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy} mm."
+    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 4:45*\n📍 *Parcela:* {parcela_activa} ({datos_parcela['ha']} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy:.1f} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy:.1f} mm."
     if st.button("📲 PROBAR ENVÍO A TELEGRAM AHORA", use_container_width=True, type="primary"):
         ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba)
         if ok: st.success(res)
