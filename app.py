@@ -124,11 +124,10 @@ if not st.session_state.usuario_autenticado:
         with tab_registro:
             st.markdown("""
             <div class="guia-caja">
-                <b>🌾 ¿Cómo saber tu número de Telegram fácilmente?</b><br><br>
-                1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
-                2️⃣ Busca arriba en la lupa el contacto oficial gratuito: <b>@userinfobot</b><br>
-                3️⃣ Entra y escríbele cualquier cosa (por ejemplo: <i>Hola</i>).<br>
-                4️⃣ El bot te contestará al instante con tus datos. El número que aparece al lado de <b>Id</b> (por ejemplo, <i>5473461038</i>) es tu código. ¡Cópialo y pégalo aquí abajo!
+                <b>🌾 ¿Cómo conseguir tu código de Telegram?</b><br><br>
+                1️⃣ Abre Telegram en tu móvil y busca nuestro bot: <b>@ActualizacionAgroAlert_bot</b><br>
+                2️⃣ Escríbele cualquier cosa (por ejemplo: <i>Hola</i>).<br>
+                3️⃣ Al instante, el bot te contestará con tu <b>Número de Identificación (Chat ID)</b>. ¡Cópialo y pégalo aquí abajo!
             </div>
             """, unsafe_allow_html=True)
 
@@ -136,7 +135,7 @@ if not st.session_state.usuario_autenticado:
                 nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
                 nuevo_pwd = st.text_input("Contraseña", type="password")
                 nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                nuevo_chat_id = st.text_input("Tu Código de Telegram (Ej: 5473461038)")
+                nuevo_chat_id = st.text_input("Tu Código de Telegram (que te acaba de dar el bot)")
                 
                 nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
                 
