@@ -69,7 +69,7 @@ def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
 DEFAULT_USERS = {
-    "joel": {"pwd": make_hash("1234"), "nombre": "Joel (La Rioja)", "telegram_id": "5473461038", "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"}
+    "admin1987": {"pwd": make_hash("admin1987"), "nombre": "Joel (La Rioja)", "telegram_id": "5473461038", "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"}
 }
 DEFAULT_FINCAS = {
     "joel": {
