@@ -34,21 +34,9 @@ st.set_page_config(
 # --- ESTILOS VISUALES: FONDO DE PANTALLA COMPLETA ---
 if fondo_path and os.path.exists(fondo_path):
     fondo_base64 = __import__('base64').b64encode(open(fondo_path, 'rb').read()).decode()
-    fondo_css_rule = f"""
-    .stApp {{
-        background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('data:image/png;base64,{fondo_base64}') !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-repeat: no-repeat !important;
-        background-attachment: fixed !important;
-    }}
-    """
+    background_rule = f"background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('data:image/png;base64,{fondo_base64}') !important; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; background-attachment: fixed !important;"
 else:
-    fondo_css_rule = """
-    .stApp {
-        background: linear-gradient(135deg, #4d7c0f 0%, #3f6212 100%) !important;
-    }
-    """
+    background_rule = "background: linear-gradient(135deg, #4d7c0f 0%, #3f6212 100%) !important;"
 
 st.markdown(f"""
 <style>
@@ -58,7 +46,9 @@ st.markdown(f"""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }}
 
-    {fondo_css_rule}
+    .stApp {{
+        {background_rule}
+    }}
 
     /* TARJETA DE ACCESO TRANSLÚCIDA Y ELEGANTE */
     .login-card-container {{
@@ -86,7 +76,7 @@ st.markdown(f"""
         cursor: pointer !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
         transition: all 0.15s ease !important;
-    }
+    }}
     
     div[data-testid="stRadio"] label:hover {{
         background-color: rgba(240, 253, 244, 0.95) !important;
