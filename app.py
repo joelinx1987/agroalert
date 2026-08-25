@@ -347,7 +347,7 @@ with col_contenido:
         if viento_hoy > 15 or lluvia_hoy > 2.0:
             st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ HOY NO ES BUEN DÍA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento fuerte a {viento_hoy:.1f} km/h o riesgo de lluvia ({lluvia_hoy:.1f} mm).</p></div>', unsafe_allow_html=True)
         else:
-            st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ DÍA PERFECTO PARA ENTRAR</h2><p style="font-size:1.1rem; margin-top:8px;">Viento suave ({viento_hoy:.1f} km/h) y sin precipitaciones.</p></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ VÍA LIBRE PARA TRATAR LA FINCA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento suave ({viento_hoy:.1f} km/h) y sin precipitaciones.</p></div>', unsafe_allow_html=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         c_m1, c_m2, c_m3, c_m4 = st.columns(4)
@@ -434,7 +434,7 @@ with col_contenido:
                         "   3️⃣ *Planificación:* Revisa el estado sanitario general en cuanto amaine."
                     )
                 else:
-                    estado_f = "🟢 DÍA ÓPTIMO PARA SULFATAR"
+                    estado_f = "🟢 VÍA LIBRE PARA TRATAR"
                     accion_obligatoria = "👉 *Ejecutar tratamiento en campo.* Mantén velocidad constante (4-6 km/h) y revisa la presión."
                     consejos = (
                         "💡 *Consejos profesionales de valor:*\n"
