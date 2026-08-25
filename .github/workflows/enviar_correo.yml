@@ -1,0 +1,27 @@
+name: Enviar Parte Diario AgroAlert
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 04:45 UTC (puedes cambiar la hora aquí)
+    - cron: '45 4 * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub cuando quieras
+
+jobs:
+  enviar-correo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          pip install pandas streamlit folium streamlit-folium
+
+      - name: Ejecutar script de envío de correo
+        run: |
+          python -c "import app; print('Parte diario procesado y enviado automáticamente.')"
