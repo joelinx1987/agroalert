@@ -423,7 +423,7 @@ with col_menu:
         "📋 Cuaderno de Campo (PAC sin multas)",
         "📲 Avisos Automáticos a las 4:45",
         "⚙️ Gestión de Fincas y Parcelas",
-        "⚙️ Ajustes de la Cuenta"
+        "👤 Ajustes de la Cuenta"
     ]
     
     if user == "admin1987":
@@ -436,7 +436,7 @@ with col_menu:
     st.markdown("##### 📢 ¡Comparte AgroAlert!")
     st.write("Comparte esta herramienta gratuita con otros agricultores:")
     
-    texto_compartir = urllib.parse.quote("¡Échale un vistazo à AgroAlert! Una app gratuita para agricultores que te avisa del tiempo para sulfatar, controla el Cuaderno PAC y manda avisos por Telegram. Pruébala aquí:")
+    texto_compartir = urllib.parse.quote("¡Échale un vistazo a AgroAlert! Una app gratuita para agricultores que te avisa del tiempo para sulfatar, controla el Cuaderno PAC y manda avisos por Telegram. Pruébala aquí:")
     url_app = "https://share.streamlit.io"
     
     link_whatsapp = f"https://api.whatsapp.com/send?text={texto_compartir}%20{url_app}"
@@ -664,7 +664,7 @@ with col_contenido:
         st.info(f"🤖 Chat ID configurado en tu cuenta: **{telegram_id}**")
         
         if telegram_id == "No configurado":
-            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Puedes añadirlo en la sección '⚙️ Ajustes de la Cuenta'.")
+            st.warning("⚠️ No tienes configurado tu Chat ID de Telegram. Puedes añadirlo en la sección '👤 Ajustes de la Cuenta'.")
         
         if st.button("📲 PROBAR ENVÍO A TELEGRAM DE TODAS MIS FINCAS", use_container_width=True, type="primary"):
             if telegram_id == "No configurado":
@@ -723,7 +723,7 @@ with col_contenido:
                 else: st.error(res)
 
     elif "Ajustes de la Cuenta" in menu:
-        st.markdown("### ⚙️ Ajustes de la Cuenta y Datos Personales")
+        st.markdown("### 👤 Ajustes de la Cuenta y Datos Personales")
         st.write("Modifica tu información de perfil, correo electrónico, contraseña o vinculación con Telegram.")
         
         with st.form("form_ajustes_cuenta"):
