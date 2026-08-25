@@ -288,10 +288,16 @@ fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat":
 telegram_token = info_user.get("telegram_token", "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs")
 telegram_id = info_user.get("telegram_id", "5473461038")
 
-# --- CABECERA SUPERIOR ---
-c_h1, c_h2 = st.columns([3, 1])
+# --- CABECERA SUPERIOR EN 3 COLUMNAS (SALUDO | LOGO OFICIAL | SALIR) ---
+c_h1, c_h_logo, c_h2 = st.columns([2, 1.2, 1])
+
 with c_h1:
-    st.markdown(f"### 🚜 Hola, {info_user.get('nombre', 'Agricultor')}")
+    st.markdown(f"<h3 style='margin-top: 10px;'>🚜 Hola, {info_user.get('nombre', 'Agricultor')}</h3>", unsafe_allow_html=True)
+
+with c_h_logo:
+    if logo_path and os.path.exists(logo_path):
+        st.image(logo_path, width=160)
+
 with c_h2:
     if st.button("🚪 Salir", use_container_width=True):
         st.session_state.usuario_autenticado = None
