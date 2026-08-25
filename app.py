@@ -52,6 +52,15 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
+    .tarjeta-bienvenida {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 2px solid #22c55e;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 20px rgba(34, 197, 94, 0.1);
+    }
+
     div[data-testid="stRadio"] > div {
         display: flex;
         flex-direction: column;
@@ -77,7 +86,7 @@ st.markdown("""
     }
     
     div[data-testid="stRadio"] label div p {
-        font-size: 1.05rem !important;
+        font-size: 1.1rem !important;
         font-weight: 700 !important;
         color: #15803d !important;
     }
@@ -103,9 +112,9 @@ st.markdown("""
     }
 
     .stButton>button {
-        font-size: 1.1rem !important;
+        font-size: 1.15rem !important;
         font-weight: 800 !important;
-        padding: 14px 24px !important;
+        padding: 16px 26px !important;
         border-radius: 14px !important;
         border: none !important;
         background: linear-gradient(135deg, #16a34a 0%, #15803d 100% ) !important;
@@ -118,17 +127,6 @@ st.markdown("""
         background: linear-gradient(135deg, #15803d 0%, #166534 100% ) !important;
         box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4) !important;
         transform: translateY(-1px);
-    }
-
-    .guia-caja {
-        background: #f0fdf4;
-        border-left: 5px solid #16a34a;
-        border-radius: 0 16px 16px 0;
-        padding: 20px;
-        margin-bottom: 20px;
-        color: #065f46;
-        font-size: 1.05rem;
-        line-height: 1.6;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -173,8 +171,9 @@ DEFAULT_USERS = {
 }
 DEFAULT_FINCAS = {
     "admin1987": {
-        "🍇 Viñedo Principal": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "ha": 3.5, "poligono": "12", "parcela": "104"},
-        "🫒 Olivar": {"lat": 42.4500, "lon": -2.4300, "variedad": "Arbequina", "ha": 1.5, "poligono": "8", "parcela": "42"}
+        "🍇 Finca Logroño": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "ha": 3.5, "poligono": "12", "parcela": "104"},
+        "🗾 Finca Japón": {"lat": 35.6762, "lon": 139.6503, "variedad": "Arroz", "ha": 2.0, "poligono": "4", "parcela": "12"},
+        "🌺 Finca Hawái": {"lat": 19.8968, "lon": -155.5828, "variedad": "Cafeto", "ha": 1.5, "poligono": "2", "parcela": "7"}
     }
 }
 DEFAULT_ALMACEN = {
@@ -284,6 +283,7 @@ def verificar_y_enviar_automatizaciones():
                 cuerpo_partes = [f"AGROALERT - PARTE DIARIO AUTOMÁTICO\nAgricultor: {udata.get('nombre', 'Agricultor')}\n"]
                 
                 for nombre_f, d_finca in fincas_del_usuario.items():
+                    # Consulta independiente para cada finca según sus coordenadas reales
                     m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
                     
                     if m_finca["viento"] > 15:
@@ -422,7 +422,11 @@ if not st.session_state.usuario_autenticado:
 
 user = st.session_state.usuario_autenticado
 info_user = st.session_state.usuarios_db.get(user, {})
-fincas_usuario = st.session_state.db_privada.get(user, {"🍇 Mi Viña": {"lat": 42.46, "lon": -2.44, "ha": 2.0}})
+fincas_usuario = st.session_state.db_privada.get(user, {
+    "🍇 Finca Logroño": {"lat": 42.4658, "lon": -2.4499, "ha": 3.5},
+    "🗾 Finca Japón": {"lat": 35.6762, "lon": 139.6503, "ha": 2.0},
+    "🌺 Finca Hawái": {"lat": 19.8968, "lon": -155.5828, "ha": 1.5}
+})
 hora_aviso_usuario = info_user.get("hora_aviso", "08:00")
 email_usuario = info_user.get("email", "")
 
@@ -487,6 +491,7 @@ with col_menu:
         </div>
     """, unsafe_allow_html=True)
 
+# --- CONSULTA CLIMÁTICA INDEPENDIENTE PARA LA FINCA SELECCIONADA ---
 meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.46), datos_parcela.get("lon", -2.44))
 viento_hoy = meteo_actual["viento"]
 lluvia_hoy = meteo_actual["lluvia"]
@@ -495,6 +500,21 @@ humedad_hoy = meteo_actual["humedad"]
 horaria_24h = meteo_actual["horaria"]
 
 with col_contenido:
+    # --- TARJETA DE BIENVENIDA FIJA EN LA PARTE SUPERIOR CON ACCESO RÁPIDO ---
+    st.markdown(f"""
+    <div class="tarjeta-bienvenida">
+        <h3 style="margin: 0; color: #065f46; font-weight: 800;">🌾 Panel de Acceso Rápido - AgroAlert</h3>
+        <p style="margin: 8px 0 14px 0; color: #047857; font-size: 1.05rem;">
+            Consulta al instante si el tiempo es favorable en <b>{parcela_activa}</b> (Lat: {datos_parcela.get('lat')}, Lon: {datos_parcela.get('lon')}) para planificar tus labores de campo.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("▶️ VER RESUMEN DE HOY DE MIS FINCAS", use_container_width=True, type="primary"):
+        st.success(f"¡Cargando el parte meteorológico y fitosanitario actualizado para {parcela_activa}!")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
     if "Puedo Sulfatar" in menu:
         st.markdown(f"### 🎯 Estado del tiempo para hoy en **{parcela_activa}**")
         
@@ -519,7 +539,7 @@ with col_contenido:
 
         if horaria_24h:
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("#### ⏱️ Evolución y Previsión Horaria (Próximas 24 Horas):")
+            st.markdown(f"#### ⏱️ Evolución y Previsión Horaria para **{parcela_activa}** (Próximas 24 Horas):")
             df_horaria = pd.DataFrame(horaria_24h)
             st.dataframe(df_horaria, use_container_width=True, hide_index=True)
 
@@ -559,7 +579,7 @@ with col_contenido:
         """, unsafe_allow_html=True)
             
         st.markdown("---")
-        st.markdown("#### 🗺️ Visualización del Radio de Influencia Comarcal (50 km)")
+        st.markdown(f"#### 🗺️ Visualización del Radio de Influencia Comarcal (50 km) para {parcela_activa}")
         
         m_comarca = folium.Map(location=[lat_f, lon_f], zoom_start=10)
         folium.TileLayer(
@@ -697,15 +717,12 @@ with col_contenido:
             h_parts = hora_aviso_usuario.split(":")
             t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(8, 0)
             
-            # Generamos las opciones limpias de media hora en media hora para que sea súper intuitivo
             horas_opciones = [time(h, m) for h in range(24) for m in (0, 30)]
             
-            # Buscar índice por defecto si coincide
             idx_default = 0
             if t_default in horas_opciones:
                 idx_default = horas_opciones.index(t_default)
             else:
-                # Si tuviera una hora rara previa, la acercamos al bloque de media hora más cercano
                 m_cercano = 30 if t_default.minute >= 15 else 0
                 t_cercano = time(t_default.hour, m_cercano)
                 if t_cercano in horas_opciones:
