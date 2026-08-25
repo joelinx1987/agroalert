@@ -9,6 +9,14 @@ import streamlit as st
 st.set_page_config(page_title="AgroAlert | Centro de control agrícola", page_icon="🌱", layout="wide", initial_sidebar_state="collapsed")
 
 # ============================================================
+# CONFIGURACIÓN SEGURA
+# ============================================================
+# El token se almacena en Streamlit Cloud > App settings > Secrets:
+# TELEGRAM_TOKEN = "..."
+# Nunca debe escribirse directamente en GitHub.
+TELEGRAM_TOKEN = st.secrets.get("TELEGRAM_TOKEN", "")
+
+# ============================================================
 # DATOS
 # ============================================================
 USERS_FILE = "usuarios_db.json"
@@ -27,14 +35,18 @@ CATALOGO = {
 def load_json(path, default):
     if os.path.exists(path):
         try:
-            with open(path, encoding="utf-8") as f: return json.load(f)
-        except Exception: pass
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
     return default
 
 def save_json(path, data):
     try:
-        with open(path,"w",encoding="utf-8") as f: json.dump(data,f,ensure_ascii=False,indent=2)
-    except Exception: pass
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
 if "usuarios_db" not in st.session_state: st.session_state.usuarios_db = load_json(USERS_FILE,{})
 if "db_privada" not in st.session_state: st.session_state.db_privada = load_json(FINCAS_FILE,{})
@@ -69,7 +81,7 @@ div[data-testid="stButton"] button{border-radius:12px!important;font-weight:700!
 """,unsafe_allow_html=True)
 
 # ============================================================
-# METEO
+# SERVICIOS
 # ============================================================
 def meteo(lat,lon):
     try:
@@ -80,9 +92,26 @@ def meteo(lat,lon):
         with urllib.request.urlopen(req,timeout=6) as r: d=json.loads(r.read().decode())
         c=d.get("current",{}); h=d.get("hourly",{})
         rows=[]
-        for t,x,w,p in zip(h.get("time",[])[:8],h.get("temperature_2m",[])[:8],h.get("wind_speed_10m",[])[:8],h.get("precipitation",[])[:8]): rows.append({"hora":t.split("T")[-1][:5],"temp":x,"viento":w,"lluvia":p})
+        for t,x,w,p in zip(h.get("time",[])[:8],h.get("temperature_2m",[])[:8],h.get("wind_speed_10m",[])[:8],h.get("precipitation",[])[:8]):
+            rows.append({"hora":t.split("T")[-1][:5],"temp":x,"viento":w,"lluvia":p})
         return {"temp":c.get("temperature_2m",22),"hum":c.get("relative_humidity_2m",50),"rain":c.get("precipitation",0),"wind":c.get("wind_speed_10m",8),"rows":rows}
-    except Exception: return {"temp":22,"hum":50,"rain":0,"wind":8,"rows":[]}
+    except Exception:
+        return {"temp":22,"hum":50,"rain":0,"wind":8,"rows":[]}
+
+def enviar_telegram(chat_id, mensaje):
+    """Envía un aviso usando el token seguro almacenado en Streamlit Secrets."""
+    if not TELEGRAM_TOKEN:
+        return False, "El token de Telegram no está configurado en Streamlit Secrets."
+    if not chat_id:
+        return False, "Este usuario no tiene un Chat ID de Telegram configurado."
+    try:
+        url=f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        data=urllib.parse.urlencode({"chat_id":chat_id,"text":mensaje,"parse_mode":"Markdown"}).encode("utf-8")
+        req=urllib.request.Request(url,data=data,headers={"User-Agent":"AgroAlert/2.0"})
+        with urllib.request.urlopen(req,timeout=10):
+            return True,"Aviso enviado correctamente."
+    except Exception as e:
+        return False,f"No se pudo enviar el aviso: {e}"
 
 # ============================================================
 # LOGIN
@@ -95,20 +124,21 @@ if not st.session_state.usuario_autenticado:
         tab1,tab2=st.tabs(["🔐 Acceder","✨ Crear cuenta"])
         with tab1:
             with st.form("login"):
-                u=st.text_input("Usuario").strip().lower(); p=st.text_input("Contraseña",type="password")
+                u=st.text_input("Usuario").strip().lower(); pwd=st.text_input("Contraseña",type="password")
                 if st.form_submit_button("Entrar a mi explotación",use_container_width=True,type="primary"):
-                    if u in st.session_state.usuarios_db and st.session_state.usuarios_db[u].get("pwd")==p:
+                    if u in st.session_state.usuarios_db and st.session_state.usuarios_db[u].get("pwd")==pwd:
                         st.session_state.usuario_autenticado=u; st.rerun()
                     else: st.error("Usuario o contraseña incorrectos.")
         with tab2:
             with st.form("registro"):
-                u=st.text_input("Nombre de usuario").strip().lower(); p=st.text_input("Contraseña",type="password"); n=st.text_input("Nombre y apellidos")
+                u=st.text_input("Nombre de usuario").strip().lower(); pwd=st.text_input("Contraseña",type="password"); n=st.text_input("Nombre y apellidos")
+                chat_id=st.text_input("Chat ID de Telegram (opcional)")
                 finca=st.text_input("Nombre de la primera parcela",value="🌾 Mi finca"); ha=st.number_input("Superficie (ha)",min_value=.1,value=2.0,step=.5); lat=st.number_input("Latitud",value=42.4658); lon=st.number_input("Longitud",value=-2.4499)
                 if st.form_submit_button("Crear mi cuenta",use_container_width=True,type="primary"):
-                    if not u or not p: st.error("Indica usuario y contraseña.")
+                    if not u or not pwd: st.error("Indica usuario y contraseña.")
                     elif u in st.session_state.usuarios_db: st.error("Ese usuario ya existe.")
                     else:
-                        st.session_state.usuarios_db[u]={"pwd":p,"nombre":n or u,"telegram_id":"","telegram_token":""}
+                        st.session_state.usuarios_db[u]={"pwd":pwd,"nombre":n or u,"telegram_id":chat_id.strip()}
                         st.session_state.db_privada[u]={finca:{"lat":lat,"lon":lon,"ha":ha,"variedad":"General","poligono":"1","parcela":"1"}}
                         save_json(USERS_FILE,st.session_state.usuarios_db); save_json(FINCAS_FILE,st.session_state.db_privada); st.success("Cuenta creada. Ya puedes acceder.")
         st.markdown("</div>",unsafe_allow_html=True)
@@ -131,7 +161,7 @@ with h2: st.markdown(f"<div class='card' style='padding:10px 14px'>📍 <b>{parc
 with h3:
     if st.button("Cerrar sesión",use_container_width=True): st.session_state.usuario_autenticado=None; st.rerun()
 
-menu=st.radio("",["🏠 Inicio","🌦️ Clima","🌾 Parcelas","🧪 Tratamientos","📋 Cuaderno","📦 Almacén"],horizontal=True,label_visibility="collapsed")
+menu=st.radio("",["🏠 Inicio","🌦️ Clima","🌾 Parcelas","🧪 Tratamientos","📋 Cuaderno","📦 Almacén","🔔 Avisos"],horizontal=True,label_visibility="collapsed")
 
 # ============================================================
 # INICIO
@@ -167,7 +197,7 @@ if menu=="🏠 Inicio":
 elif menu=="🌦️ Clima":
     st.markdown("<div class='section'>🌦️ Meteorología de tu parcela</div>",unsafe_allow_html=True)
     ok=w['wind']<=15 and w['rain']<=2
-    st.markdown((f"<div class='ok'><div class='status'>✅ Ventana favorable</div><div>Las condiciones actuales permiten valorar un tratamiento.</div></div>" if ok else f"<div class='bad'><div class='status'>⛔ Condiciones desfavorables</div><div>Revisa viento y precipitación antes de tratar.</div></div>"),unsafe_allow_html=True)
+    st.markdown(("<div class='ok'><div class='status'>✅ Ventana favorable</div><div>Las condiciones actuales permiten valorar un tratamiento.</div></div>" if ok else "<div class='bad'><div class='status'>⛔ Condiciones desfavorables</div><div>Revisa viento y precipitación antes de tratar.</div></div>"),unsafe_allow_html=True)
     cs=st.columns(4)
     for c,ico,t,val in zip(cs,["🌡️","💨","💧","🌧️"],["Temperatura","Viento","Humedad","Lluvia"],[f"{w['temp']:.1f} °C",f"{w['wind']:.1f} km/h",f"{w['hum']:.0f}%",f"{w['rain']:.1f} mm"]):
         with c: st.markdown(f"<div class='card' style='text-align:center'><div style='font-size:1.5rem'>{ico}</div><div class='kicker'>{t}</div><div class='value'>{val}</div></div>",unsafe_allow_html=True)
@@ -236,5 +266,20 @@ elif menu=="📦 Almacén":
         actual=float(stock.get(codigo,{}).get('stock_kg_l',0)); nuevo=st.number_input("Stock actual (kg/L)",min_value=0.0,value=actual,step=1.0)
         if st.form_submit_button("Guardar stock",use_container_width=True,type="primary"):
             st.session_state.almacen_db.setdefault(user,{})[codigo]={"nombre":CATALOGO[codigo]['producto'],"stock_kg_l":nuevo}; save_json(ALMACEN_FILE,st.session_state.almacen_db); st.success("Stock actualizado."); st.rerun()
+
+# ============================================================
+# AVISOS TELEGRAM
+# ============================================================
+elif menu=="🔔 Avisos":
+    st.markdown("<div class='section'>🔔 Avisos de Telegram</div>",unsafe_allow_html=True)
+    if TELEGRAM_TOKEN:
+        st.markdown("<div class='ok'><div class='status'>🔐 Telegram conectado de forma segura</div><div>AgroAlert está leyendo el token desde Streamlit Secrets. El token no está almacenado en GitHub.</div></div>",unsafe_allow_html=True)
+    else:
+        st.markdown("<div class='bad'><div class='status'>⚠️ Telegram no está configurado</div><div>Añade TELEGRAM_TOKEN en Streamlit Secrets.</div></div>",unsafe_allow_html=True)
+    chat_id=ui.get("telegram_id","")
+    st.markdown(f"<div class='card' style='margin-top:16px'><div class='kicker'>ESTADO DEL USUARIO</div><div class='sub'>{'Chat ID configurado' if chat_id else 'Falta configurar el Chat ID de Telegram'}</div></div>",unsafe_allow_html=True)
+    if st.button("Enviar aviso de prueba",use_container_width=True,type="primary"):
+        ok,msg=enviar_telegram(chat_id,f"🌱 *AgroAlert*\nPrueba correcta para {parcela}.")
+        st.success(msg) if ok else st.error(msg)
 
 st.markdown("<div style='text-align:center;color:#93a09a;font-size:.72rem;margin-top:35px'>AgroAlert 2.0 · Centro de control agrícola</div>",unsafe_allow_html=True)
