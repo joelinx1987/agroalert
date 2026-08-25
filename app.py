@@ -790,7 +790,7 @@ with col_contenido:
         else:
             st.info("Aún no hay tratamientos oficiales registrados.")
 
-    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON TAMAÑO AMPLIADO Y BOTÓN DE EXPANSIÓN)
+    # SECCIÓN 4: GEOFOTOS Y FOCOS DE PLAGAS (CON MINIATURA PROPORCIONADA Y ELEGANTE)
     elif "Geofotos y Focos" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📸 Registro de Geofotos y Focos de Plaga</h2>", unsafe_allow_html=True)
         st.markdown("<p style='color: #64748b;'>Sube o haz una foto de campo con geolocalización GPS automática para justificar inspecciones o controles.</p>", unsafe_allow_html=True)
@@ -799,7 +799,7 @@ with col_contenido:
             desc_incidencia = st.text_input("Descripción del síntoma / plaga (ej: Foco de Mildiu en zona norte):", value="Mancha aislada en hoja")
             sev_incidencia = st.selectbox("Severidad:", ["🟢 Leve / Preventivo", "🟡 Moderado", "🔴 Severo / Urgente"])
             
-            foto_subida = st.file_uploader("📷 Adjuntar Fotografía (Cámara o Archivo en Alta Resolución):", type=["jpg", "jpeg", "png"])
+            foto_subida = st.file_uploader("📷 Adjuntar Fotografía (Cámara o Archivo):", type=["jpg", "jpeg", "png"])
 
             c_g1, c_g2 = st.columns(2)
             with c_g1:
@@ -837,7 +837,7 @@ with col_contenido:
         hist_plagas = st.session_state.plagas_db.get(explotacion_seleccionada, [])
         if hist_plagas:
             for p in hist_plagas:
-                c_p1, c_p2 = st.columns([1.5, 1])
+                c_p1, c_p2 = st.columns([1.6, 1])
                 with c_p1:
                     st.markdown(f"""
                     <div style="background: rgba(255,255,255,0.9); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
@@ -850,8 +850,8 @@ with col_contenido:
                     if p.get('Foto') and p['Foto'] != "Sin imagen":
                         path_img = os.path.join(UPLOADS_DIR, p['Foto'])
                         if os.path.exists(path_img):
-                            # Muestra la imagen en tamaño grande (ancho 400) y expandible
-                            st.image(path_img, caption="Evidencia en alta resolución", width=380, use_container_width=True)
+                            # Imagen controlada a un ancho equilibrado de 220 píxeles manteniendo proporción
+                            st.image(path_img, caption="Evidencia de campo", width=220)
                         else:
                             st.caption("Imagen no disponible localmente")
                     else:
@@ -1019,7 +1019,7 @@ with col_contenido:
         fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
         
         if not fincas_actuales:
-            st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos para añadir la primera:")
+            st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos para añadir la primeira:")
             with st.form("form_alta_primera_finca"):
                 nom_finca = st.text_input("Nombre de la Parcela:", value="Mi Parcela 1")
                 c_lat, c_lon = st.columns(2)
