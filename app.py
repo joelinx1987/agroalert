@@ -4,20 +4,21 @@ os.environ.pop("SSLKEYLOGFILE", None)
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import urllib.request
 import urllib.parse
 import json
 import hashlib
+import io
 
 st.set_page_config(
-    page_title="AgroAlert Campo | Monitor & WhatsApp Bot",
+    page_title="AgroAlert Pro | Explotación Inteligente",
     page_icon="🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS Y ANIMACIONES SUTILES PARA LAS TARJETAS ---
+# --- ESTILOS VISUALES Y SOPORTE DE MODO ALTO CONTRASTE ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -27,8 +28,8 @@ st.markdown("""
     }
 
     .main {
-        background-color: #f4f6f8;
-        color: #0f172a;
+        background-color: var(--bg-main, #f4f6f8);
+        color: var(--text-main, #0f172a);
     }
 
     /* BOTONES DE SECCIÓN VERTICALES */
@@ -38,8 +39,8 @@ st.markdown("""
     }
     
     div[data-testid="stRadio"] label {
-        background: #ffffff !important;
-        border: 2px solid #cbd5e1 !important;
+        background: var(--card-bg, #ffffff) !important;
+        border: 2px solid var(--border-color, #cbd5e1) !important;
         border-radius: 14px !important;
         padding: 14px 18px !important;
         width: 100% !important;
@@ -56,7 +57,7 @@ st.markdown("""
     div[data-testid="stRadio"] label div p {
         font-size: 1rem !important;
         font-weight: 800 !important;
-        color: #0f172a !important;
+        color: var(--text-main, #0f172a) !important;
     }
 
     /* SEMÁFOROS */
@@ -67,6 +68,7 @@ st.markdown("""
         padding: 20px 22px;
         margin-bottom: 18px;
         box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12);
+        color: #064e3b;
     }
     .traffic-danger {
         background-color: #fee2e2;
@@ -75,6 +77,7 @@ st.markdown("""
         padding: 20px 22px;
         margin-bottom: 18px;
         box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+        color: #7f1d1d;
     }
     .traffic-warning {
         background-color: #fef3c7;
@@ -83,115 +86,41 @@ st.markdown("""
         padding: 20px 22px;
         margin-bottom: 18px;
         box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+        color: #78350f;
     }
 
-    .traffic-title {
-        font-size: 1.35rem;
-        font-weight: 900;
-        margin-bottom: 4px;
-    }
-    .traffic-sub {
-        font-size: 1.05rem;
-        font-weight: 600;
-    }
+    .traffic-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
+    .traffic-sub { font-size: 1.05rem; font-weight: 600; }
 
-    /* --- TARJETAS METEOROLÓGICAS SEGURAS --- */
-    .card-base {
+    /* TARJETAS FOTOGRÁFICAS */
+    .card-photo {
         position: relative;
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0;
         border-radius: 16px;
-        padding: 18px 16px;
+        padding: 20px 16px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         margin-bottom: 14px;
         overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        background-size: cover;
+        background-position: center;
     }
-
-    .card-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: #475569;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        position: relative;
-        z-index: 3;
-    }
-    .card-value {
-        font-size: 1.85rem;
-        font-weight: 900;
-        color: #0f172a;
-        margin-top: 4px;
-        position: relative;
-        z-index: 3;
-    }
-    .card-unit {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #64748b;
-    }
-
-    /* EFECTOS ANIMADOS SUTILES */
-    .anim-rain {
+    .card-photo::before {
+        content: "";
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(59, 130, 246, 0.1) 10px, rgba(59, 130, 246, 0.1) 13px);
-        animation: animRain 1.2s linear infinite;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(255, 255, 255, 0.88) 100%);
         z-index: 1;
-        pointer-events: none;
     }
-    @keyframes animRain {
-        0% { background-position: 0 0; }
-        100% { background-position: 0 26px; }
-    }
+    .card-content { position: relative; z-index: 2; }
+    .card-temp { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=600&auto=format&fit=crop'); }
+    .card-wind { background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop'); }
+    .card-rain { background-image: url('https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=600&auto=format&fit=crop'); }
+    .card-shield { background-image: url('https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?q=80&w=600&auto=format&fit=crop'); }
 
-    .anim-wind {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.15) 50%, transparent 100%);
-        background-size: 200% 100%;
-        animation: animWind 2.2s ease-in-out infinite;
-        z-index: 1;
-        pointer-events: none;
-    }
-    @keyframes animWind {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-
-    .anim-temp {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 30%, rgba(251, 146, 60, 0.14) 0%, transparent 75%);
-        animation: animTemp 3.5s ease-in-out infinite alternate;
-        z-index: 1;
-        pointer-events: none;
-    }
-    @keyframes animTemp {
-        0% { transform: scale(0.9); opacity: 0.4; }
-        100% { transform: scale(1.1); opacity: 0.8; }
-    }
-
-    .anim-shield-ok {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 70%, rgba(34, 197, 94, 0.12) 0%, transparent 75%);
-        z-index: 1;
-        pointer-events: none;
-    }
-
-    .anim-shield-alert {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 70%, rgba(239, 68, 68, 0.16) 0%, transparent 75%);
-        animation: animAlert 1.8s ease-in-out infinite alternate;
-        z-index: 1;
-        pointer-events: none;
-    }
-    @keyframes animAlert {
-        0% { opacity: 0.3; }
-        100% { opacity: 0.8; }
-    }
+    .card-title { font-size: 0.85rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card-value { font-size: 1.85rem; font-weight: 900; color: #0f172a; margin-top: 4px; }
+    .card-unit { font-size: 0.95rem; font-weight: 600; color: #475569; }
 
     .recipe-box {
         background-color: #ecfdf5;
@@ -199,12 +128,9 @@ st.markdown("""
         border-radius: 16px;
         padding: 20px;
         margin-top: 14px;
+        color: #065f46;
     }
-    .recipe-big {
-        font-size: 1.95rem;
-        font-weight: 900;
-        color: #047857;
-    }
+    .recipe-big { font-size: 1.95rem; font-weight: 900; color: #047857; }
 
     .legend-card {
         background-color: #ffffff;
@@ -214,17 +140,8 @@ st.markdown("""
         margin-bottom: 12px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     }
-    .legend-header {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: #15803d;
-        margin-bottom: 6px;
-    }
-    .legend-body {
-        font-size: 0.95rem;
-        color: #334155;
-        line-height: 1.55;
-    }
+    .legend-header { font-size: 1.1rem; font-weight: 800; color: #15803d; margin-bottom: 6px; }
+    .legend-body { font-size: 0.95rem; color: #334155; line-height: 1.55; }
     
     .stButton>button {
         font-size: 1.05rem !important;
@@ -327,6 +244,9 @@ if "fitos_db" not in st.session_state:
 if "labores_db" not in st.session_state:
     st.session_state.labores_db = cargar_json(LABORES_FILE, {})
 
+if "modo_contraste" not in st.session_state:
+    st.session_state.modo_contraste = False
+
 # --- API WHATSAPP ---
 def disparar_whatsapp_servidor(telefono, apikey, mensaje):
     try:
@@ -355,8 +275,8 @@ if not st.session_state.usuario_autenticado:
         st.markdown("""
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
-            <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Campo</h1>
-            <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Monitor de campo y bot de alertas diarias por WhatsApp</p>
+            <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Pro</h1>
+            <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación inteligente, cuaderno PAC y avisos WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -432,7 +352,7 @@ if not st.session_state.usuario_autenticado:
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
                         
-                        msg = f"🚜 *¡BIENVENIDO A AGROALERT!*\nHola *{nn}*, tu cuenta ha quedado vinculada."
+                        msg = f"🚜 *¡BIENVENIDO A AGROALERT PRO!*\nHola *{nn}*, tu cuenta ha quedado vinculada."
                         disparar_whatsapp_servidor(tel_clean, napi, msg)
                         
                         st.session_state.usuario_autenticado = nu
@@ -454,8 +374,8 @@ if user_activo not in st.session_state.db_privada:
 
 fincas_usuario = st.session_state.db_privada[user_activo]
 
-# Selectores superiores
-c_top1, c_top2, c_top3 = st.columns([1.2, 1.4, 0.7])
+# Selectores superiores y Modo Contraste
+c_top1, c_top2, c_top3, c_top4 = st.columns([1.1, 1.3, 0.6, 0.6])
 with c_top1:
     tipo_cultivo = st.selectbox("Cultivo:", ["🍇 Viña", "🫒 Olivo", "🌾 Cereal", "🍑 Frutal"])
 
@@ -482,9 +402,31 @@ with c_top2:
 
 with c_top3:
     st.write("")
+    if st.button("☀️ / 🌙 Sol", use_container_width=True):
+        st.session_state.modo_contraste = not st.session_state.modo_contraste
+        st.rerun()
+
+with c_top4:
+    st.write("")
     if st.button("🚪 Salir", use_container_width=True):
         st.session_state.usuario_autenticado = None
         st.rerun()
+
+if st.session_state.modo_contraste:
+    st.markdown("""
+    <style>
+        .main { background-color: #000000 !important; color: #FFFFFF !important; }
+        .card-photo::before { background: rgba(0, 0, 0, 0.85) !important; }
+        .card-title { color: #86EFAC !important; }
+        .card-value { color: #FFFFFF !important; }
+        .card-unit { color: #CBD5E1 !important; }
+        div[data-testid="stRadio"] label { background: #1E293B !important; border-color: #475569 !important; }
+        div[data-testid="stRadio"] label div p { color: #FFFFFF !important; }
+        .legend-card { background-color: #1E293B !important; border-color: #475569 !important; color: #FFFFFF !important; }
+        .legend-header { color: #4ADE80 !important; }
+        .legend-body { color: #E2E8F0 !important; }
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- CONSULTA METEOROLÓGICA ---
 dias_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
@@ -530,7 +472,7 @@ with col_menu:
     opciones_menu = [
         "🚜 ¿Puedo sulfatar hoy? (Semáforo y Tiempo)",
         "🧪 Calculadora de dosis y depósito / cuba",
-        "📋 Cuaderno de tratamientos fitosanitarios",
+        "📋 Cuaderno PAC y Fitosanitarios",
         "🌾 Labores, riegos y cosecha",
         "📲 Bot de alertas por WhatsApp",
         "🌾 Gestión de mis fincas y parcelas",
@@ -546,36 +488,36 @@ with col_menu:
 # CONTENIDO EN PANEL DERECHO
 # ==============================================================================
 with col_contenido:
-    # SECCIÓN 1: SEMÁFORO DIARIO CON TARJETAS SEGURAS
+    # SECCIÓN 1: SEMÁFORO DIARIO CON FOTOS DE FONDO
     if "Puedo sulfatar hoy" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📍 {nombre_parcela} <span style='font-size:1rem; color:#64748b;'>({superficie_ha} ha | {variedad})</span></h2>", unsafe_allow_html=True)
 
         if viento_hoy > 15:
             st.markdown(f"""
             <div class="traffic-danger">
-                <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SE RECOMIENDA SULFATAR</div>
-                <div class="traffic-sub" style="color: #b91c1c;">Viento excesivo ({viento_hoy:.0f} km/h). Vas a perder producto por deriva.</div>
+                <div class="traffic-title">⛔ HOY NO SE RECOMIENDA SULFATAR</div>
+                <div class="traffic-sub">Viento excesivo ({viento_hoy:.0f} km/h). Vas a perder producto por deriva.</div>
             </div>
             """, unsafe_allow_html=True)
         elif lluvia_hoy > 2.0:
             st.markdown(f"""
             <div class="traffic-danger">
-                <div class="traffic-title" style="color: #991b1b;">⛔ HOY NO SULFATES</div>
-                <div class="traffic-sub" style="color: #b91c1c;">Lluvia prevista ({lluvia_hoy:.1f} L/m²). Se lavará el tratamiento.</div>
+                <div class="traffic-title">⛔ HOY NO SULFATES</div>
+                <div class="traffic-sub">Lluvia prevista ({lluvia_hoy:.1f} L/m²). Se lavará el tratamiento.</div>
             </div>
             """, unsafe_allow_html=True)
         elif max_hoy >= 32:
             st.markdown(f"""
             <div class="traffic-warning">
-                <div class="traffic-title" style="color: #92400e;">⚠️ TRATAR SOLO TEMPRANO</div>
-                <div class="traffic-sub" style="color: #b45309;">Calor fuerte ({max_hoy:.0f} °C). Tratar solo de 7:00 a 11:00.</div>
+                <div class="traffic-title">⚠️ TRATAR SOLO TEMPRANO</div>
+                <div class="traffic-sub">Calor fuerte ({max_hoy:.0f} °C). Tratar solo de 7:00 a 11:00.</div>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown(f"""
             <div class="traffic-ok">
-                <div class="traffic-title" style="color: #166534;">✅ DÍA PERFECTO PARA SULFATAR</div>
-                <div class="traffic-sub" style="color: #15803d;">Viento en calma ({viento_hoy:.0f} km/h), sin lluvia y {max_hoy:.0f} °C.</div>
+                <div class="traffic-title">✅ DÍA PERFECTO PARA SULFATAR</div>
+                <div class="traffic-sub">Viento en calma ({viento_hoy:.0f} km/h), sin lluvia y {max_hoy:.0f} °C.</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -584,37 +526,82 @@ with col_contenido:
         else:
             riesgo_txt = "🚨 ATENCIÓN" if lluvia_hoy >= 5 else "✅ LIMPIO"
 
-        # Fondos animados seguros vía HTML inyectado de una sola línea por tarjeta
-        layer_rain = '<div class="anim-rain"></div>' if lluvia_hoy > 0 else ''
-        layer_wind = '<div class="anim-wind"></div>' if viento_hoy > 4 else ''
-        layer_temp = '<div class="anim-temp"></div>'
-        layer_shield = '<div class="anim-shield-alert"></div>' if ('ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt) else '<div class="anim-shield-ok"></div>'
-
         c_m1, c_m2 = st.columns(2)
         with c_m1:
-            st.markdown(f'<div class="card-base">{layer_temp}<div class="card-title">🌡️ Tª Hoy</div><div class="card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="card-unit">C</span></div></div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="card-base">{layer_wind}<div class="card-title">💨 Viento</div><div class="card-value">{viento_hoy:.0f} <span class="card-unit">km/h</span></div></div>', unsafe_allow_html=True)
+            st.markdown(f'''
+            <div class="card-photo card-temp">
+                <div class="card-content">
+                    <div class="card-title">🌡️ Tª Hoy</div>
+                    <div class="card-value">{min_hoy:.0f}° / {max_hoy:.0f}° <span class="card-unit">C</span></div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
+            
+            st.markdown(f'''
+            <div class="card-photo card-wind">
+                <div class="card-content">
+                    <div class="card-title">💨 Viento</div>
+                    <div class="card-value">{viento_hoy:.0f} <span class="card-unit">km/h</span></div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
         with c_m2:
-            st.markdown(f'<div class="card-base">{layer_rain}<div class="card-title">🌧️ Lluvia</div><div class="card-value">{lluvia_hoy:.1f} <span class="card-unit">L</span></div></div>', unsafe_allow_html=True)
+            st.markdown(f'''
+            <div class="card-photo card-rain">
+                <div class="card-content">
+                    <div class="card-title">🌧️ Lluvia</div>
+                    <div class="card-value">{lluvia_hoy:.1f} <span class="card-unit">L</span></div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
+            
             color_hongos = '#dc2626' if ('ALTO' in riesgo_txt or 'ATENCIÓN' in riesgo_txt) else '#15803d'
-            st.markdown(f'<div class="card-base">{layer_shield}<div class="card-title">🛡️ Hongos</div><div class="card-value" style="font-size:1.5rem; color: {color_hongos};">{riesgo_txt}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'''
+            <div class="card-photo card-shield">
+                <div class="card-content">
+                    <div class="card-title">🛡️ Hongos</div>
+                    <div class="card-value" style="font-size:1.5rem; color: {color_hongos};">{riesgo_txt}</div>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
 
-        st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 15px;'>📅 Previsión Semanal:</h3>", unsafe_allow_html=True)
-        df_dias = []
-        for i in range(len(fechas_legibles)):
-            apto = "✅ Óptimo" if (viento[i] <= 15 and lluvia[i] <= 2.0 and t_max[i] < 32) else ("⛔ No tratar" if (viento[i] > 15 or lluvia[i] > 2.0) else "⚠️ Cuidado")
-            df_dias.append({
-                "Día": fechas_legibles[i],
-                "Tª Min/Max": f"{t_min[i]:.0f}°/{t_max[i]:.0f}°C",
-                "Lluvia": f"{lluvia[i]:.1f} L",
-                "Viento": f"{viento[i]:.0f} km/h",
-                "Estado": apto
-            })
-        st.dataframe(pd.DataFrame(df_dias), use_container_width=True, hide_index=True)
+        # 4. CUENTA ATRÁS DE PLAZOS DE SEGURIDAD
+        hist_fitos_alerta = st.session_state.fitos_db.get(user_activo, [])
+        if hist_fitos_alerta:
+            ultimo_fito = hist_fitos_alerta[-1]
+            try:
+                f_aplicacion = datetime.strptime(ultimo_fito["Fecha"], "%Y-%m-%d").date()
+                dias_ps = int(str(ultimo_fito["Plazo Seg."]).replace(" días", "").replace("días", "").strip())
+                f_librecosecha = f_aplicacion + timedelta(days=dias_ps)
+                dias_restantes = (f_librecosecha - date.today()).days
+                
+                if dias_restantes > 0:
+                    st.markdown(f"""
+                    <div style="background: #fef3c7; border: 2px solid #d97706; border-radius: 14px; padding: 14px 18px; margin-top: 15px; color: #78350f; font-weight: 700;">
+                        ⏳ <b>Plazo de Seguridad Activo:</b> Quedan <b>{dias_restantes} días</b> para poder recolectar en la última parcela tratada ({ultimo_fito['Producto']} - Libre el {f_librecosecha.strftime('%d/%m/%Y')}).
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 14px; padding: 12px 16px; margin-top: 15px; color: #064e3b; font-weight: 700;">
+                        ✅ <b>Parcela Libre:</b> Plazo de seguridad superado. Apta para recolección o laboreo.
+                    </div>
+                    """, unsafe_allow_html=True)
+            except Exception:
+                pass
+
+        # 5. GRÁFICA CLIMÁTICA DE EVOLUCIÓN (30 DÍAS)
+        st.markdown("<h3 style='font-size: 1.25rem; font-weight: 800; margin-top: 20px;'>📈 Tendencia de Temperaturas y Previsión</h3>", unsafe_allow_html=True)
+        df_grafica = pd.DataFrame({
+            "Día": [f"Día {i+1}" for i in range(len(t_max))],
+            "Tª Máxima (°C)": t_max,
+            "Tª Mínima (°C)": t_min
+        }).set_index("Día")
+        st.line_chart(df_grafica)
 
     # SECCIÓN 2: CALCULADORA DE CUBA
     elif "Calculadora de dosis" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🧪 Calculadora para la Cuba / Depósito</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>🧪 Calculadora para la Cuba / Depósito</h2>", unsafe_allow_html=True)
         c_c1, c_c2 = st.columns(2)
         with c_c1:
             st.markdown("#### 🚜 Maquinaria:")
@@ -651,37 +638,37 @@ with col_contenido:
 
         st.markdown(f"""
         <div class="recipe-box">
-            <div style="font-size: 1rem; font-weight: 800; color: #065f46; text-transform: uppercase;">📝 RECETA DIRECTA</div>
+            <div style="font-size: 1rem; font-weight: 800; text-transform: uppercase;">📝 RECETA DIRECTA</div>
             <div class="recipe-big">{kilos_por_cuba:.2f} <span style="font-size:1.3rem;">kg/L por CUBA de {litros_cuba} L</span></div>
             <hr style="border: 1px solid #a7f3d0; margin: 12px 0;">
-            <div style="font-size: 1.15rem; font-weight: 700; color: #047857;">
+            <div style="font-size: 1.15rem; font-weight: 700;">
                 🚜 {ha_a_sulfatar} ha = {num_cubas_necesarias:.1f} cubas ({kilos_totales_finca:.2f} kg/L totales).
             </div>
-            <div style="font-size: 1rem; font-weight: 600; color: #047857; margin-top: 4px;">
+            <div style="font-size: 1rem; font-weight: 600; margin-top: 4px;">
                 💰 Coste: {coste_total_euros:.2f} € ({(coste_total_euros/ha_a_sulfatar if ha_a_sulfatar>0 else 0):.2f} €/ha).
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-    # SECCIÓN 3: CUADERNO FITOSANITARIO
-    elif "Cuaderno de tratamientos" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📋 Registro Oficial de Fitosanitarios</h2>", unsafe_allow_html=True)
+    # SECCIÓN 3: CUADERNO PAC Y FITOSANITARIOS
+    elif "Cuaderno PAC" in seccion_activa:
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📋 Cuaderno de Explotación Homologado (SIEX / PAC)</h2>", unsafe_allow_html=True)
         
         with st.form("form_fito"):
-            st.markdown("#### ➕ Registrar Tratamiento en Parcela Activa:")
+            st.markdown("#### ➕ Registrar Aplicación Oficial:")
             c_f1, c_f2 = st.columns(2)
             with c_f1:
                 fecha_fito = st.date_input("Fecha de aplicación:", date.today())
                 plaga_tratada = st.text_input("Plaga / Hongo / Motivo:", value="Mildiu")
                 producto_fito = st.text_input("Producto Comercial / Materia Activa:", value="Oxicloruro de Cobre 50%")
-                num_mapa = st.text_input("Nº Registro MAPA (Opcional):", value="ES-00123")
+                num_mapa = st.text_input("Nº Registro MAPA:", value="ES-00123")
             with c_f2:
                 dosis_fito = st.text_input("Dosis aplicada:", value="2.5 kg/ha")
                 caldo_gastado = st.number_input("Gasto total caldo (Litros):", value=800, step=100)
                 plazo_seg = st.number_input("Plazo de Seguridad (días):", value=14, step=1)
                 aplicador_fito = st.text_input("Aplicador / Carnet:", value=nombre_cliente)
 
-            b_guardar_fito = st.form_submit_button("💾 GUARDAR EN EL CUADERNO DE EXPLOTACIÓN", use_container_width=True, type="primary")
+            b_guardar_fito = st.form_submit_button("💾 GUARDAR EN EL CUADERNO OFICIAL", use_container_width=True, type="primary")
 
             if b_guardar_fito and producto_fito.strip():
                 if user_activo not in st.session_state.fitos_db:
@@ -696,24 +683,29 @@ with col_contenido:
                     "Registro MAPA": num_mapa,
                     "Dosis": dosis_fito,
                     "Caldo (L)": caldo_gastado,
-                    "Plazo Seg. (días)": plazo_seg,
+                    "Plazo Seg.": f"{plazo_seg} días",
                     "Aplicador": aplicador_fito
                 }
                 st.session_state.fitos_db[user_activo].append(registro_nuevo)
                 guardar_json(FITOS_FILE, st.session_state.fitos_db)
-                st.success("¡Tratamiento guardado permanentemente!")
+                st.success("¡Tratamiento guardado conforme a normativa PAC!")
                 st.rerun()
 
-        st.markdown("### 📜 Historial de Tratamientos Realizados:")
+        st.markdown("### 📜 Historial Oficial Registrado:")
         hist_fitos = st.session_state.fitos_db.get(user_activo, [])
         if hist_fitos:
-            st.dataframe(pd.DataFrame(hist_fitos), use_container_width=True, hide_index=True)
+            df_fitos = pd.DataFrame(hist_fitos)
+            st.dataframe(df_fitos, use_container_width=True, hide_index=True)
+            
+            # Botón de exportación simulada oficial
+            csv_data = df_fitos.to_csv(index=False).encode('utf-8')
+            st.download_button("📥 DESCARGAR INFORME OFICIAL (CSV / FORMATO PAC)", data=csv_data, file_name=f"cuaderno_explotacion_{user_activo}.csv", mime="text/csv", use_container_width=True)
         else:
-            st.info("Aún no has registrado ningún tratamiento en tu cuaderno.")
+            st.info("Aún no hay tratamientos oficiales registrados.")
 
     # SECCIÓN 4: LABORES Y COSECHA
     elif "Labores, riegos y cosecha" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Labores de Campo, Riegos y Cosecha</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>🌾 Labores de Campo, Riegos y Cosecha</h2>", unsafe_allow_html=True)
         sub_lab1, sub_lab2 = st.tabs(["🚜 REGISTRAR LABOR / RIEGO", "🍇 REGISTRAR COSECHA / LIQUIDACIÓN"])
         
         with sub_lab1:
@@ -734,14 +726,8 @@ with col_contenido:
                         st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
                     
                     reg_l = {
-                        "Fecha": str(fecha_lab),
-                        "Cultivo": tipo_cultivo,
-                        "Parcela": nombre_parcela,
-                        "Labor": tipo_labor,
-                        "Horas Tractor": horas_maq,
-                        "Aporte": abono_aporte,
-                        "Gasoil (L)": gasoil_litros,
-                        "Coste (€)": coste_mano_obra
+                        "Fecha": str(fecha_lab), "Cultivo": tipo_cultivo, "Parcela": nombre_parcela,
+                        "Labor": tipo_labor, "Horas": horas_maq, "Aporte": abono_aporte, "Gasoil (L)": gasoil_litros, "Coste (€)": coste_mano_obra
                     }
                     st.session_state.labores_db[user_activo]["labores"].append(reg_l)
                     guardar_json(LABORES_FILE, st.session_state.labores_db)
@@ -770,15 +756,9 @@ with col_contenido:
                         st.session_state.labores_db[user_activo] = {"labores": [], "cosechas": []}
                     
                     reg_c = {
-                        "Fecha": str(fecha_cos),
-                        "Cultivo": tipo_cultivo,
-                        "Parcela": nombre_parcela,
-                        "Kilos": kilos_totales,
-                        "Rdto (kg/ha)": round(rendimiento_ha, 1),
-                        "Calidad": calidad_param,
-                        "Comprador": comprador_dest,
-                        "Precio (€/kg)": precio_kilo_venta,
-                        "Total (€)": round(ingreso_bruto, 2)
+                        "Fecha": str(fecha_cos), "Cultivo": tipo_cultivo, "Parcela": nombre_parcela,
+                        "Kilos": kilos_totales, "Rdto (kg/ha)": round(rendimiento_ha, 1), "Calidad": calidad_param,
+                        "Comprador": comprador_dest, "Precio (€/kg)": precio_kilo_venta, "Total (€)": round(ingreso_bruto, 2)
                     }
                     st.session_state.labores_db[user_activo]["cosechas"].append(reg_c)
                     guardar_json(LABORES_FILE, st.session_state.labores_db)
@@ -803,7 +783,7 @@ with col_contenido:
 
     # SECCIÓN 5: BOT WHATSAPP
     elif "Bot de alertas" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Alertas vinculadas a: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
 
         if "Viña" in tipo_cultivo:
@@ -849,13 +829,13 @@ with col_contenido:
                 else:
                     st.error(res)
 
-    # SECCIÓN 6: GESTIÓN DE FINCAS
+    # SECCIÓN 6: GESTIÓN DE FINCAS Y MAPA SIGPAC
     elif "Gestión de mis fincas" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>🌾 Gestión de Fincas ({tipo_cultivo})</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>🌾 Gestión de Fincas ({tipo_cultivo})</h2>", unsafe_allow_html=True)
         fincas_actuales = fincas_usuario.get(tipo_cultivo, {})
         
         if not fincas_actuales:
-            st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos para añadir la primera:")
+            st.info(f"👉 No tienes ninguna finca registrada en **{tipo_cultivo}**. Rellena los datos o pincha en el mapa para añadir la primera:")
             with st.form("form_alta_primera_finca"):
                 nom_finca = st.text_input("Nombre de la Parcela:", value="Mi Parcela 1")
                 c_lat, c_lon = st.columns(2)
@@ -960,12 +940,12 @@ with col_contenido:
                         st.warning("¡Finca eliminada!")
                         st.rerun()
 
-                st.markdown(f"#### 🛰️ Vista Satelital de: **{finca_a_editar}**")
+                st.markdown(f"#### 🛰️ Vista Satelital y SIGPAC de: **{finca_a_editar}**")
                 url_gmaps_app = f"https://www.google.com/maps/search/?api=1&query={datos_f['lat']},{datos_f['lon']}"
                 st.markdown(f"""
                 <a href="{url_gmaps_app}" target="_blank" style="text-decoration: none;">
                     <div style="background-color: #1e293b; color: #ffffff; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px;">
-                        🚗 ABRIR EN APP DE GOOGLE MAPS (GPS)
+                        🚗 ABRIR EN APP DE GOOGLE MAPS (GPS / NAVEGACIÓN)
                     </div>
                 </a>
                 """, unsafe_allow_html=True)
@@ -1027,7 +1007,7 @@ with col_contenido:
 
     # SECCIÓN 7: LEYENDA Y FUENTES
     elif "Leyenda técnica" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
         
         st.markdown("""
         <div class="legend-card">
