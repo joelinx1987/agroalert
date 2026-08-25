@@ -266,6 +266,45 @@ def enviar_correo_electronico(destinatario, asunto, cuerpo):
     except Exception as e:
         return False, f"Error al enviar el correo: {str(e)}"
 
+# --- FUNCIÓN DE PROCESAMIENTO AUTOMÁTICO HORARIO ---
+def verificar_y_enviar_automatizaciones():
+    ahora_h_m = datetime.now().strftime("%H:%M")
+    usuarios = cargar_json(USERS_FILE, {})
+    fincas_db = cargar_json(FINCAS_FILE, {})
+    
+    for username, udata in usuarios.items():
+        hora_usuario = udata.get("hora_aviso", "04:45")
+        email_u = udata.get("email", "")
+        
+        if hora_usuario == ahora_h_m and email_u:
+            fincas_del_usuario = fincas_db.get(username, {})
+            if fincas_del_usuario:
+                cuerpo_partes = [f"AGROALERT - PARTE DIARIO AUTOMÁTICO\nAgricultor: {udata.get('nombre', 'Agricultor')}\n"]
+                
+                for nombre_f, d_finca in fincas_del_usuario.items():
+                    m_finca = consultar_meteo_openmeteo(d_finca.get("lat", 42.46), d_finca.get("lon", -2.44))
+                    
+                    if m_finca["viento"] > 15:
+                        estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Mucho viento)"
+                        accion = "Frenar actividad en campo. Viento excesivo."
+                    elif m_finca["lluvia"] > 2.0:
+                        estado_f = "⛔ CONDICIONES NO APTAS PARA TRATAR (Riesgo de lluvia)"
+                        accion = "Frenar actividad en campo. Riesgo de lavado."
+                    else:
+                        estado_f = "🟢 VÍA LIBRE PARA TRATAR"
+                        accion = "Ejecutar tratamiento en campo manteniendo velocidad constante."
+
+                    cuerpo_partes.append(
+                        f"----------------------------------------\n"
+                        f"Finca: {nombre_f} ({d_finca.get('ha', 0)} ha)\n"
+                        f"ESTADO: {estado_f}\n"
+                        f"Viento: {m_finca['viento']:.1f} km/h | Lluvia: {m_finca['lluvia']:.1f} mm\n"
+                        f"Acción recomendada: {accion}\n"
+                    )
+                
+                cuerpo_correo_total = "\n".join(cuerpo_partes)
+                enviar_correo_electronico(email_u, "🚜 AgroAlert: Tu parte diario automatizado", cuerpo_correo_total)
+
 # --- CONTROL DE SESIÓN PERSISTENTE POR URL ---
 if "usuario_autenticado" not in st.session_state:
     query_params = st.query_params
@@ -895,3 +934,6 @@ with col_contenido:
                 guardar_json(FINCAS_FILE, st.session_state.db_privada)
                 st.success(f"¡Finca '{nombre_nueva}' añadida con éxito y geolocalizada en el mapa!")
                 st.rerun()
+
+if __name__ == "__main__":
+    verificar_y_enviar_automatizaciones()
