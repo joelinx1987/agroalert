@@ -2,8 +2,8 @@ name: Automatización Horaria AgroAlert
 
 on:
   schedule:
-    # Se ejecuta automáticamente cada hora en punto para comprobar las horas elegidas por los usuarios
-    - cron: '0 * * * *'
+    # Se ejecuta automáticamente cada hora en punto y a y media
+    - cron: '0,30 * * * *'
   workflow_dispatch:
 
 jobs:
