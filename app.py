@@ -32,7 +32,6 @@ st.set_page_config(
 )
 
 # --- ESTILOS VISUALES: FONDO DE PANTALLA COMPLETA ---
-fondo_css_rule = ""
 if fondo_path and os.path.exists(fondo_path):
     fondo_base64 = __import__('base64').b64encode(open(fondo_path, 'rb').read()).decode()
     fondo_css_rule = f"""
@@ -92,7 +91,7 @@ st.markdown(f"""
     div[data-testid="stRadio"] label:hover {{
         background-color: rgba(240, 253, 244, 0.95) !important;
         box-shadow: 0 6px 20px rgba(22, 163, 74, 0.1) !important;
-    }
+    }}
 
     div[data-testid="stRadio"] label div p {{
         font-size: 1rem !important;
@@ -153,7 +152,7 @@ st.markdown(f"""
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(255, 255, 255, 0.88) 100%);
         backdrop-filter: blur(4px);
         z-index: 1;
-    }
+    }}
 
     .card-content {{ position: relative; z-index: 2; }}
 
@@ -196,7 +195,7 @@ st.markdown(f"""
         border-radius: 14px !important;
         border: none !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -356,7 +355,6 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # PANTALLA DE ACCESO ENCAPSULADA SOBRE EL FONDO
         st.markdown('<div class="login-card-container">', unsafe_allow_html=True)
         
         st.markdown("""
