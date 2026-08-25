@@ -33,7 +33,7 @@ st.markdown("""
     .semaforo-ok { background: #dcfce7; border: 3px solid #22c55e; border-radius: 20px; padding: 24px; text-align: center; color: #064e3b; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
     .semaforo-bad { background: #fee2e2; border: 3px solid #ef4444; border-radius: 20px; padding: 24px; text-align: center; color: #7f1d1d; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15); }
     .stButton>button { font-size: 1.1rem !important; font-weight: 800 !important; padding: 14px 20px !important; border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important; }
-    .guia-caja { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 15px; color: #334155; font-size: 0.95rem; }
+    .guia-caja { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 16px; margin-bottom: 15px; color: #065f46; font-size: 1rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,33 +124,32 @@ if not st.session_state.usuario_autenticado:
         with tab_registro:
             st.markdown("""
             <div class="guia-caja">
-                <b>📱 ¿Cómo recibir los avisos en tu móvil paso a paso?</b><br>
-                1️⃣ Abre la aplicación <b>Telegram</b> en tu móvil.<br>
-                2️⃣ Busca arriba en la lupa el bot: <b>@ActualizacionAgroAlert_bot</b> y pulsa en <b>Iniciar</b>.<br>
-                3️⃣ Si no sabes tu número de identificador (Chat ID), busca en Telegram el contacto <b>@userinfobot</b>, escríbele cualquier cosa y te devolverá un número (ejemplo: <i>5473461038</i>). Pon ese número aquí abajo.
+                <b>🌾 ¿Cómo conectar los avisos a tu Telegram en 3 pasos?</b><br><br>
+                1️⃣ Abre Telegram en tu móvil y busca el bot: <b>@ActualizacionAgroAlert_bot</b><br>
+                2️⃣ Pulsa en el botón inferior que dice <b>INICIAR</b>.<br>
+                3️⃣ El bot te contestará saludándote y dándote tu <b>Número de Identificación (Chat ID)</b>. Escribe ese número aquí abajo junto a tus datos.
             </div>
             """, unsafe_allow_html=True)
 
             with st.form("form_registro_nuevo"):
-                nuevo_user = st.text_input("Crea un nombre de usuario (ej. antonio)").strip().lower()
-                nuevo_pwd = st.text_input("Contraseña para entrar", type="password")
+                nuevo_user = st.text_input("Nombre de usuario para entrar (ej. manolo)").strip().lower()
+                nuevo_pwd = st.text_input("Contraseña", type="password")
                 nuevo_nombre = st.text_input("Tu Nombre y Apellidos")
-                nuevo_chat_id = st.text_input("Tu Código de Telegram (Chat ID)")
+                nuevo_chat_id = st.text_input("Tu Número de Telegram (Chat ID que te dio el bot)")
                 
-                # Dejamos el token oculto por defecto para no liar al usuario mayor
                 nuevo_token = "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"
                 
                 st.markdown("---")
-                st.markdown("##### 📍 Datos de tu parcela principal")
-                nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo del Camino)", value="🍇 Mi Viña")
-                superficie_ha = st.number_input("¿Cuántas hectáreas tiene?", value=2.0, step=0.5)
+                st.markdown("##### 📍 Datos de tu parcela")
+                nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
+                superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
 
-                registrarse = st.form_submit_button("✨ DARME DE ALTA EN AGROALERT", use_container_width=True, type="primary")
+                registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
                 if registrarse:
                     if not nuevo_user or not nuevo_pwd or not nuevo_chat_id:
-                        st.error("Por favor, rellena tu usuario, contraseña y código de Telegram.")
+                        st.error("Por favor, rellena tu usuario, contraseña y número de Telegram.")
                     elif nuevo_user in st.session_state.usuarios_db:
-                        st.error("Ese usuario ya está cogido. Prueba con otro.")
+                        st.error("Ese usuario ya existe. Elige otro.")
                     else:
                         st.session_state.usuarios_db[nuevo_user] = {
                             "pwd": nuevo_pwd,
@@ -167,7 +166,7 @@ if not st.session_state.usuario_autenticado:
                         }
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
 
-                        st.success("¡Cuenta creada correctamente! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
+                        st.success("¡Cuenta creada con éxito! Ya puedes ir a la pestaña 'Iniciar Sesión' y entrar.")
     st.stop()
 
 user = st.session_state.usuario_autenticado
@@ -209,7 +208,7 @@ if "Puedo Sulfatar" in menu:
         st.markdown(f'<div class="semaforo-bad"><h2 style="margin:0; font-weight:900;">⛔ HOY NO ES BUEN DÍA</h2><p style="font-size:1.1rem; margin-top:8px;">Viento a {viento_hoy:.0f} km/h o previsión de lluvia.</p></div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="semaforo-ok"><h2 style="margin:0; font-weight:900;">✅ DÍA PERFECTO PARA ENTRAR</h2><p style="font-size:1.1rem; margin-top:8px;">Viento en calma ({viento_hoy:.0f} km/h) y sin lluvia.</p></div>', unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_angle_html=True) if "unsafe_angle_html" in globals() else None
+    st.markdown("<br>", unsafe_allow_html=True)
     c_m1, c_m2 = st.columns(2)
     with c_m1: st.metric("💨 Viento actual", f"{viento_hoy:.0f} km/h", "Ideal < 15")
     with c_m2: st.metric("🌧️ Lluvia prevista", f"{lluvia_hoy:.1f} L/m²", "Sin riesgo")
