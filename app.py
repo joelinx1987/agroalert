@@ -199,6 +199,7 @@ if "fitos_db" not in st.session_state:
 if "almacen_db" not in st.session_state:
     st.session_state.almacen_db = cargar_json(ALMACEN_FILE, DEFAULT_ALMACEN)
 
+# --- CONexión METEOROLÓGICA DINÁMICA POR COORDENADAS EXACTAS ---
 def consultar_meteo_openmeteo(lat, lon):
     try:
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=auto"
@@ -235,14 +236,14 @@ def consultar_meteo_openmeteo(lat, lon):
                     })
 
             return {
-                "temp": float(current.get("temperature_2m", 22.5)),
-                "humedad": float(current.get("relative_humidity_2m", 55.0)),
+                "temp": float(current.get("temperature_2m", 20.0)),
+                "humedad": float(current.get("relative_humidity_2m", 50.0)),
                 "lluvia": float(current.get("precipitation", 0.0)),
-                "viento": float(current.get("wind_speed_10m", 6.5)),
+                "viento": float(current.get("wind_speed_10m", 5.0)),
                 "horaria": horas_prevision
             }
     except Exception:
-        return {"temp": 22.5, "humedad": 55.0, "lluvia": 0.0, "viento": 6.5, "horaria": []}
+        return {"temp": 0.0, "humedad": 0.0, "lluvia": 0.0, "viento": 0.0, "horaria": []}
 
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
     remitente = "agroalertsoporte@gmail.com"
@@ -494,7 +495,7 @@ with col_menu:
         </div>
     """, unsafe_allow_html=True)
 
-# --- CONSULTA CLIMÁTICA INDEPENDIENTE Y REAL PARA LA FINCA SELECCIONADA ---
+# --- CONEXIÓN METEOROLÓGICA EN TIEMPO REAL USANDO LAS COORDENADAS DE LA FINCA ACTIVA ---
 meteo_actual = consultar_meteo_openmeteo(datos_parcela.get("lat", 42.46), datos_parcela.get("lon", -2.44))
 viento_hoy = meteo_actual["viento"]
 lluvia_hoy = meteo_actual["lluvia"]
@@ -684,7 +685,7 @@ with col_contenido:
 
     elif "Cuaderno de Campo" in menu:
         st.markdown("### 📋 Tu Cuaderno de Explotación (Normativa PAC España)")
-        st.write("Registra tus tratamientos fitosanitarios para cumplir con la legislación vigente en España y evitar sanciones ante inspecciones.")
+        st.write("Registra tus tratamientos fitosanitarios para cumplirกับการ legislación vigente en España y evitar sanciones ante inspecciones.")
         
         with st.form("form_cuaderno"):
             f_apli = st.date_input("Fecha de aplicación:", date.today())
@@ -985,12 +986,14 @@ with col_contenido:
                     
                 st.session_state.db_privada[user][nombre_nueva] = {
                     "lat": lat_nueva, 
-                    "lon": lon_nueva,
+                    "lon": lon_newData if 'lon_newData' in locals() else lon_nueva,
                     "variedad": variedad_nueva, 
                     "ha": ha_nueva, 
                     "poligono": pol_nuevo, 
                     "parcela": parc_nueva
                 }
+                # Asegurando la asignación limpia de lat y lon
+                st.session_state.db_privada[user][nombre_nueva]["lon"] = lon_nueva
                 guardar_json(FINCAS_FILE, st.session_state.db_privada)
                 st.success(f"¡Finca '{nombre_nueva}' añadida con éxito y geolocalizada en España!")
                 st.rerun()
