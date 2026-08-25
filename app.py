@@ -169,8 +169,8 @@ if not st.session_state.usuario_autenticado:
                     nombre_parcela = st.text_input("Nombre de tu finca (ej: Viñedo Bajo)", value="🍇 Mi Finca")
                     superficie_ha = st.number_input("Hectáreas de la finca", value=2.0, step=0.5)
                 with c_rp2:
-                    lat_inicial = st.number_input("Latitud (aprox)", value=42.4658, format="%.6f")
-                    lon_inicial = st.number_input("Longitud (aprox)", value=-2.4499, format="%.6f")
+                    lat_inicial = st.number_input("Latitud (ej: 42.4658)", value=42.4658, format="%.6f")
+                    lon_inicial = st.number_input("Longitud (ej: -2.4499)", value=-2.4499, format="%.6f")
 
                 registrarse = st.form_submit_button("✨ DARME DE ALTA", use_container_width=True, type="primary")
                 if registrarse:
@@ -313,21 +313,26 @@ elif "Avisos Automáticos" in menu:
 
 elif "Gestión de Fincas" in menu:
     st.markdown("### ⚙️ Gestión de Fincas y Parcelas")
-    st.write("Configura tus parcelas para tener todo bajo control. Guarda la ubicación exacta en el mapa para que el cálculo meteorológico sea preciso al milímetro.")
+    st.write("Selecciona una parcela para verla enfocada en el mapa con todo detalle o edita sus datos.")
     
     if fincas_usuario:
-        st.markdown("#### 🗺️ Mapa de tus parcelas actuales")
+        st.markdown("#### 🗺️ Localizador Interactivo de Parcelas")
         
-        df_mapa_datos = []
-        for nombre, datos in fincas_usuario.items():
-            if "lat" in datos and "lon" in datos:
-                df_mapa_datos.append({"Finca": nombre, "lat": float(datos["lat"]), "lon": float(datos["lon"])})
-                
-        if df_mapa_datos:
-            df_mapa = pd.DataFrame(df_mapa_datos)
-            st.map(df_mapa, zoom=11, use_container_width=True)
+        # Selector para elegir qué parcela enfocar en el mapa al instante
+        finca_seleccionada_mapa = st.selectbox("🔍 Elige una parcela para centrar el mapa:", list(fincas_usuario.keys()), key="select_mapa_finca")
+        d_mapa = fincas_usuario[finca_seleccionada_mapa]
+        
+        lat_sel = float(d_mapa.get("lat", 42.4658))
+        lon_sel = float(d_mapa.get("lon", -2.4499))
+        
+        # Mapa centrado específicamente en la parcela seleccionada con zoom de detalle (zoom 12-13)
+        df_mapa_individual = pd.DataFrame([{"Finca": finca_seleccionada_mapa, "lat": lat_sel, "lon": lon_sel}])
+        st.map(df_mapa_individual, zoom=12, use_container_width=True)
+        
+        st.markdown(f"📌 *Mostrando mapa enfocado en:* **{finca_seleccionada_mapa}** (Lat: {lat_sel}, Lon: {lon_sel})")
+        st.markdown("---")
             
-        st.markdown("#### 📋 Resumen de datos")
+        st.markdown("#### 📋 Resumen de datos de todas tus fincas")
         datos_tabla = []
         for nombre, d in fincas_usuario.items():
             datos_tabla.append({
@@ -353,7 +358,7 @@ elif "Gestión de Fincas" in menu:
                 nueva_variedad = st.text_input("Variedad o cultivo", value=datos_actuales.get("variedad", "General"))
                 nueva_ha = st.number_input("Superficie en hectáreas", value=float(datos_actuales.get("ha", 1.0)), step=0.5)
             with c_ed2:
-                st.write("Ubicación exacta:")
+                st.write("Ubicación exacta (Coordenadas geográficas):")
                 c_eco1, c_eco2 = st.columns(2)
                 with c_eco1:
                     nueva_lat = st.number_input("Latitud", value=float(datos_actuales.get("lat", 42.4658)), format="%.6f")
@@ -370,7 +375,6 @@ elif "Gestión de Fincas" in menu:
             guardar_cambios = st.form_submit_button("💾 ACTUALIZAR DATOS DE LA FINCA", use_container_width=True, type="primary")
             
             if guardar_cambios:
-                # Si cambió de nombre, borramos la clave antigua para evitar duplicados
                 if finca_a_editar != nuevo_nombre_finca:
                     del st.session_state.db_privada[user][finca_a_editar]
                 
@@ -399,9 +403,9 @@ elif "Gestión de Fincas" in menu:
             st.write("Ubicación exacta para Meteorología:")
             c_coord1, c_coord2 = st.columns(2)
             with c_coord1:
-                lat_nueva = st.number_input("Latitud (Google Maps)", value=42.4658, format="%.6f")
+                lat_nueva = st.number_input("Latitud", value=42.4658, format="%.6f")
             with c_coord2:
-                lon_nueva = st.number_input("Longitud (Google Maps)", value=-2.4499, format="%.6f")
+                lon_nueva = st.number_input("Longitud", value=-2.4499, format="%.6f")
                 
             st.write("Datos Catastrales:")
             c_cat1, c_cat2 = st.columns(2)
