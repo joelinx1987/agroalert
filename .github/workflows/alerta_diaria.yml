@@ -2,7 +2,8 @@ name: Bot WhatsApp Diario AgroAlert
 
 on:
   schedule:
-    - cron: '45 9 * * *'
+    # 55 9 * * * en UTC equivale exactamente a las 11:55 AM en España (en horario de verano)
+    - cron: '55 9 * * *'
   workflow_dispatch:
 
 jobs:
