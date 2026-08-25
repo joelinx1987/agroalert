@@ -296,7 +296,7 @@ if not st.session_state.usuario_autenticado:
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 3.8rem; margin-bottom: 5px;">🚜</div>
             <h1 style="font-size: 2.2rem; font-weight: 900; color: #15803d; margin: 0;">AgroAlert Pro</h1>
-            <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación de Precisión, SIEX/PAC, Multi-Usuario y IA</p>
+            <p style="font-size: 1.1rem; color: #475569; font-weight: 600; margin-top: 6px;">Explotación de Precisión, SIEX/PAC y Asistente IA</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -364,7 +364,6 @@ user_apikey = datos_usuario.get("apikey", "3443251")
 if user_activo not in st.session_state.db_privada:
     st.session_state.db_privada[user_activo] = {"🍇 Viña": {}, "🫒 Olivo": {}, "🌾 Cereal": {}, "🍑 Frutal": {}}
 
-# Si es técnico, puede supervisar a otros usuarios
 if rol_usuario == "Técnico / Asesor":
     lista_explotaciones = list(st.session_state.db_privada.keys())
     explotacion_seleccionada = st.selectbox("👔 Panel de Asesor - Seleccionar Explotación de Socio:", lista_explotaciones, index=0 if user_activo in lista_explotaciones else 0)
@@ -872,7 +871,7 @@ with col_contenido:
 
     # SECCIÓN 6: BOT WHATSAPP
     elif "Bot de Alertas" in seccion_activa:
-        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp (Automatizado)</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>📲 Bot de Alertas WhatsApp (Automatizado a las 4:45)</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='font-size: 1.05rem; color: #475569;'>Alertas vinculadas a: <b>{user_telefono}</b> ({nombre_cliente})</p>", unsafe_allow_html=True)
 
         if "Viña" in tipo_cultivo:
@@ -899,7 +898,11 @@ with col_contenido:
 ⚠️ *Riesgo Inminente:* Previsión de temperatura crítica de *{min_hoy:.1f}°C*.
 🛡️ *Acción:* Activar sistemas antihelada inmediatamente."""
 
-        st.info("🤖 **Automatización Activa:** El script `bot_diario.py` (ejecutado vía GitHub Actions cada mañana a las 6:00) procesará de forma totalmente autónoma las coordenadas de tus parcelas para enviar estos avisos a tu WhatsApp sin intervención manual.")
+        st.markdown("""
+        <div style="background: #eff6ff; border: 2px solid #3b82f6; border-radius: 14px; padding: 16px; margin-bottom: 16px; color: #1e40af;">
+            🤖 <b>Automatización Activa (GitHub Actions):</b> El script autónomo <code>bot_diario.py</code> está configurado para ejecutarse todos los días a las <b>4:45 de la mañana</b>, procesando las coordenadas de tus parcelas y enviando el parte matutino a tu WhatsApp sin que tengas que abrir la aplicación.
+        </div>
+        """, unsafe_allow_html=True)
 
         if st.button("📲 DISPARAR PARTE MATUTINO MANUAL", use_container_width=True, type="primary"):
             if not user_apikey:
@@ -1097,7 +1100,7 @@ with col_contenido:
             if tabla_fincas:
                 st.dataframe(pd.DataFrame(tabla_fincas), use_container_width=True, hide_index=True)
 
-    # SECCIÓN 8: LEYENDA Y FUENTES
+    # SECCIÓN 7: LEYENDA Y FUENTES
     elif "Leyenda Técnica" in seccion_activa:
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: inherit; margin: 0 0 15px 0;'>ℹ️ Leyenda Técnica y Fuentes de Datos</h2>", unsafe_allow_html=True)
         
@@ -1130,7 +1133,7 @@ with col_contenido:
         </div>
         """, unsafe_allow_html=True)
 
-    # SECCIÓN 9: PANEL ADMINISTRADOR
+    # SECCIÓN 8: PANEL ADMINISTRADOR
     elif "Panel Administrador" in seccion_activa and user_activo == "admin":
         st.markdown(f"<h2 style='font-size: 1.6rem; font-weight: 900; color: #991b1b; margin: 0 0 15px 0;'>🛠️ Panel de Control y Borrado de Usuarios</h2>", unsafe_allow_html=True)
         
