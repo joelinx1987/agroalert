@@ -2,14 +2,12 @@ import os
 os.environ.pop("SSLKEYLOGFILE", None)
 
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 from datetime import datetime, date, timedelta
 import urllib.request
 import urllib.parse
 import json
 import hashlib
-from PIL import Image
 
 logo_path = "logo.png" if os.path.exists("logo.png") else ("logo.jpg" if os.path.exists("logo.jpg") else None)
 
@@ -65,25 +63,22 @@ def guardar_json(archivo, datos):
     except Exception:
         pass
 
-def make_hash(password):
-    return hashlib.sha256(str.encode(password)).hexdigest()
-
 DEFAULT_USERS = {
     "admin1987": {"pwd": "admin1987", "nombre": "Joel (La Rioja)", "telegram_id": "5473461038", "telegram_token": "8717165365:AAEqfcf5KKG0f6yVDAvrdW4QhxQLLV7IsSs"}
 }
 DEFAULT_FINCAS = {
-    "joel": {
+    "admin1987": {
         "🍇 Viñedo Principal": {"lat": 42.4658, "lon": -2.4499, "variedad": "Tempranillo", "ha": 3.5, "poligono": "12", "parcela": "104"},
         "🫒 Olivar": {"lat": 42.4500, "lon": -2.4300, "variedad": "Arbequina", "ha": 1.5, "poligono": "8", "parcela": "42"}
     }
 }
 
-if entrar:
-                if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == pwd:
-                    st.session_state.usuario_autenticado = usuario
-                    st.rerun()
-                else:
-                    st.error("Usuario o contraseña incorrectos.")
+if "usuarios_db" not in st.session_state:
+    st.session_state.usuarios_db = cargar_json(USERS_FILE, DEFAULT_USERS)
+if "db_privada" not in st.session_state:
+    st.session_state.db_privada = cargar_json(FINCAS_FILE, DEFAULT_FINCAS)
+if "fitos_db" not in st.session_state:
+    st.session_state.fitos_db = cargar_json(FITOS_FILE, {})
 
 def disparar_telegram(token, chat_id, mensaje):
     try:
@@ -113,11 +108,11 @@ if not st.session_state.usuario_autenticado:
         """, unsafe_allow_html=True)
 
         with st.form("form_login"):
-            usuario = st.text_input("Usuario", value="joel").strip().lower()
-            pwd = st.text_input("Contraseña", type="password", value="1234")
+            usuario = st.text_input("Usuario", value="admin1987").strip().lower()
+            pwd = st.text_input("Contraseña", type="password", value="admin1987")
             entrar = st.form_submit_button("🚜 ENTRAR A MI EXPLOTACIÓN", use_container_width=True, type="primary")
             if entrar:
-                if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == make_hash(pwd):
+                if usuario in st.session_state.usuarios_db and st.session_state.usuarios_db[usuario]["pwd"] == pwd:
                     st.session_state.usuario_autenticado = usuario
                     st.rerun()
                 else:
@@ -152,7 +147,7 @@ menu = st.radio("Menú:", [
     "🟢 ¿Puedo Sulfatar Hoy?",
     "🧪 Cuenta de la Vieja (Calculadora de Cuba)",
     "📋 Cuaderno de Campo (PAC sin multas)",
-    "📲 Avisos Automáticos a las 11:55"
+    "📲 Avisos Automáticos a las 4:45"
 ], label_visibility="collapsed")
 
 st.write("---")
@@ -203,11 +198,11 @@ elif "Cuaderno de Campo" in menu:
     mis_datos = st.session_state.fitos_db.get(user, [])
     if mis_datos: st.dataframe(pd.DataFrame(mis_datos), use_container_width=True, hide_index=True)
 
-elif "Avisos Automáticos a las 11:55" in menu:
-    st.markdown("### 📲 Aviso Diario en tu Telegram a las 11:55")
+elif "Avisos Automáticos" in menu:
+    st.markdown("### 📲 Aviso Diario en tu Telegram a las 4:45")
     st.write("Recibirás un aviso automático en Telegram con los datos de tu parcela activa.")
     st.info(f"🤖 Chat ID configurado: **{telegram_id}**")
-    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 11:55*\n📍 *Parcela:* {parcela_activa} ({datos_parcela['ha']} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy} mm."
+    msg_prueba = f"🚜 *AGROALERT - PARTE DE LAS 4:45*\n📍 *Parcela:* {parcela_activa} ({datos_parcela['ha']} ha)\n🟢 *Estado:* Día perfecto para sulfatar.\n💨 *Viento:* {viento_hoy} km/h (Calma).\n🌧️ *Lluvia:* {lluvia_hoy} mm."
     if st.button("📲 PROBAR ENVÍO A TELEGRAM AHORA", use_container_width=True, type="primary"):
         ok, res = disparar_telegram(telegram_token, telegram_id, msg_prueba)
         if ok: st.success(res)
