@@ -321,6 +321,7 @@ if not st.session_state.usuario_autenticado:
     with col_login:
         st.markdown("<br>", unsafe_allow_html=True)
         
+        # LOGOTIPO VISIBLE EN PANTALLA DE ACCESO
         col_l1, col_l2, col_l3 = st.columns([1, 1.4, 1])
         with col_l2:
             if logo_path and os.path.exists(logo_path):
@@ -439,6 +440,15 @@ if rol_usuario == "Técnico / Asesor":
 else:
     fincas_usuario = st.session_state.db_privada[user_activo]
     explotacion_seleccionada = user_activo
+
+# --- BARRA LATERAL / CABECERA CON PRESENCIA DE MARCA ---
+with st.sidebar:
+    if logo_path and os.path.exists(logo_path):
+        st.image(logo_path, width=140)
+    st.markdown("### 🚜 AgroAlert")
+    st.markdown(f"**Usuario:** {nombre_cliente}")
+    st.markdown(f"**Rol:** {rol_usuario}")
+    st.write("---")
 
 # Selectores superiores y Modo Contraste
 c_top1, c_top2, c_top3, c_top4 = st.columns([1.1, 1.3, 0.6, 0.6])
