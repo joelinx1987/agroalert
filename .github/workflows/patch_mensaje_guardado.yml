@@ -1,0 +1,26 @@
+name: Actualizar mensaje guardado AgroAlert
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-message:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cambiar mensaje de confirmación
+        run: python -c "from pathlib import Path; p=Path('app.py'); s=p.read_text(encoding='utf-8'); old='''                    st.success(\n                        f\"✅ Aviso automático activado. Recibirás el parte diario alrededor de las {hora_str} \"\n                        f\"en {nuevo_email_aviso}, aunque AgroAlert esté cerrada.\"\n                    )'''; new='''                    st.success(\"Configuración de correo y hora guardada\")'''; assert old in s, 'No se encontró el bloque esperado'; p.write_text(s.replace(old,new,1),encoding='utf-8')"
+
+      - name: Guardar cambio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.py
+          git commit -m "Mostrar confirmación verde al guardar correo y hora"
+          git push
