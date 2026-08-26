@@ -1,0 +1,11 @@
+{
+  "name": "AgroAlert",
+  "short_name": "AgroAlert",
+  "description": "Asistente agrícola profesional",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#16a34a",
+  "icons": [{"src":"/app/static/agroalert-icon.jpg","sizes":"512x512","type":"image/jpeg","purpose":"any maskable"}]
+}

@@ -8,3 +8,6 @@ font = "sans serif"
 [client]
 showErrorDetails = false
 toolbarMode = "minimal"
+
+[server]
+enableStaticServing = true

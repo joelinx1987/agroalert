@@ -17,13 +17,13 @@ import smtplib
 
 # --- COMPROBACIÓN SEGURA DE LA RUTA DEL LOGO ---
 logo_path = None
-for posibles_nombres in ["logo.png", "logo.jpg", "fondo_logo.jpg.jpg"]:
+for posibles_nombres in ["logo.png.jpg", "logo.png", "logo.jpg", "fondo_logo.jpg.jpg"]:
     if os.path.exists(posibles_nombres):
         logo_path = posibles_nombres
         break
 
 st.set_page_config(
-    page_title="AgroAlert | Asistente Agrícola Profesional",
+    page_title="AgroAlert",
     page_icon=logo_path if logo_path else "🚜",
     layout="wide",
     initial_sidebar_state="collapsed"
