@@ -1008,10 +1008,7 @@ with col_contenido:
                 guardar_json(USERS_FILE, st.session_state.usuarios_db)
                 ok_sync, msg_sync = sincronizar_aviso_automatico(user)
                 if ok_sync:
-                    st.success(
-                        f"✅ Aviso automático activado. Recibirás el parte diario alrededor de las {hora_str} "
-                        f"en {nuevo_email_aviso}, aunque AgroAlert esté cerrada."
-                    )
+                    st.success("Configuración de correo y hora guardada")
                     st.caption("El programador externo se ejecuta periódicamente; el envío puede demorarse unos minutos.")
                 else:
                     st.warning(
