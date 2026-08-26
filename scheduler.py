@@ -3,6 +3,7 @@ import json
 import smtplib
 import urllib.parse
 import urllib.request
+import urllib.error
 from datetime import datetime, timedelta
 from email.message import EmailMessage
 from email.utils import format_datetime, make_msgid
@@ -50,7 +51,7 @@ def open_meteo(lat, lon):
     params = urllib.parse.urlencode({
         "latitude": float(lat),
         "longitude": float(lon),
-        "current": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m",
+        "current": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code",
         "timezone": "auto",
         "forecast_days": 1,
     })
@@ -203,7 +204,9 @@ def is_due(row, now_utc):
     h, m = parse_hhmm(row.get("hora_aviso") or "08:00")
     target = now_local.replace(hour=h, minute=m, second=0, microsecond=0)
     delta = now_local - target
-    if delta < timedelta(0) or delta >= timedelta(minutes=30):
+    # El workflow se ejecuta cada 5 minutos. Esta ventana tolera pequeños retrasos
+    # de GitHub Actions sin duplicar avisos gracias a last_sent_local_date.
+    if delta < timedelta(0) or delta >= timedelta(minutes=10):
         return False, now_local, target
     if row.get("last_sent_local_date") == now_local.date().isoformat():
         return False, now_local, target
@@ -247,7 +250,6 @@ def main():
             actualizar_estado(username, {
                 "last_sent_local_date": now_local.date().isoformat(),
                 "last_sent_at": now_utc.isoformat(),
-                "last_attempt_at": now_utc.isoformat(),
                 "last_error": None,
             })
             print(f"OK: {username}")
