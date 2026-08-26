@@ -990,22 +990,11 @@ with col_contenido:
             h_parts = hora_aviso_usuario.split(":")
             t_default = time(int(h_parts[0]), int(h_parts[1])) if len(h_parts) == 2 else time(8, 0)
             
-            horas_opciones = [time(h, m) for h in range(24) for m in (0, 30)]
-            
-            idx_default = 0
-            if t_default in horas_opciones:
-                idx_default = horas_opciones.index(t_default)
-            else:
-                m_cercano = 30 if t_default.minute >= 15 else 0
-                t_cercano = time(t_default.hour, m_cercano)
-                if t_cercano in horas_opciones:
-                    idx_default = horas_opciones.index(t_cercano)
-
-            nueva_hora_sel = st.selectbox(
-                "⏰ Elige la hora exacta para recibir tu parte (intervalos de 30 minutos):", 
-                horas_opciones, 
-                index=idx_default,
-                format_func=lambda t: t.strftime("%H:%M")
+            nueva_hora_sel = st.time_input(
+                "⏰ Elige la hora exacta para recibir tu parte:",
+                value=t_default,
+                step=60,
+                help="Puedes elegir cualquier minuto, por ejemplo 03:23."
             )
             
             nuevo_email_aviso = st.text_input("✉️ Correo electrónico de recepción:", value=email_usuario)
