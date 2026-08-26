@@ -1,27 +1,33 @@
-name: Automatización Horaria AgroAlert
+name: AgroAlert avisos automáticos
 
 on:
   schedule:
-    # Se ejecuta automáticamente cada hora en punto y a y media
-    - cron: '0,30 * * * *'
+    # GitHub Actions usa UTC. Ejecutamos cada 15 min y scheduler.py convierte a Europe/Madrid.
+    - cron: '5,20,35,50 * * * *'
   workflow_dispatch:
 
+concurrency:
+  group: agroalert-daily-email-scheduler
+  cancel-in-progress: false
+
 jobs:
-  comprobar-y-enviar:
+  send-daily-reports:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-      - name: Descargar código del repositorio
+      - name: Descargar código
         uses: actions/checkout@v4
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Instalar dependencias
-        run: |
-          pip install pandas streamlit folium streamlit-folium
-
-      - name: Ejecutar comprobación de horarios
-        run: |
-          python app.py
+      - name: Enviar avisos pendientes
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GMAIL_SENDER: agroalertsoporte@gmail.com
+        run: python scheduler.py
