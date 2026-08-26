@@ -1,0 +1,142 @@
+name: Configurar AgroAlert como app móvil
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  configurar-pwa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar PWA de AgroAlert
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+
+          # 1) Activar archivos estáticos de Streamlit
+          cfg = Path('.streamlit/config.toml')
+          text = cfg.read_text(encoding='utf-8') if cfg.exists() else ''
+          if '[server]' not in text:
+              text += '\n[server]\nenableStaticServing = true\n'
+          elif 'enableStaticServing' not in text:
+              text = text.replace('[server]', '[server]\nenableStaticServing = true', 1)
+          else:
+              import re
+              text = re.sub(r'enableStaticServing\s*=\s*(true|false)', 'enableStaticServing = true', text)
+          cfg.parent.mkdir(parents=True, exist_ok=True)
+          cfg.write_text(text, encoding='utf-8')
+
+          # 2) Copiar el logo existente a static
+          static = Path('static')
+          static.mkdir(exist_ok=True)
+          logo_candidates = [Path('logo.png.jpg'), Path('logo.png'), Path('logo.jpg'), Path('fondo_logo.jpg.jpg')]
+          logo = next((p for p in logo_candidates if p.exists()), None)
+          if not logo:
+              raise SystemExit('No se ha encontrado un logo para AgroAlert')
+          shutil.copyfile(logo, static / 'agroalert-icon.jpg')
+
+          # 3) Crear manifest de la app
+          manifest = '''{
+            "name": "AgroAlert",
+            "short_name": "AgroAlert",
+            "description": "Asistente agrícola profesional para gestión de fincas y avisos meteorológicos",
+            "start_url": "/",
+            "scope": "/",
+            "display": "standalone",
+            "background_color": "#f8fafc",
+            "theme_color": "#16a34a",
+            "icons": [
+              {
+                "src": "/app/static/agroalert-icon.jpg",
+                "sizes": "512x512",
+                "type": "image/jpeg",
+                "purpose": "any maskable"
+              }
+            ]
+          }\n'''
+          (static / 'manifest.webmanifest').write_text(manifest, encoding='utf-8')
+
+          # 4) Inyectar manifest, icono y nombre en el documento padre de Streamlit
+          app = Path('app.py')
+          code = app.read_text(encoding='utf-8')
+
+          if 'import streamlit.components.v1 as components' not in code:
+              code = code.replace('import streamlit as st\n', 'import streamlit as st\nimport streamlit.components.v1 as components\n', 1)
+
+          marker = 'initial_sidebar_state="collapsed"\n)\n'
+          pwa_block = r'''
+
+# --- IDENTIDAD MÓVIL / PWA DE AGROALERT ---
+components.html("""
+<script>
+(function () {
+  const doc = window.parent.document;
+  doc.title = "AgroAlert";
+
+  let manifest = doc.querySelector('link[rel="manifest"]');
+  if (!manifest) {
+    manifest = doc.createElement('link');
+    manifest.rel = 'manifest';
+    doc.head.appendChild(manifest);
+  }
+  manifest.href = '/app/static/manifest.webmanifest';
+
+  let icon = doc.querySelector('link[rel="apple-touch-icon"]');
+  if (!icon) {
+    icon = doc.createElement('link');
+    icon.rel = 'apple-touch-icon';
+    doc.head.appendChild(icon);
+  }
+  icon.href = '/app/static/agroalert-icon.jpg';
+
+  let theme = doc.querySelector('meta[name="theme-color"]');
+  if (!theme) {
+    theme = doc.createElement('meta');
+    theme.name = 'theme-color';
+    doc.head.appendChild(theme);
+  }
+  theme.content = '#16a34a';
+
+  let appName = doc.querySelector('meta[name="application-name"]');
+  if (!appName) {
+    appName = doc.createElement('meta');
+    appName.name = 'application-name';
+    doc.head.appendChild(appName);
+  }
+  appName.content = 'AgroAlert';
+})();
+</script>
+""", height=0, width=0)
+'''
+          if '# --- IDENTIDAD MÓVIL / PWA DE AGROALERT ---' not in code:
+              if marker not in code:
+                  raise SystemExit('No se encontró st.set_page_config para insertar PWA')
+              code = code.replace(marker, marker + pwa_block, 1)
+
+          # Usar el logo correcto también como favicon de Streamlit
+          code = code.replace(
+              'for posibles_nombres in ["logo.png", "logo.jpg", "fondo_logo.jpg.jpg"]:',
+              'for posibles_nombres in ["logo.png.jpg", "logo.png", "logo.jpg", "fondo_logo.jpg.jpg"]:',
+              1,
+          )
+
+          app.write_text(code, encoding='utf-8')
+          PY
+
+      - name: Guardar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.py .streamlit/config.toml static/
+          if git diff --cached --quiet; then
+            echo "La PWA ya estaba configurada."
+            exit 0
+          fi
+          git commit -m "Configurar AgroAlert como PWA móvil"
+          git push
