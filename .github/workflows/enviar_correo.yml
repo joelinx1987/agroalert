@@ -2,8 +2,8 @@ name: AgroAlert avisos automáticos
 
 on:
   schedule:
-    # GitHub Actions usa UTC. Ejecutamos cada 15 min y scheduler.py convierte a Europe/Madrid.
-    - cron: '5,20,35,50 * * * *'
+    # GitHub Actions usa UTC. Ejecutamos cada 5 min y scheduler.py convierte a Europe/Madrid.
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 concurrency:
