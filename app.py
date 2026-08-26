@@ -1,9 +1,12 @@
-
+import os
 os.environ.pop("SSLKEYLOGFILE", None)
 
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta, time
+from zoneinfo import ZoneInfo
+from email.utils import format_datetime, make_msgid
+from email.message import EmailMessage
 import urllib.request
 import urllib.parse
 import json
@@ -11,8 +14,6 @@ import hashlib
 import folium
 from streamlit_folium import st_folium
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 # --- COMPROBACIÓN SEGURA DE LA RUTA DEL LOGO ---
 logo_path = None
@@ -320,31 +321,74 @@ def consultar_meteo_openmeteo(lat, lon):
 
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
     remitente = "agroalertsoporte@gmail.com"
-    password_app = st.secrets.get("GMAIL_APP_PASSWORD", os.environ.get("GMAIL_APP_PASSWORD", ""))
-    
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = remitente
-        msg['To'] = destinatario
-        msg['Subject'] = asunto
-        
-        msg.attach(MIMEText(cuerpo, 'plain', 'utf-8'))
-        
-        if not password_app:
-            return False, "Falta configurar GMAIL_APP_PASSWORD en los secretos de la aplicación."
+    password_app = st.secrets.get(
+        "GMAIL_APP_PASSWORD",
+        os.environ.get("GMAIL_APP_PASSWORD", "")
+    )
 
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(remitente, password_app)
-        server.sendmail(remitente, destinatario, msg.as_string())
-        server.quit()
-        return True, "¡Correo enviado con éxito a tu bandeja de entrada!"
+    destinatario = (destinatario or "").strip()
+
+    if not password_app:
+        return False, "Falta configurar GMAIL_APP_PASSWORD en los secretos de la aplicación."
+
+    if not destinatario or "@" not in destinatario or destinatario.startswith("@") or destinatario.endswith("@"):
+        return False, "La dirección de correo del destinatario no es válida."
+
+    try:
+        ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
+
+        msg = EmailMessage()
+        msg["From"] = f"AgroAlert <{remitente}>"
+        msg["To"] = destinatario
+        msg["Subject"] = asunto
+        msg["Date"] = format_datetime(ahora_espana)
+        msg["Message-ID"] = make_msgid(domain="gmail.com")
+        msg["Reply-To"] = remitente
+        msg["Auto-Submitted"] = "auto-generated"
+
+        cuerpo_con_hora = (
+            f"{cuerpo}\n\n"
+            f"Hora de emisión AgroAlert (España): "
+            f"{ahora_espana.strftime('%d/%m/%Y %H:%M:%S %Z')}\n\n"
+            "Este correo ha sido generado automáticamente por AgroAlert."
+        )
+        msg.set_content(cuerpo_con_hora, subtype="plain", charset="utf-8")
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as server:
+            server.login(remitente, password_app)
+            rechazados = server.send_message(
+                msg,
+                from_addr=remitente,
+                to_addrs=[destinatario]
+            )
+
+        if rechazados:
+            return False, f"El servidor rechazó el destinatario: {rechazados}"
+
+        return True, (
+            f"Gmail ha aceptado el mensaje para {destinatario}. "
+            "La entrega final depende del proveedor del destinatario; revisa también Spam/Correo no deseado."
+        )
+
+    except smtplib.SMTPAuthenticationError:
+        return False, (
+            "Google ha rechazado la autenticación. Comprueba que la contraseña de aplicación "
+            "pertenece a agroalertsoporte@gmail.com."
+        )
+    except smtplib.SMTPRecipientsRefused as e:
+        return False, f"El servidor ha rechazado el destinatario: {e}"
+    except smtplib.SMTPSenderRefused as e:
+        return False, f"El servidor ha rechazado el remitente: {e}"
+    except smtplib.SMTPDataError as e:
+        return False, f"El servidor ha rechazado el contenido del mensaje: {e}"
+    except smtplib.SMTPException as e:
+        return False, f"Error SMTP al enviar el correo: {e}"
     except Exception as e:
-        return False, f"Error al enviar el correo: {str(e)}"
+        return False, f"Error inesperado al enviar el correo: {e}"
 
 # --- FUNCIÓN DE PROCESAMIENTO AUTOMÁTICO HORARIO (CADA MEDIA HORA) ---
 def verificar_y_enviar_automatizaciones():
-    ahora_espana = datetime.utcnow() + timedelta(hours=2)
+    ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
     ahora_h_m = ahora_espana.strftime("%H:%M")
 
     usuarios = cargar_json(USERS_FILE, {})
