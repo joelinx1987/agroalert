@@ -319,6 +319,105 @@ def consultar_meteo_openmeteo(lat, lon):
             "error": str(e),
         }
 
+# --- SINCRONIZACIÓN CON SUPABASE PARA AVISOS AUTOMÁTICOS REALES ---
+def _secret_or_env(nombre):
+    try:
+        valor = st.secrets.get(nombre, "")
+    except Exception:
+        valor = ""
+    return valor or os.environ.get(nombre, "")
+
+
+def supabase_scheduler_configurado():
+    return bool(_secret_or_env("SUPABASE_URL") and _secret_or_env("SUPABASE_SERVICE_ROLE_KEY"))
+
+
+def _supabase_request(method, tabla, query="", payload=None, prefer=None):
+    base = _secret_or_env("SUPABASE_URL").rstrip("/")
+    key = _secret_or_env("SUPABASE_SERVICE_ROLE_KEY")
+    if not base or not key:
+        raise RuntimeError("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Secrets.")
+
+    url = f"{base}/rest/v1/{tabla}"
+    if query:
+        url += f"?{query}"
+
+    data = None if payload is None else json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    headers = {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    if prefer:
+        headers["Prefer"] = prefer
+
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        body = resp.read().decode("utf-8")
+        return json.loads(body) if body else None
+
+
+def sincronizar_aviso_automatico(username):
+    """Guarda en Supabase una copia mínima de la configuración necesaria para el scheduler."""
+    if not supabase_scheduler_configurado():
+        return False, "Supabase no está configurado todavía."
+
+    usuario = st.session_state.usuarios_db.get(username, {})
+    fincas = st.session_state.db_privada.get(username, {})
+    email = (usuario.get("email") or "").strip()
+    hora = usuario.get("hora_aviso", "08:00")
+
+    fincas_payload = []
+    for nombre_finca, datos in fincas.items():
+        try:
+            lat = float(datos.get("lat"))
+            lon = float(datos.get("lon"))
+        except (TypeError, ValueError):
+            continue
+        fincas_payload.append({
+            "nombre": nombre_finca,
+            "lat": lat,
+            "lon": lon,
+            "ha": float(datos.get("ha", 0) or 0),
+            "variedad": datos.get("variedad", "General"),
+        })
+
+    payload = {
+        "username": username,
+        "nombre": usuario.get("nombre", username),
+        "email": email,
+        "hora_aviso": hora,
+        "timezone": "Europe/Madrid",
+        "fincas": fincas_payload,
+        "activo": bool(email and fincas_payload),
+        "updated_at": datetime.now(ZoneInfo("UTC")).isoformat(),
+    }
+
+    try:
+        _supabase_request(
+            "POST",
+            "agroalert_schedules",
+            query="on_conflict=username",
+            payload=payload,
+            prefer="resolution=merge-duplicates,return=minimal",
+        )
+        return True, "Aviso automático sincronizado con el servicio de programación."
+    except Exception as e:
+        return False, f"No se pudo sincronizar el aviso automático: {e}"
+
+
+def eliminar_aviso_automatico(username):
+    if not supabase_scheduler_configurado():
+        return False
+    try:
+        usuario_q = urllib.parse.quote(username, safe="")
+        _supabase_request("DELETE", "agroalert_schedules", query=f"username=eq.{usuario_q}")
+        return True
+    except Exception:
+        return False
+
+
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
     remitente = "agroalertsoporte@gmail.com"
     password_app = st.secrets.get(
@@ -520,6 +619,7 @@ if not st.session_state.usuario_autenticado:
                                 "lat": lat_inicial, "lon": lon_inicial, "variedad": "General", "ha": superficie_ha, "poligono": "1", "parcela": "1"
                             }
                             guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                            sincronizar_aviso_automatico(nuevo_user)
 
                             st.success("¡Cuenta creada con éxito! Ya puedes iniciar sesión.")
         else:
@@ -917,7 +1017,18 @@ with col_contenido:
                 st.session_state.usuarios_db[user]["hora_aviso"] = hora_str
                 st.session_state.usuarios_db[user]["email"] = nuevo_email_aviso
                 guardar_json(USERS_FILE, st.session_state.usuarios_db)
-                st.success(f"¡Configuración actualizada con éxito! Recibirás los avisos a las {hora_str} en {nuevo_email_aviso}.")
+                ok_sync, msg_sync = sincronizar_aviso_automatico(user)
+                if ok_sync:
+                    st.success(
+                        f"✅ Aviso automático activado. Recibirás el parte diario alrededor de las {hora_str} "
+                        f"en {nuevo_email_aviso}, aunque AgroAlert esté cerrada."
+                    )
+                    st.caption("El programador externo se ejecuta periódicamente; el envío puede demorarse unos minutos.")
+                else:
+                    st.warning(
+                        "La configuración se ha guardado, pero el envío automático externo todavía no está activo. "
+                        + msg_sync
+                    )
                 st.rerun()
 
         st.markdown("---")
@@ -997,12 +1108,14 @@ with col_contenido:
                         st.session_state.usuarios_db[user]["nombre"] = nuevo_nombre_perfil
                         st.session_state.usuarios_db[user]["email"] = nuevo_email_perfil
                         guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                        sincronizar_aviso_automatico(user)
                         st.success("¡Datos y contraseña actualizados correctamente!")
                         st.rerun()
                 else:
                     st.session_state.usuarios_db[user]["nombre"] = nuevo_nombre_perfil
                     st.session_state.usuarios_db[user]["email"] = nuevo_email_perfil
                     guardar_json(USERS_FILE, st.session_state.usuarios_db)
+                    sincronizar_aviso_automatico(user)
                     st.success("¡Datos de la cuenta actualizados correctamente!")
                     st.rerun()
 
@@ -1035,6 +1148,7 @@ with col_contenido:
                     if user_a_borrar in st.session_state.db_privada:
                         del st.session_state.db_privada[user_a_borrar]
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    eliminar_aviso_automatico(user_a_borrar)
                     st.success(f"¡El usuario '{user_a_borrar}' ha sido eliminado correctamente del sistema!")
                     st.rerun()
 
@@ -1080,6 +1194,7 @@ with col_contenido:
                     if finca_a_borrar in st.session_state.db_privada[user]:
                         del st.session_state.db_privada[user][finca_a_borrar]
                         guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                        sincronizar_aviso_automatico(user)
                         st.success(f"¡Finca '{finca_a_borrar}' eliminada correctamente!")
                         st.rerun()
             st.markdown("---")
@@ -1125,6 +1240,7 @@ with col_contenido:
                         "parcela": nueva_parc
                     }
                     guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                    sincronizar_aviso_automatico(user)
                     st.success(f"¡Finca '{nuevo_nombre_finca}' actualizada correctamente!")
                     st.rerun()
             st.markdown("---")
@@ -1167,8 +1283,9 @@ with col_contenido:
                     "parcela": parc_nueva
                 }
                 guardar_json(FINCAS_FILE, st.session_state.db_privada)
+                sincronizar_aviso_automatico(user)
                 st.success(f"¡Finca '{nombre_nueva}' añadida con éxito y geolocalizada en España!")
                 st.rerun()
 
-if __name__ == "__main__":
-    verificar_y_enviar_automatizaciones()
+# Los avisos diarios ya no dependen de que Streamlit esté abierto.
+# El envío automático lo ejecuta scheduler.py mediante GitHub Actions.
