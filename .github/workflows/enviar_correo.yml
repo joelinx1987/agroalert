@@ -6,6 +6,9 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: agroalert-daily-email-scheduler
   cancel-in-progress: false
@@ -23,6 +26,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Actualizar selector horario si hace falta
+        run: |
+          python patch_app_hora.py
+          if git diff --quiet; then
+            echo "Selector ya actualizado"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add app.py
+            git commit -m "Permitir hora de aviso con cualquier minuto"
+            git push
+          fi
 
       - name: Enviar avisos pendientes
         env:
