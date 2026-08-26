@@ -8,10 +8,18 @@ from email.message import EmailMessage
 from email.utils import format_datetime, make_msgid
 from zoneinfo import ZoneInfo
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
-SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-GMAIL_SENDER = os.environ.get("GMAIL_SENDER", "agroalertsoporte@gmail.com")
+
+def _clean_secret(name, remove_all_whitespace=False):
+    value = os.environ.get(name, "")
+    if remove_all_whitespace:
+        return "".join(value.split())
+    return value.strip()
+
+
+SUPABASE_URL = _clean_secret("SUPABASE_URL").rstrip("/")
+SUPABASE_SERVICE_ROLE_KEY = _clean_secret("SUPABASE_SERVICE_ROLE_KEY", remove_all_whitespace=True)
+GMAIL_APP_PASSWORD = _clean_secret("GMAIL_APP_PASSWORD", remove_all_whitespace=True)
+GMAIL_SENDER = _clean_secret("GMAIL_SENDER") or "agroalertsoporte@gmail.com"
 
 if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
     raise RuntimeError("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY.")
