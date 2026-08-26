@@ -1,0 +1,71 @@
+name: Actualizar selector horario AgroAlert
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Permitir cualquier minuto en app.py
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('app.py')
+          text = path.read_text(encoding='utf-8')
+
+          old = '''            horas_opciones = [time(h, m) for h in range(24) for m in (0, 30)]
+            
+            idx_default = 0
+            if t_default in horas_opciones:
+                idx_default = horas_opciones.index(t_default)
+            else:
+                m_cercano = 30 if t_default.minute >= 15 else 0
+                t_cercano = time(t_default.hour, m_cercano)
+                if t_cercano in horas_opciones:
+                    idx_default = horas_opciones.index(t_cercano)
+
+            nueva_hora_sel = st.selectbox(
+                "⏰ Elige la hora exacta para recibir tu parte (intervalos de 30 minutos):", 
+                horas_opciones, 
+                index=idx_default,
+                format_func=lambda t: t.strftime("%H:%M")
+            )
+'''
+
+          new = '''            nueva_hora_sel = st.time_input(
+                "⏰ Elige la hora exacta para recibir tu parte:",
+                value=t_default,
+                step=60,
+                help="Puedes elegir cualquier minuto, por ejemplo 03:23."
+            )
+'''
+
+          if old in text:
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+              print('Selector actualizado.')
+          elif 'help="Puedes elegir cualquier minuto, por ejemplo 03:23."' in text:
+              print('La app ya estaba actualizada.')
+          else:
+              raise SystemExit('No se encontró el bloque esperado en app.py')
+          PY
+
+      - name: Guardar cambio
+        run: |
+          if git diff --quiet; then
+            echo "No hay cambios pendientes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.py
+          git commit -m "Permitir hora de aviso con cualquier minuto"
+          git push
